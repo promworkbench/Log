@@ -22,7 +22,7 @@ import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 
 @Plugin(name = "Open XES Log File", parameterLabels = { "Filename" }, returnLabels = { "Log (single process)" }, returnTypes = { XLog.class })
-@UIImportPlugin(description = "ProM log files", extensions = { "mxml", "xml", "gz", "zip", "xes" })
+@UIImportPlugin(description = "ProM log files", extensions = { "mxml", "xml", "gz", "zip", "xes", "xez" })
 public class OpenLogFilePlugin extends AbstractImportPlugin {
 
 	@Override
@@ -31,7 +31,7 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 		context.getFutureResult(0).setLabel(filename);
 		//	System.out.println("Open file");
 		XParser parser;
-		if (filename.toLowerCase().endsWith(".xes") || filename.toLowerCase().endsWith(".xes.gz")) {
+		if (filename.toLowerCase().endsWith(".xes") || filename.toLowerCase().endsWith(".xez") || filename.toLowerCase().endsWith(".xes.gz")) {
 			parser = new XesXmlParser();
 		} else {
 			parser = new XMxmlParser();
@@ -67,7 +67,7 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 	@Override
 	protected InputStream getInputStream(File file) throws Exception {
 		FileInputStream stream = new FileInputStream(file);
-		if (file.getName().endsWith(".gz")) {
+		if (file.getName().endsWith(".gz") || file.getName().endsWith(".xez")) {
 			return new GZIPInputStream(stream);
 		}
 		if (file.getName().endsWith(".zip")) {
