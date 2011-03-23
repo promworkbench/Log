@@ -7,7 +7,7 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 
-@Plugin(name = "Simple log filter", parameterLabels = { "Log" }, returnLabels = { "Log" }, returnTypes = { XLog.class }, userAccessible = true)
+@Plugin(name = "Filter Log using Simple Heuristics", parameterLabels = { "Log" }, returnLabels = { "Log" }, returnTypes = { XLog.class }, userAccessible = true)
 public class LogFilterPlugin {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")

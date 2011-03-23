@@ -2,6 +2,9 @@ package org.processmining.plugins.log.logfilters.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.TreeSet;
 
 import javax.swing.BorderFactory;
@@ -28,6 +31,7 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.plugin.PluginContext;
+import org.processmining.framework.util.collection.AlphanumComparator;
 import org.processmining.plugins.log.logfilters.impl.DefaultLogFilter;
 import org.processmining.plugins.log.logfilters.impl.EventLogFilter;
 import org.processmining.plugins.log.logfilters.impl.FinalEventLogFilter;
@@ -35,8 +39,8 @@ import org.processmining.plugins.log.logfilters.impl.StartEventLogFilter;
 import org.processmining.plugins.log.logfilters.ui.SlickerEventTypeConfiguration.EventTypeAction;
 
 import com.fluxicon.slickerbox.components.NiceSlider;
-import com.fluxicon.slickerbox.components.RoundedPanel;
 import com.fluxicon.slickerbox.components.NiceSlider.Orientation;
+import com.fluxicon.slickerbox.components.RoundedPanel;
 import com.fluxicon.slickerbox.factory.SlickerFactory;
 import com.fluxicon.slickerbox.ui.SlickerScrollBarUI;
 
@@ -278,6 +282,14 @@ public class LogFilterUI {
 		public abstract void initComponents(XLog log);
 	}
 
+	private class EventClassComparator implements Comparator<XEventClass> {
+
+		public int compare(XEventClass o1, XEventClass o2) {
+			// TODO Auto-generated method stub
+			return (new AlphanumComparator().compare(o1.toString(), o2.toString()));
+		}		
+	}
+	
 	/**
 	 * Simple step class. All steps belong to this class, but in the future
 	 * additional (non-simple) steps may be added.
@@ -409,7 +421,9 @@ public class LogFilterUI {
 					if (comp != null) {
 						this.remove(comp);
 					}
-					list = new JList(eventClasses.getClasses().toArray());
+					ArrayList<XEventClass> eventClassArray = new ArrayList<XEventClass>(eventClasses.getClasses());
+					Collections.sort(eventClassArray, new EventClassComparator());
+					list = new JList(eventClassArray.toArray());
 					comp = configureList(list, heading, text);
 					this.add(comp, BorderLayout.CENTER);
 				}
