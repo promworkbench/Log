@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.TreeSet;
 
 import javax.swing.BorderFactory;
@@ -339,6 +340,7 @@ public class LogFilterUI {
 		 * The event classes found.
 		 */
 		private XEventClasses eventClasses;
+		private List<XEventClass> sortedEventClasses;
 		/**
 		 * The slider used for the simple selection list.
 		 */
@@ -421,9 +423,9 @@ public class LogFilterUI {
 					if (comp != null) {
 						this.remove(comp);
 					}
-					ArrayList<XEventClass> eventClassArray = new ArrayList<XEventClass>(eventClasses.getClasses());
-					Collections.sort(eventClassArray, new EventClassComparator());
-					list = new JList(eventClassArray.toArray());
+					sortedEventClasses = new ArrayList<XEventClass>(eventClasses.getClasses());
+					Collections.sort(sortedEventClasses, new EventClassComparator());
+					list = new JList(sortedEventClasses.toArray());
 					comp = configureList(list, heading, text);
 					this.add(comp, BorderLayout.CENTER);
 				}
@@ -444,7 +446,7 @@ public class LogFilterUI {
 						int percentage = slider.getSlider().getValue();
 						int size = 0;
 						TreeSet<Integer> eventSizes = new TreeSet<Integer>();
-						for (XEventClass event : eventClasses.getClasses()) {
+						for (XEventClass event : sortedEventClasses) {
 							size += event.size();
 							eventSizes.add(event.size());
 						}
@@ -455,7 +457,7 @@ public class LogFilterUI {
 							int eventSize = eventSizes.last();
 							eventSizes.remove(eventSize);
 							int index = 0;
-							for (XEventClass event : eventClasses.getClasses()) {
+							for (XEventClass event : sortedEventClasses) {
 								if (event.size() == eventSize) {
 									value += eventSize;
 									list.addSelectionInterval(index, index);
