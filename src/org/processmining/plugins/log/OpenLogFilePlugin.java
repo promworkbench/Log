@@ -14,6 +14,7 @@ import java.util.zip.ZipFile;
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.in.XMxmlParser;
 import org.deckfour.xes.in.XParser;
+import org.deckfour.xes.in.XParserRegistry;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.annotations.UIImportPlugin;
@@ -31,17 +32,39 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 		context.getFutureResult(0).setLabel(filename);
 		//	System.out.println("Open file");
 		XParser parser;
-		if (filename.toLowerCase().endsWith(".xes") || filename.toLowerCase().endsWith(".xez") || filename.toLowerCase().endsWith(".xes.gz")) {
+		if (filename.toLowerCase().endsWith(".xes") || filename.toLowerCase().endsWith(".xez")
+				|| filename.toLowerCase().endsWith(".xes.gz")) {
 			parser = new XesXmlParser();
 		} else {
 			parser = new XMxmlParser();
 		}
-		Collection<XLog> logs = parser.parse(new XContextMonitoredInputStream(input, fileSizeInBytes, context
-				.getProgress()));
+		Collection<XLog> logs = null;
+		try {
+			logs = parser.parse(new XContextMonitoredInputStream(input, fileSizeInBytes, context.getProgress()));
+		} catch (Exception e) {
+			logs = null;
+		}
+		if (logs == null) {
+			// try any other parser
+			for (XParser p : XParserRegistry.instance().getAvailable()) {
+				if (p == parser) {
+					continue;
+				}
+				try {
+					logs = p.parse(new XContextMonitoredInputStream(input, fileSizeInBytes, context.getProgress()));
+					if (logs.size() > 0) {
+						break;
+					}
+				} catch (Exception e1) {
+					// ignore and move on.
+					logs = null;
+				}
+			}
+		}
 
 		// log sanity checks;
 		// notify user if the log is awkward / does miss crucial information
-		if (logs.size() == 0) {
+		if (logs == null || logs.size() == 0) {
 			throw new Exception("No processes contained in log!");
 		}
 
