@@ -77,10 +77,13 @@ public class LogFilter {
 		if ((summary == null) && (progress != null)) {
 			summary = XLogInfoFactory.createLogInfo(log);
 		}
-		steps = Math.min(steps, summary.getNumberOfTraces());
-		int barSize = summary.getNumberOfEvents() / (steps > 0 ? steps : 1);
-		if (progress != null) {
-			progress.setMaximum(progress.getMaximum() + steps);
+		int barSize = 100;
+		if (summary != null) {
+			steps = Math.min(steps, summary.getNumberOfTraces());
+			barSize = summary.getNumberOfEvents() / (steps > 0 ? steps : 1);
+			if (progress != null) {
+				progress.setMaximum(progress.getMaximum() + steps);
+			}
 		}
 
 		// Go through the log to remove all XEvents, of which the name is not
@@ -89,6 +92,8 @@ public class LogFilter {
 		XLog filtered = (XLog) log.clone();
 		int i = 0;
 		Iterator<XTrace> itTrace = filtered.iterator();
+//		long time = -System.currentTimeMillis();
+		long progressTime = 0;
 		while (itTrace.hasNext()) {
 			XTrace trace = itTrace.next();
 			Iterator<XEvent> itEvent = trace.iterator();
@@ -98,17 +103,21 @@ public class LogFilter {
 					itEvent.remove();
 				}
 				// Check for progress and signal if necessary
+				progressTime -= System.currentTimeMillis();
 				if (progress != null) {
 					if (i % barSize == 0) {
 						progress.inc();
 					}
 					i++;
 				}
+				progressTime += System.currentTimeMillis();
 			}
 			if (trace.isEmpty() || !traceCondition.keepTrace(trace)) {
 				itTrace.remove();
 			}
 		}
+//		time += System.currentTimeMillis();
+//		System.err.println("[LogFilter] time = " + time + ", progressTime = " + progressTime);
 		return filtered;
 	}
 
@@ -161,10 +170,13 @@ public class LogFilter {
 		if ((summary == null) && (progress != null)) {
 			summary = XLogInfoFactory.createLogInfo(log);
 		}
-		steps = Math.max(1, Math.min(steps, summary.getNumberOfTraces()));
-		int barSize = summary.getNumberOfTraces() / steps;
-		if (progress != null) {
-			progress.setMaximum(progress.getMaximum() + steps);
+		int barSize = 100;
+		if (summary != null) {
+			steps = Math.max(1, Math.min(steps, summary.getNumberOfTraces()));
+			barSize = summary.getNumberOfTraces() / steps;
+			if (progress != null) {
+				progress.setMaximum(progress.getMaximum() + steps);
+			}
 		}
 
 		// Go through the log to remove all XEvents, of which the name is not
@@ -173,18 +185,24 @@ public class LogFilter {
 		XLog filtered = (XLog) log.clone();
 		int i = 0;
 		Iterator<XTrace> itTrace = filtered.iterator();
+//		long time = -System.currentTimeMillis();
+		long progressTime = 0;
 		while (itTrace.hasNext()) {
 			XTrace trace = itTrace.next();
 			if (!traceCondition.keepTrace(trace)) {
 				itTrace.remove();
 			}
+			progressTime -= System.currentTimeMillis();
 			if (progress != null) {
 				if (i % barSize == 0) {
 					progress.inc();
 				}
 				i++;
 			}
+			progressTime += System.currentTimeMillis();
 		}
+//		time += System.currentTimeMillis();
+//		System.err.println("[LogFilter] time = " + time + ", progressTime = " + progressTime);
 		return filtered;
 	}
 
@@ -300,7 +318,7 @@ public class LogFilter {
 	public static XLog filter(Progress progress, int steps, XLog log, XLogInfo summary, XEventEditor eventEditor,
 			XTraceEditor traceEditor) throws LogFilterException {
 
-		int barSize = 0;
+		int barSize = 100;
 		// set the progress indicator to the maximum number of events / 100
 		if (progress != null) {
 			if (summary == null) {
@@ -408,10 +426,13 @@ public class LogFilter {
 		if ((summary == null) && (progress != null)) {
 			summary = XLogInfoFactory.createLogInfo(log);
 		}
-		steps = Math.min(steps, summary.getNumberOfTraces());
-		int barSize = summary.getNumberOfTraces() / steps;
-		if (progress != null) {
-			progress.setMaximum(progress.getMaximum() + steps);
+		int barSize = 100;
+		if (summary != null) {
+			steps = Math.min(steps, summary.getNumberOfTraces());
+			barSize = summary.getNumberOfTraces() / steps;
+			if (progress != null) {
+				progress.setMaximum(progress.getMaximum() + steps);
+			}
 		}
 
 		// Go through the log to remove all XEvents, of which the name is not

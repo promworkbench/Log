@@ -31,7 +31,6 @@ import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.contexts.uitopia.UIPluginContext;
-import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.util.collection.AlphanumComparator;
 import org.processmining.plugins.log.logfilters.impl.DefaultLogFilter;
 import org.processmining.plugins.log.logfilters.impl.EventLogFilter;
@@ -129,10 +128,16 @@ public class LogFilterUI {
 					 * step, then move the next step, and initialize it with the
 					 * filtered log of the previous step.
 					 */
+//					long time = -System.currentTimeMillis();
 					XLog filteredLog = mySteps[currentStep].getLog();
+//					time += System.currentTimeMillis();
+//					System.err.println("[LogFilterUI] log time = " + time);
 					go(1);
+//					time = -System.currentTimeMillis();
 					mySteps[currentStep].initComponents(filteredLog);
 					mySteps[currentStep].repaint();
+//					time += System.currentTimeMillis();
+//					System.err.println("[LogFilterUI] UI time = " + time);
 					break;
 				case PREV :
 					/*
@@ -488,9 +493,9 @@ public class LogFilterUI {
 		public XLog getLog() {
 			String[] toRemove = cfg.getFilteredEventTypes(EventTypeAction.REMOVE);
 			String[] toSkip = cfg.getFilteredEventTypes(EventTypeAction.SKIP_INSTANCE);
-			PluginContext filterContext = context.createChildContext("Default Log Filter");
+//			PluginContext filterContext = context.createChildContext("Default Log Filter");
 			DefaultLogFilter filter = new DefaultLogFilter();
-			return filter.filter(filterContext, log, toRemove, toSkip);
+			return filter.filter(null, log, toRemove, toSkip);
 
 			/*
 			 * try { return
@@ -539,9 +544,9 @@ public class LogFilterUI {
 			for (int i = 0; i < selectedObjects.length; i++) {
 				startIds[i] = selectedObjects[i].toString();
 			}
-			PluginContext filterContext = context.createChildContext("Start Event Log Filter");
+//			PluginContext filterContext = context.createChildContext("Start Event Log Filter");
 			StartEventLogFilter filter = new StartEventLogFilter();
-			return filter.filterWithClassifier(filterContext, log, classifier, startIds);
+			return filter.filterWithClassifier(null, log, classifier, startIds);
 
 			/*
 			 * try { return
@@ -571,9 +576,9 @@ public class LogFilterUI {
 			for (int i = 0; i < selectedObjects.length; i++) {
 				endIds[i] = selectedObjects[i].toString();
 			}
-			PluginContext filterContext = context.createChildContext("Final Event Log Filter");
+//			PluginContext filterContext = context.createChildContext("Final Event Log Filter");
 			FinalEventLogFilter filter = new FinalEventLogFilter();
-			return filter.filterWithClassifier(filterContext, log, classifier, endIds);
+			return filter.filterWithClassifier(null, log, classifier, endIds);
 
 			/*
 			 * try { return
@@ -603,9 +608,9 @@ public class LogFilterUI {
 			for (int i = 0; i < selectedObjects.length; i++) {
 				selectedIds[i] = selectedObjects[i].toString();
 			}
-			PluginContext filterContext = context.createChildContext("Event Log Filter");
+//			PluginContext filterContext = context.createChildContext("Event Log Filter");
 			EventLogFilter filter = new EventLogFilter();
-			return filter.filterWithClassifier(filterContext, log, classifier, selectedIds);
+			return filter.filterWithClassifier(null, log, classifier, selectedIds);
 
 			/*
 			 * try { return

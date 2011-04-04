@@ -45,7 +45,7 @@ public class EventLogFilter {
 		// Construct a sorted set of names for easy lookup
 		final HashSet<XEventClass> toKeep = new HashSet<XEventClass>(Arrays.asList(eventClassesToKeep));
 
-		return LogFilter.filter(context.getProgress(), 100, log, XLogInfoFactory.createLogInfo(log),
+		return LogFilter.filter((context != null ? context.getProgress() : null), 100, log, (context != null ? XLogInfoFactory.createLogInfo(log) : null),
 				new XEventCondition() {
 
 					public boolean keepEvent(XEvent event) {
@@ -65,7 +65,7 @@ public class EventLogFilter {
 			final String[] selectedIds) {
 		final Collection<String> ids = new HashSet<String>(Arrays.asList(selectedIds));
 
-		return LogFilter.filter(context.getProgress(), 100, log, XLogInfoFactory.createLogInfo(log),
+		return LogFilter.filter((context != null ? context.getProgress() : null), 100, log, (context != null ? XLogInfoFactory.createLogInfo(log) : null),
 				new XEventCondition() {
 
 					public boolean keepEvent(XEvent event) {

@@ -33,36 +33,48 @@ public class DefaultLogFilter {
 	@PluginVariant(requiredParameterLabels = { 0, 1, 2 }, variantLabel = "Keep given events")
 	public XLog filter(PluginContext context, XLog log, String[] lifeCycleObjectsToIgnore,
 			String[] lifeCycleObjectsToRemoveCase) {
+//		long time = -System.currentTimeMillis();
 		final Set<?> remove = new HashSet<Object>(Arrays.asList(lifeCycleObjectsToRemoveCase));
+		XLog filtered = log;
+		
+		if (!remove.isEmpty()) {
+			// First, remove all cases containing an event of which the lifecycle extension is such
+			// that the trace should be removed.
+			filtered = LogFilter.filter((context != null ? context.getProgress() : null), 100, filtered,
+					(context != null ? XLogInfoFactory.createLogInfo(filtered) : null), new XTraceCondition() {
 
-		// First, remove all cases containing an event of which the lifecycle extension is such
-		// that the trace should be removed.
-		XLog filtered = LogFilter.filter(context.getProgress(), 100, log, XLogInfoFactory.createLogInfo(log),
-				new XTraceCondition() {
-
-					public boolean keepTrace(XTrace trace) {
-						for (XEvent event : trace) {
-							if (remove.contains(XLifecycleExtension.instance().extractTransition(event))) {
-								return false;
+						public boolean keepTrace(XTrace trace) {
+							for (XEvent event : trace) {
+								if (remove.contains(XLifecycleExtension.instance().extractTransition(event))) {
+									return false;
+								}
 							}
+							return true;
 						}
-						return true;
-					}
-				});
+					});
+		}
+//		time += System.currentTimeMillis();
+//		System.err.println("[DefaultLogFilter] remove time = " + time);
 
+//		time = -System.currentTimeMillis();
 		final Set<?> ignore = new HashSet<Object>(Arrays.asList(lifeCycleObjectsToIgnore));
 
-		// Finally, remove all events of which the lifecycle extension is such
-		// that it should be ignored.
-		return LogFilter.filter(context.getProgress(), 100, filtered, XLogInfoFactory.createLogInfo(log),
-				new XEventCondition() {
+		if (!ignore.isEmpty()) {
+			// Finally, remove all events of which the lifecycle extension is such
+			// that it should be ignored.
+			filtered = LogFilter.filter((context != null ? context.getProgress() : null), 100, filtered,
+					(context != null ? XLogInfoFactory.createLogInfo(filtered) : null), new XEventCondition() {
 
-					public boolean keepEvent(XEvent event) {
-						if (ignore.contains(XLifecycleExtension.instance().extractTransition(event))) {
-							return false;
+						public boolean keepEvent(XEvent event) {
+							if (ignore.contains(XLifecycleExtension.instance().extractTransition(event))) {
+								return false;
+							}
+							return true;
 						}
-						return true;
-					}
-				});
+					});
+		}
+//		time += System.currentTimeMillis();
+//		System.err.println("[DefaultLogFilter] ignore time = " + time);
+		return filtered;
 	}
 }

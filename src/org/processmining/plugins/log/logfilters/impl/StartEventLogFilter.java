@@ -33,7 +33,7 @@ public class StartEventLogFilter {
 	public XLog filterWithNames(PluginContext context, XLog log, final XEventClasses events) {
 		// Construct a sorted set of events for easy lookup
 
-		return LogFilter.filter(context.getProgress(), 100, log, XLogInfoFactory.createLogInfo(log),
+		return LogFilter.filter((context != null ? context.getProgress() : null), 100, log, (context != null ? XLogInfoFactory.createLogInfo(log) : null),
 				new XTraceCondition() {
 
 					public boolean keepTrace(XTrace trace) {
@@ -52,7 +52,7 @@ public class StartEventLogFilter {
 		// Construct a sorted set of events for easy lookup
 		final Collection<String> ids = new HashSet<String>(Arrays.asList(startIds));
 
-		return LogFilter.filter(context.getProgress(), 100, log, XLogInfoFactory.createLogInfo(log),
+		return LogFilter.filter((context != null ? context.getProgress() : null), 100, log, (context != null ? XLogInfoFactory.createLogInfo(log) : null),
 				new XTraceCondition() {
 
 					public boolean keepTrace(XTrace trace) {
