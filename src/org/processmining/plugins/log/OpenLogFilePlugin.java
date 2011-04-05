@@ -70,11 +70,21 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 
 		XLog log = logs.iterator().next();
 		if (XConceptExtension.instance().extractName(log) == null) {
+			/*
+			 * Log name not set. Create a default log name.
+			 */
 			XConceptExtension.instance().assignName(log, "Anonymous log imported from " + filename);
 		}
 
 		if (log.isEmpty()) {
 			throw new Exception("No process instances contained in log!");
+		}
+
+		/*
+		 * Set the log name as the name of the provided object.
+		 */
+		if (context != null) {
+			context.getFutureResult(0).setLabel(XConceptExtension.instance().extractName(log));
 		}
 
 		return log;
