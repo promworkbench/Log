@@ -12,6 +12,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.factory.XFactoryRegistry;
 import org.deckfour.xes.in.XMxmlParser;
 import org.deckfour.xes.in.XParser;
 import org.deckfour.xes.in.XParserRegistry;
@@ -26,17 +28,16 @@ import org.processmining.framework.plugin.annotations.Plugin;
 @UIImportPlugin(description = "ProM log files", extensions = { "mxml", "xml", "gz", "zip", "xes", "xez" })
 public class OpenLogFilePlugin extends AbstractImportPlugin {
 
-	@Override
-	protected Object importFromStream(PluginContext context, InputStream input, String filename, long fileSizeInBytes)
+	protected Object importFromStream(PluginContext context, InputStream input, String filename, long fileSizeInBytes, XFactory factory)
 			throws Exception {
 		context.getFutureResult(0).setLabel(filename);
 		//	System.out.println("Open file");
 		XParser parser;
 		if (filename.toLowerCase().endsWith(".xes") || filename.toLowerCase().endsWith(".xez")
 				|| filename.toLowerCase().endsWith(".xes.gz")) {
-			parser = new XesXmlParser();
+			parser = new XesXmlParser(factory);
 		} else {
-			parser = new XMxmlParser();
+			parser = new XMxmlParser(factory);
 		}
 		Collection<XLog> logs = null;
 		try {
@@ -115,6 +116,12 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 			return zip.getInputStream(zipEntry);
 		}
 		return stream;
+	}
+
+	protected Object importFromStream(PluginContext context, InputStream input, String filename, long fileSizeInBytes)
+			throws Exception {
+		// TODO Auto-generated method stub
+		return importFromStream(context, input, filename, fileSizeInBytes, XFactoryRegistry.instance().currentDefault());
 	}
 
 }
