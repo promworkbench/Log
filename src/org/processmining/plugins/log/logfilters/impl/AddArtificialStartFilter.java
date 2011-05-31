@@ -4,7 +4,6 @@ import org.deckfour.xes.info.XLogInfoFactory;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
-import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginVariant;
@@ -27,7 +26,6 @@ public class AddArtificialStartFilter {
 	 * @return the filtered log
 	 * @throws LogFilterException
 	 */
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "B.F. van Dongen", email = "b.f.v.dongen@tue.nl")
 	@PluginVariant(requiredParameterLabels = { 0, 1 }, variantLabel = "Keep given events")
 	public XLog filter(PluginContext context, XLog log, final XEvent event) throws LogFilterException {
 		// Construct a sorted set of events for easy lookup
