@@ -403,13 +403,17 @@ public class LogFilterUI {
 				case STARTEVENTS :
 					eventClasses = new XEventClasses(classifier);
 					for (XTrace trace : log) {
-						eventClasses.register(trace.get(0));
+						if (!trace.isEmpty()) {
+							eventClasses.register(trace.get(0));
+						}
 					}
 					break;
 				case ENDEVENTS :
 					eventClasses = new XEventClasses(classifier);
 					for (XTrace trace : log) {
-						eventClasses.register(trace.get(trace.size() - 1));
+						if (!trace.isEmpty()) {
+							eventClasses.register(trace.get(trace.size() - 1));
+						}
 					}
 					break;
 				default :
