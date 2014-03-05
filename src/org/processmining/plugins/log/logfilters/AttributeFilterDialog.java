@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
 
+import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.util.collection.AlphanumComparator;
 import org.processmining.framework.util.ui.widgets.ProMList;
 
@@ -27,13 +28,14 @@ public class AttributeFilterDialog extends JPanel {
 	private Map<String, ProMList<String>> lists;
 	AttributeFilterParameters parameters;
 	
-	public AttributeFilterDialog(AttributeFilterParameters parameters) {
+	public AttributeFilterDialog(PluginContext context, AttributeFilterParameters parameters) {
 		this.parameters = parameters;
 		Map<String, List<String>> values = new HashMap<String, List<String>>();
 		for (String key : parameters.getFilter().keySet()) {
 			values.put(key, new ArrayList<String>());
 			values.get(key).addAll(parameters.getFilter().get(key));
 			Collections.sort(values.get(key), new AlphanumComparator());
+			context.getProgress().inc();
 		}
 
 		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.FILL } };
@@ -55,11 +57,13 @@ public class AttributeFilterDialog extends JPanel {
 				selected[i] = i;
 				i++;
 			}
+			context.getProgress().inc();
 			ProMList<String> list = new ProMList<String>("Select values", listModel);
 			lists.put(key, list);
 			list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 			list.setSelectedIndices(selected);
 			list.setPreferredSize(new Dimension(100, 100));
+			context.getProgress().inc();
 			
 			tabbedPane.add(key, list);
 		}

@@ -8,12 +8,13 @@ import java.util.Set;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
+import org.processmining.framework.plugin.PluginContext;
 
 public class AttributeFilterParameters {
 
 	private Map<String,Set<String>> filter;
 
-	public AttributeFilterParameters(XLog log) {
+	public AttributeFilterParameters(PluginContext context, XLog log) {
 		filter = new HashMap<String,Set<String>>();
 		for (XTrace trace : log) {
 			for (XEvent event : trace) {
@@ -24,6 +25,7 @@ public class AttributeFilterParameters {
 					filter.get(key).add(event.getAttributes().get(key).toString());
 				}
 			}
+			context.getProgress().inc();
 		}
 	}
 	

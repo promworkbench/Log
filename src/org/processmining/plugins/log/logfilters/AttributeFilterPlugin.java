@@ -18,8 +18,9 @@ public class AttributeFilterPlugin {
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")
 	@PluginVariant(variantLabel = "Filter Log on Attribute Values, UI", requiredParameterLabels = { 0 })
 	public XLog filterDialog(UIPluginContext context, XLog log) {
-		AttributeFilterParameters parameters = new AttributeFilterParameters(log);
-		AttributeFilterDialog dialog = new AttributeFilterDialog(parameters);
+		context.getProgress().setMaximum(3 * log.size());
+		AttributeFilterParameters parameters = new AttributeFilterParameters(context, log);
+		AttributeFilterDialog dialog = new AttributeFilterDialog(context, parameters);
 		InteractionResult result = context.showWizard("Configure filter (values)", true, true, dialog);
 		if (result != InteractionResult.FINISHED) {
 			return null;
@@ -54,6 +55,7 @@ public class AttributeFilterPlugin {
 				if (add) {
 					filteredTrace.add(event);
 				}
+				context.getProgress().inc();
 			}
 			filteredLog.add(filteredTrace);
 		}
