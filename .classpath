@@ -43,8 +43,6 @@
 	<classpathentry kind="lib" path="tests/libs-external/lib-cobertura/log4j-1.2.9.jar"/>
 	<classpathentry kind="lib" path="tests/libs-external/cobertura.jar"/>
 	<classpathentry kind="lib" path="tests/libs-external/junit-4.8.1.jar"/>
-	<classpathentry kind="lib" path="lib/OpenXES-XStream.jar"/>
-	<classpathentry kind="lib" path="lib/OpenXES.jar"/>
 	<classpathentry kind="lib" path="stdlib/freehep-export-2.1.1.jar"/>
 	<classpathentry kind="lib" path="stdlib/freehep-graphics2d-2.1.1.jar"/>
 	<classpathentry kind="lib" path="stdlib/freehep-graphicsio-2.1.1.jar"/>
@@ -63,5 +61,7 @@
 	<classpathentry kind="lib" path="stdlib/jdom-1.0.jar"/>
 	<classpathentry kind="lib" path="stdlib/junit-3.8.2.jar"/>
 	<classpathentry kind="lib" path="stdlib/openide-lookup-1.9-patched-1.0.jar"/>
+	<classpathentry kind="lib" path="packagelib/Widgets.jar"/>
+	<classpathentry kind="lib" path="stdlib/guava-16.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
