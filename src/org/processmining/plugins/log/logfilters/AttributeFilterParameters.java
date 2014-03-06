@@ -12,8 +12,12 @@ import org.processmining.framework.plugin.PluginContext;
 
 public class AttributeFilterParameters {
 
-	private Map<String,Set<String>> filter;
+	protected Map<String,Set<String>> filter;
 
+	public AttributeFilterParameters(PluginContext context) {
+		filter = new HashMap<String,Set<String>>();
+	}
+	
 	public AttributeFilterParameters(PluginContext context, XLog log) {
 		filter = new HashMap<String,Set<String>>();
 		for (XTrace trace : log) {
