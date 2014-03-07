@@ -15,7 +15,8 @@ public class LogFilterPlugin {
 	public static XLog main(final UIPluginContext context, XLog log) {
 		LogFilterUI filterUI = new LogFilterUI(context);
 		XLog filteredLog = filterUI.filter(log);
-		context.getFutureResult(0).setLabel(XConceptExtension.instance().extractName(log) + " (filtered)");
+		XConceptExtension.instance().assignName(filteredLog, filterUI.getName());
+		context.getFutureResult(0).setLabel(filterUI.getName());
 		return filteredLog;
 	}
 }

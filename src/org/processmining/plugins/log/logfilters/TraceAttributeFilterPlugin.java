@@ -1,8 +1,10 @@
 package org.processmining.plugins.log.logfilters;
 
 import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
+import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.contexts.uitopia.UIPluginContext;
@@ -19,7 +21,7 @@ public class TraceAttributeFilterPlugin {
 	public XLog filterDialog(UIPluginContext context, XLog log) {
 		context.getProgress().setMaximum(3 * log.size());
 		TraceAttributeFilterParameters parameters = new TraceAttributeFilterParameters(context, log);
-		AttributeFilterDialog dialog = new AttributeFilterDialog(context, parameters);
+		AttributeFilterDialog dialog = new AttributeFilterDialog(context, parameters, " (filtered on trace attributes)");
 		InteractionResult result = context.showWizard("Configure filter (values)", true, true, dialog);
 		if (result != InteractionResult.FINISHED) {
 			return null;
@@ -35,7 +37,7 @@ public class TraceAttributeFilterPlugin {
 
 	private XLog filterPrivate(PluginContext context, XLog log, AttributeFilterParameters parameters) {
 		XFactory factory = XFactoryRegistry.instance().currentDefault();
-		XLog filteredLog = factory.createLog(log.getAttributes());
+		XLog filteredLog = factory.createLog((XAttributeMap) log.getAttributes().clone());
 		filteredLog.getClassifiers().addAll(log.getClassifiers());
 		filteredLog.getExtensions().addAll(log.getExtensions());
 		filteredLog.getGlobalTraceAttributes().addAll(log.getGlobalTraceAttributes());
@@ -54,6 +56,8 @@ public class TraceAttributeFilterPlugin {
 			}
 			context.getProgress().inc();
 		}
+		XConceptExtension.instance().assignName(filteredLog, parameters.getName());
+		context.getFutureResult(0).setLabel(parameters.getName());
 		return filteredLog;
 	}
 }

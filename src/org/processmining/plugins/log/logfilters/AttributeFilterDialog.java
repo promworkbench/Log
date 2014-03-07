@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
@@ -18,6 +19,7 @@ import javax.swing.ListSelectionModel;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.util.collection.AlphanumComparator;
 import org.processmining.framework.util.ui.widgets.ProMList;
+import org.processmining.framework.util.ui.widgets.ProMTextField;
 
 public class AttributeFilterDialog extends JPanel {
 
@@ -26,9 +28,10 @@ public class AttributeFilterDialog extends JPanel {
 	 */
 	private static final long serialVersionUID = -5477222861834208877L;
 	private Map<String, ProMList<String>> lists;
+	private ProMTextField textField;
 	AttributeFilterParameters parameters;
 	
-	public AttributeFilterDialog(PluginContext context, AttributeFilterParameters parameters) {
+	public AttributeFilterDialog(PluginContext context, AttributeFilterParameters parameters, String namePostfix) {
 		this.parameters = parameters;
 		Map<String, List<String>> values = new HashMap<String, List<String>>();
 		for (String key : parameters.getFilter().keySet()) {
@@ -38,7 +41,7 @@ public class AttributeFilterDialog extends JPanel {
 			context.getProgress().inc();
 		}
 
-		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.FILL } };
+		double size[][] = { { 80, TableLayoutConstants.FILL }, { TableLayoutConstants.FILL, 30 } };
 		setLayout(new TableLayout(size));
 
 		setOpaque(false);
@@ -67,7 +70,14 @@ public class AttributeFilterDialog extends JPanel {
 			
 			tabbedPane.add(key, list);
 		}
-		this.add(tabbedPane, "0, 0");
+		this.add(tabbedPane, "0, 0, 1, 0");
+		
+		textField = new ProMTextField();
+		textField.setText(parameters.getName() + namePostfix);
+		add(textField, "1, 1");
+		textField.setPreferredSize(new Dimension(100, 25));
+
+		add(new JLabel("Log name:"), "0, 1");
 	}
 	
 	public void applyFilter() {
@@ -75,5 +85,6 @@ public class AttributeFilterDialog extends JPanel {
 			parameters.getFilter().get(key).clear();
 			parameters.getFilter().get(key).addAll(lists.get(key).getSelectedValuesList());
 		}
+		parameters.setName(textField.getText());
 	}
 }

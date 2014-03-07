@@ -1,7 +1,12 @@
 package org.processmining.plugins.log.logfilters.ui;
 
-import java.awt.BorderLayout;
+import info.clearthought.layout.TableLayout;
+import info.clearthought.layout.TableLayoutConstants;
+
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -26,12 +31,14 @@ import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
 import org.deckfour.xes.classification.XEventClass;
 import org.deckfour.xes.classification.XEventClasses;
 import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.info.XLogInfo;
 import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.util.collection.AlphanumComparator;
+import org.processmining.framework.util.ui.widgets.ProMTextField;
 import org.processmining.plugins.log.logfilters.impl.DefaultLogFilter;
 import org.processmining.plugins.log.logfilters.impl.EventLogFilter;
 import org.processmining.plugins.log.logfilters.impl.FinalEventLogFilter;
@@ -68,6 +75,7 @@ public class LogFilterUI {
 	private int eventFilterStep;
 	private int currentStep;
 	private myStep[] mySteps;
+	private String name;
 
 	/**
 	 * Whether to use all events, only the start events, or only the end events.
@@ -80,6 +88,10 @@ public class LogFilterUI {
 		this.context = context;
 	}
 
+	public String getName() {
+		return name;
+	}
+	
 	/**
 	 * Runs the simple log filter on the given log.
 	 * 
@@ -90,6 +102,7 @@ public class LogFilterUI {
 	public XLog filter(XLog log) {
 		InteractionResult result;
 
+		name = XConceptExtension.instance().extractName(log) + " (filtered on simple heuristics)";
 		/*
 		 * Create all filter steps.
 		 */
@@ -128,16 +141,16 @@ public class LogFilterUI {
 					 * step, then move the next step, and initialize it with the
 					 * filtered log of the previous step.
 					 */
-//					long time = -System.currentTimeMillis();
+					//					long time = -System.currentTimeMillis();
 					XLog filteredLog = mySteps[currentStep].getLog();
-//					time += System.currentTimeMillis();
-//					System.err.println("[LogFilterUI] log time = " + time);
+					//					time += System.currentTimeMillis();
+					//					System.err.println("[LogFilterUI] log time = " + time);
 					go(1);
-//					time = -System.currentTimeMillis();
+					//					time = -System.currentTimeMillis();
 					mySteps[currentStep].initComponents(filteredLog);
 					mySteps[currentStep].repaint();
-//					time += System.currentTimeMillis();
-//					System.err.println("[LogFilterUI] UI time = " + time);
+					//					time += System.currentTimeMillis();
+					//					System.err.println("[LogFilterUI] UI time = " + time);
 					break;
 				case PREV :
 					/*
@@ -293,9 +306,9 @@ public class LogFilterUI {
 		public int compare(XEventClass o1, XEventClass o2) {
 			// TODO Auto-generated method stub
 			return (new AlphanumComparator().compare(o1.toString(), o2.toString()));
-		}		
+		}
 	}
-	
+
 	/**
 	 * Simple step class. All steps belong to this class, but in the future
 	 * additional (non-simple) steps may be added.
@@ -389,7 +402,27 @@ public class LogFilterUI {
 		 */
 		public void initComponents(XLog log) {
 			setLog(log);
-			setLayout(new BorderLayout());
+			double size[][] = { { 80, TableLayoutConstants.FILL }, { TableLayoutConstants.FILL, 30, 30 } };
+			setLayout(new TableLayout(size));
+			add(new JLabel("Log name:"), "0, 2");
+			final ProMTextField textField = new ProMTextField(name);
+			textField.setPreferredSize(new Dimension(100, 25));
+			this.add(textField, "1, 2");
+			textField.addKeyListener(new KeyListener() {
+
+				public void keyTyped(KeyEvent e) {
+					name = textField.getText();
+				}
+
+				public void keyPressed(KeyEvent e) {
+					name = textField.getText();
+				}
+
+				public void keyReleased(KeyEvent e) {
+					name = textField.getText();
+				}
+				
+			});
 
 			/**
 			 * Initialize the event classes.
@@ -427,7 +460,7 @@ public class LogFilterUI {
 						this.remove(cfg);
 					}
 					cfg = new SlickerEventTypeConfiguration(eventClasses.getClasses().toArray());
-					this.add(cfg, BorderLayout.CENTER);
+					this.add(cfg, "0, 0, 1, 0");
 				} else {
 					if (comp != null) {
 						this.remove(comp);
@@ -436,7 +469,7 @@ public class LogFilterUI {
 					Collections.sort(sortedEventClasses, new EventClassComparator());
 					list = new JList(sortedEventClasses.toArray());
 					comp = configureList(list, heading, text);
-					this.add(comp, BorderLayout.CENTER);
+					this.add(comp, "0, 0, 1, 0");
 				}
 			}
 			/**
@@ -479,7 +512,7 @@ public class LogFilterUI {
 				};
 				slider.addChangeListener(listener);
 				listener.stateChanged(null);
-				this.add(slider, BorderLayout.SOUTH);
+				this.add(slider, "0, 1, 1, 1");
 			}
 		}
 	}
@@ -497,7 +530,7 @@ public class LogFilterUI {
 		public XLog getLog() {
 			String[] toRemove = cfg.getFilteredEventTypes(EventTypeAction.REMOVE);
 			String[] toSkip = cfg.getFilteredEventTypes(EventTypeAction.SKIP_INSTANCE);
-//			PluginContext filterContext = context.createChildContext("Default Log Filter");
+			//			PluginContext filterContext = context.createChildContext("Default Log Filter");
 			DefaultLogFilter filter = new DefaultLogFilter();
 			return filter.filter(null, log, toRemove, toSkip);
 
@@ -548,7 +581,7 @@ public class LogFilterUI {
 			for (int i = 0; i < selectedObjects.length; i++) {
 				startIds[i] = selectedObjects[i].toString();
 			}
-//			PluginContext filterContext = context.createChildContext("Start Event Log Filter");
+			//			PluginContext filterContext = context.createChildContext("Start Event Log Filter");
 			StartEventLogFilter filter = new StartEventLogFilter();
 			return filter.filterWithClassifier(null, log, classifier, startIds);
 
@@ -580,7 +613,7 @@ public class LogFilterUI {
 			for (int i = 0; i < selectedObjects.length; i++) {
 				endIds[i] = selectedObjects[i].toString();
 			}
-//			PluginContext filterContext = context.createChildContext("Final Event Log Filter");
+			//			PluginContext filterContext = context.createChildContext("Final Event Log Filter");
 			FinalEventLogFilter filter = new FinalEventLogFilter();
 			return filter.filterWithClassifier(null, log, classifier, endIds);
 
@@ -612,7 +645,7 @@ public class LogFilterUI {
 			for (int i = 0; i < selectedObjects.length; i++) {
 				selectedIds[i] = selectedObjects[i].toString();
 			}
-//			PluginContext filterContext = context.createChildContext("Event Log Filter");
+			//			PluginContext filterContext = context.createChildContext("Event Log Filter");
 			EventLogFilter filter = new EventLogFilter();
 			return filter.filterWithClassifier(null, log, classifier, selectedIds);
 
@@ -625,5 +658,6 @@ public class LogFilterUI {
 			 * log;
 			 */
 		}
+
 	}
 }

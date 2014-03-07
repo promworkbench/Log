@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
@@ -13,9 +14,11 @@ import org.processmining.framework.plugin.PluginContext;
 public class AttributeFilterParameters {
 
 	protected Map<String,Set<String>> filter;
-
+	protected String name;
+	
 	public AttributeFilterParameters(PluginContext context) {
 		filter = new HashMap<String,Set<String>>();
+		name = "";
 	}
 	
 	public AttributeFilterParameters(PluginContext context, XLog log) {
@@ -31,6 +34,7 @@ public class AttributeFilterParameters {
 			}
 			context.getProgress().inc();
 		}
+		name = XConceptExtension.instance().extractName(log);
 	}
 	
 	public void setFilter(Map<String,Set<String>> filter) {
@@ -39,5 +43,13 @@ public class AttributeFilterParameters {
 
 	public Map<String,Set<String>> getFilter() {
 		return filter;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public String getName() {
+		return name;
 	}
 }

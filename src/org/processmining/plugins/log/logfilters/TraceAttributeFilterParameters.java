@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.framework.plugin.PluginContext;
@@ -22,5 +23,6 @@ public class TraceAttributeFilterParameters extends AttributeFilterParameters {
 			}
 			context.getProgress().inc();
 		}
+		name = XConceptExtension.instance().extractName(log);
 	}
 }
