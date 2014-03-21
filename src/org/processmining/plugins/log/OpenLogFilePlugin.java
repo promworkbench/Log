@@ -27,8 +27,8 @@ import org.processmining.framework.plugin.annotations.Plugin;
 //@UIImportPlugin(description = "ProM log files", extensions = { "mxml", "xml", "gz", "zip", "xes", "xez" })
 public class OpenLogFilePlugin extends AbstractImportPlugin {
 
-	protected Object importFromStream(PluginContext context, InputStream input, String filename, long fileSizeInBytes, XFactory factory)
-			throws Exception {
+	protected Object importFromStream(PluginContext context, InputStream input, String filename, long fileSizeInBytes,
+			XFactory factory) throws Exception {
 		context.getFutureResult(0).setLabel(filename);
 		//	System.out.println("Open file");
 		XParser parser;
@@ -39,10 +39,14 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 			parser = new XMxmlParser(factory);
 		}
 		Collection<XLog> logs = null;
+		Exception firstException = null;
+		String errorMessage = "";
 		try {
 			logs = parser.parse(new XContextMonitoredInputStream(input, fileSizeInBytes, context.getProgress()));
 		} catch (Exception e) {
 			logs = null;
+			firstException = e;
+			errorMessage = errorMessage + e;
 		}
 		if (logs == null) {
 			// try any other parser
@@ -58,13 +62,17 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 				} catch (Exception e1) {
 					// ignore and move on.
 					logs = null;
+					errorMessage = errorMessage + " [" + p.name() + ":" + e1 + "]";
 				}
 			}
 		}
 
 		// log sanity checks;
 		// notify user if the log is awkward / does miss crucial information
-		if (logs == null || logs.size() == 0) {
+		if (logs == null) {
+			throw new Exception("Could not open log file, possible cause: " + errorMessage, firstException);
+		}
+		if (logs.size() == 0) {
 			throw new Exception("No processes contained in log!");
 		}
 
