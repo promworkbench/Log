@@ -70,9 +70,11 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 		// log sanity checks;
 		// notify user if the log is awkward / does miss crucial information
 		if (logs == null) {
-			throw new Exception("Could not open log file, possible cause: " + errorMessage, firstException);
+//			context.getFutureResult(0).cancel(false);
+			throw new Exception("Could not open log file, possible cause: "/* + errorMessage,*/ + firstException);
 		}
 		if (logs.size() == 0) {
+//			context.getFutureResult(0).cancel(false);
 			throw new Exception("No processes contained in log!");
 		}
 
