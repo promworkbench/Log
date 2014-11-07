@@ -39,8 +39,7 @@ public class StartEventLogFilter {
 					public boolean keepTrace(XTrace trace) {
 						// Keep the trace if the first event is contained in the
 						// given set.
-						assert (!trace.isEmpty());
-						return events.getClasses().contains(events.getClassOf(trace.get(0)));
+						return !trace.isEmpty() && events.getClasses().contains(events.getClassOf(trace.get(0)));
 					}
 
 				});
@@ -58,8 +57,7 @@ public class StartEventLogFilter {
 					public boolean keepTrace(XTrace trace) {
 						// Keep the trace if the first event is contained in the
 						// given set.
-						assert (!trace.isEmpty());
-						return ids.contains(classifier.getClassIdentity(trace.get(0)));
+						return !trace.isEmpty() && ids.contains(classifier.getClassIdentity(trace.get(0)));
 					}
 
 				});

@@ -36,7 +36,6 @@ public class AddArtificialStartFilter {
 					public XTrace editTrace(XTrace trace) {
 						// Keep the trace if the first event is contained in the
 						// given set.
-						assert (!trace.isEmpty());
 						trace.add(0, event);
 						return trace;
 					}

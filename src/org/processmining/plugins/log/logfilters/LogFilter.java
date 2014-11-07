@@ -248,7 +248,6 @@ public class LogFilter {
 		return filter(progress, steps, log, summary, eventCondition, new XTraceCondition() {
 
 			public boolean keepTrace(XTrace trace) {
-				assert (!trace.isEmpty());
 				// Keep the trace
 				return true;
 			}

@@ -36,7 +36,6 @@ public class DuplicateEventLogFilter {
 					public XTrace editTrace(XTrace trace) {
 						// Keep the trace if the first event is contained in the
 						// given set.
-						assert (!trace.isEmpty());
 						for (int i = 1; i < trace.size(); i++) {
 							if (events.getClassOf(trace.get(i)).equals(events.getClassOf(trace.get(i - 1)))) {
 								trace.remove(i);
