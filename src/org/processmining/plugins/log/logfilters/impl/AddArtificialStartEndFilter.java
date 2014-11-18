@@ -39,6 +39,13 @@ public class AddArtificialStartEndFilter {
 		 * classifier:class attribute).
 		 */
 
+		if (parameters.isCheckClassExtension() && log.getExtensions().contains(XClassExtension.instance())) {
+			/*
+			 * Class extension already present in log. Return log.
+			 */
+			return log;
+		}
+		
 		final XFactory factory = XFactoryRegistry.instance().currentDefault();
 
 		/*
@@ -75,6 +82,8 @@ public class AddArtificialStartEndFilter {
 					}
 				});
 
+		filteredLog.getExtensions().add(XClassExtension.instance());
+		
 		return filteredLog;
 	}
 }

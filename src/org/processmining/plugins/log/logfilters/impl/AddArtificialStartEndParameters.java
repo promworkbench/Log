@@ -21,6 +21,10 @@ public class AddArtificialStartEndParameters {
 	 * Whether to add end events.
 	 */
 	private boolean addEndEvent;
+	/*
+	 * Whether or to check for class extension
+	 */
+	private boolean checkClassExtension;
 	
 	public AddArtificialStartEndParameters() {
 		/*
@@ -30,6 +34,7 @@ public class AddArtificialStartEndParameters {
 		setEndClassName(END);
 		setAddStartEvent(true);
 		setAddEndEvent(true);
+		setCheckClassExtension(true);
 	}
 
 	public String getStartClassName() {
@@ -62,5 +67,13 @@ public class AddArtificialStartEndParameters {
 
 	public void setAddEndEvent(boolean addEndEvent) {
 		this.addEndEvent = addEndEvent;
+	}
+
+	public boolean isCheckClassExtension() {
+		return checkClassExtension;
+	}
+
+	public void setCheckClassExtension(boolean checkClassExtension) {
+		this.checkClassExtension = checkClassExtension;
 	}
 }
