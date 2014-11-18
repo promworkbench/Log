@@ -2,9 +2,9 @@ package org.processmining.plugins.log;
 
 import java.io.InputStream;
 
-import org.deckfour.xes.util.progress.XMonitoredInputStream;
-import org.deckfour.xes.util.progress.XProgressListener;
 import org.processmining.framework.plugin.Progress;
+import org.processmining.framework.util.progress.XMonitoredInputStream;
+import org.processmining.framework.util.progress.XProgressListener;
 
 public class XContextMonitoredInputStream extends XMonitoredInputStream {
 
