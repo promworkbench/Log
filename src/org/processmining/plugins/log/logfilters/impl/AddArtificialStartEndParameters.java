@@ -2,6 +2,9 @@ package org.processmining.plugins.log.logfilters.impl;
 
 public class AddArtificialStartEndParameters {
 
+	public final static String START = "|start>";
+	public final static String END = "[end]";
+	
 	/*
 	 * Class name for start events.
 	 */
@@ -23,8 +26,8 @@ public class AddArtificialStartEndParameters {
 		/*
 		 * Default settings.
 		 */
-		setStartClassName("|start>");
-		setEndClassName("[end]");
+		setStartClassName(START);
+		setEndClassName(END);
 		setAddStartEvent(true);
 		setAddEndEvent(true);
 	}
