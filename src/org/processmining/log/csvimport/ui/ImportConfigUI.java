@@ -25,8 +25,8 @@ import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.ProMTextField;
 import org.processmining.log.csvimport.CSVConversion.ImportConfig;
-import org.processmining.log.csvimport.CSVUtils;
 import org.processmining.log.csvimport.CSVFile;
+import org.processmining.log.csvimport.CSVUtils;
 import org.processmining.log.csvimport.SeperatorChar;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -209,7 +209,7 @@ public final class ImportConfigUI extends JPanel {
 		//Try to register XESLite Factories
 		tryRegisterFactory("org.progressmining.xeslite.lite.factory.XFactoryLiteImpl");
 		tryRegisterFactory("org.progressmining.xeslite.external.XFactoryExternalImpl$MapDBDiskImpl");
-		tryRegisterFactory("org.progressmining.xeslite.external.XFactoryExternalImpl$MapDBDiskLowMemoryImpl");
+		tryRegisterFactory("org.progressmining.xeslite.external.XFactoryExternalImpl$MapDBDiskSequentialAccessImpl");
 		tryRegisterFactory("org.progressmining.xeslite.external.XFactoryExternalImpl$MapDBMemoryImpl");
 		return XFactoryRegistry.instance().getAvailable();
 	}
