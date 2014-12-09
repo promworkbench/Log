@@ -128,11 +128,12 @@
 							desc="Log"
 							org="Eindhoven University of Technology" 
 							license="LGPL" 
-							author="H.M.W. Verbeek"
+							author="H.M.W. Verbeek, F. Mannhardt"
 							auto="false"
 							hasPlugins="true"
 							logo="http://www.promtools.org/prom6/packages/prom_subtitle_hat_300.png"
 						>
+							<dependency name="ApacheUtils"/>
 							<dependency name="Widgets"/>
 						</package>
 					</packages>

@@ -63,6 +63,10 @@
 	<classpathentry kind="lib" path="packagelib/Widgets.jar"/>
 	<classpathentry kind="lib" path="stdlib/guava-16.0.1.jar"/>
 	<classpathentry kind="lib" path="stdlib/commons-math-3.1.jar"/>
-	<classpathentry kind="lib" path="stdlib/EfficientStorage.jar"/>
+	<classpathentry kind="lib" path="packagelib/ApacheUtils-lib/opencsv-2.4-patched.jar"/>
+	<classpathentry kind="lib" path="packagelib/ApacheUtils-lib/juniversalchardet-1.0.3.jar"/>
+	<classpathentry kind="lib" path="packagelib/ApacheUtils-lib/java-merge-sort-1.0.0.jar"/>
+	<classpathentry kind="lib" path="packagelib/ApacheUtils-lib/compress-lzf-1.0.3.jar"/>
+	<classpathentry kind="lib" path="packagelib/ApacheUtils-lib/commons-lang3-3.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
