@@ -87,7 +87,7 @@ public final class CSVConversion {
 					new SimpleDateFormat(timeFormat);
 				}
 			} catch (IllegalArgumentException e) {
-				throw new CSVConversionConfigException("Invalid Time Format", e);
+				throw new CSVConversionConfigException("User-defined Time Format '"+timeFormat+"' is invalid!", e);
 			}
 		}
 
@@ -114,6 +114,7 @@ public final class CSVConversion {
 			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
 			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss"));
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
+			add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss"));
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"));
 			add(new SimpleDateFormat("yyyy-MM-dd"));
@@ -309,6 +310,7 @@ public final class CSVConversion {
 				String[] nextLine;
 
 				String currentCaseId = null;
+				StringBuilder eventsWithErrors = new StringBuilder();
 
 				while ((nextLine = reader.readNext()) != null && (caseIndex % 1000 != 0 || !p.isCancelled())) {
 					lineIndex++;
@@ -374,10 +376,14 @@ public final class CSVConversion {
 							throw new CSVConversionException("Could not add event " + nextLine[eventNameColumnIndex]
 									+ ". Problematic Date in CSV on line " + lineIndex, e);
 						} else {
-							progress.log("Could not add event " + nextLine[eventNameColumnIndex]
-									+ ". Problematic Date in CSV on line " + lineIndex + "!\nReason: " + e);
+							eventsWithErrors.append(nextLine[eventNameColumnIndex] + " on line "+lineIndex +": " + e+"\n");
 						}
 					}
+				}
+				
+				if (eventsWithErrors.length() > 0) {
+					progress.log("Could not convert the following events:\n");
+					progress.log(eventsWithErrors.toString());
 				}
 
 			} catch (IOException e) {

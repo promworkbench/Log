@@ -24,6 +24,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
+import com.google.common.io.Files;
 
 public final class CSVConversionPlugin {
 
@@ -62,7 +63,8 @@ public final class CSVConversionPlugin {
 				context.log("Repairing the data types of trace attributes in the log ...");
 				repairTypes.doRepairTraceAttributes(context, convertedLog, dateFormatters);
 				context.getFutureResult(0).setLabel(
-						csv.getFilename() + " (@" + DateFormat.getTimeInstance().format(new Date()) + ")");
+						Files.getNameWithoutExtension(csv.getFilename()) + " (converted @"
+								+ DateFormat.getTimeInstance().format(new Date()) + ")");
 			}
 			return convertedLog;
 		} catch (CSVConversionConfigException e) {
@@ -71,7 +73,7 @@ public final class CSVConversionPlugin {
 			context.getFutureResult(0).cancel(false);
 			return null;
 		} catch (CSVConversionException e) {
-			JOptionPane.showMessageDialog(null, Joiner.on("\n caused by \n").join(Throwables.getCausalChain(e)),
+			JOptionPane.showMessageDialog(null, Joiner.on("\ncaused by: ").join(Throwables.getCausalChain(e)),
 					"Error Converting", JOptionPane.ERROR_MESSAGE);
 			context.getFutureResult(0).cancel(false);
 			return null;
