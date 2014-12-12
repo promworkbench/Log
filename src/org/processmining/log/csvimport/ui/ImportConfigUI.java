@@ -210,10 +210,14 @@ public final class ImportConfigUI extends JPanel {
 		tryRegisterFactory("org.progressmining.xeslite.lite.factory.XFactoryLiteImpl");
 		tryRegisterFactory("org.progressmining.xeslite.external.XFactoryExternalImpl$MapDBDiskImpl");
 		tryRegisterFactory("org.progressmining.xeslite.external.XFactoryExternalImpl$MapDBDiskSequentialAccessImpl");
-		tryRegisterFactory("org.progressmining.xeslite.external.XFactoryExternalImpl$MapDBMemoryImpl");
 		return XFactoryRegistry.instance().getAvailable();
 	}
 
+	/**
+	 * Tries to load the class and call the 'register' method.
+	 * 
+	 * @param className 
+	 */
 	private void tryRegisterFactory(String className) {
 		try {
 			getClass().getClassLoader().loadClass(className).getDeclaredMethod("register").invoke(null);
