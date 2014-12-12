@@ -24,9 +24,8 @@ import org.mozilla.universalchardet.CharsetListener;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.ProMTextField;
-import org.processmining.log.csvimport.CSVConversion.ImportConfig;
 import org.processmining.log.csvimport.CSVFile;
-import org.processmining.log.csvimport.CSVUtils;
+import org.processmining.log.csvimport.CSVImportConfig;
 import org.processmining.log.csvimport.SeperatorChar;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -46,7 +45,7 @@ public final class ImportConfigUI extends JPanel {
 	private static final int MAX_PREVIEW = 5000;
 
 	private final CSVFile csv;
-	private final ImportConfig importConfig;
+	private final CSVImportConfig importConfig;
 
 	private final ProMComboBox<XFactory> xFactoryChoice;
 	private final ProMComboBox<String> charsetCbx;
@@ -58,7 +57,7 @@ public final class ImportConfigUI extends JPanel {
 	public ImportConfigUI(final CSVFile csv) {
 		super();
 		this.csv = csv;
-		this.importConfig = new ImportConfig();
+		this.importConfig = new CSVImportConfig();
 		this.previewFrame = new CSVPreviewFrame();
 		this.previewFrame.showFrame(getRootPane());
 		
@@ -241,10 +240,9 @@ public final class ImportConfigUI extends JPanel {
 		previewFrame.clear();
 
 		// Update Header
-		try (CSVReader reader = CSVUtils.createCSVReader(CSVUtils.getCSVInputStream(csv), importConfig)) {
-			String[] header = reader.readNext();
-			previewFrame.setHeader(header);
-		} catch (IOException | UnsupportedOperationException e) {
+		try {
+			previewFrame.setHeader(csv.readHeader(importConfig));
+		} catch (IOException e) {
 			JOptionPane.showMessageDialog(this, "Error parsing CSV " + e.getMessage(), "CSV Parsing Error",
 					JOptionPane.ERROR_MESSAGE);
 			return;
@@ -255,7 +253,7 @@ public final class ImportConfigUI extends JPanel {
 
 			protected Void doInBackground() throws Exception {
 
-				try (CSVReader reader = CSVUtils.createCSVReader(CSVUtils.getCSVInputStream(csv), importConfig)) {
+				try (CSVReader reader = csv.createReader(importConfig)) {
 					// Skip header
 					reader.readNext();
 					String[] nextLine;
@@ -285,7 +283,7 @@ public final class ImportConfigUI extends JPanel {
 		}
 	}
 
-	public ImportConfig getImportConfig() {
+	public CSVImportConfig getImportConfig() {
 		return importConfig;
 	}
 

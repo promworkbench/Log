@@ -1,5 +1,10 @@
 package org.processmining.log.csvimport;
 
+
+/**
+ * @author F. Mannhardt
+ *
+ */
 public enum SeperatorChar {
 	COMMA("Comma (,)", ','), 
 	SEMICOLON("Semicolon (;)",';'),

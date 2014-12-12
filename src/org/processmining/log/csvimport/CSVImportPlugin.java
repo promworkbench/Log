@@ -18,8 +18,8 @@ import org.processmining.framework.plugin.annotations.Plugin;
  * @author F. Mannhardt
  *
  */
-@Plugin(name = "Import a CSV file and convert it to XES", parameterLabels = { "Filename" }, returnLabels = { "Imported CSV File" }, returnTypes = { CSVFileReference.class })
-@UIImportPlugin(description = "CSV File (Convert to XES with Log Package)", extensions = { "csv", "zip", "csv.gz", "txt" })
+@Plugin(name = "Import a CSV file and convert it to XES", parameterLabels = { "Filename" }, returnLabels = { "Imported CSV File" }, returnTypes = { CSVFile.class })
+@UIImportPlugin(description = "CSV File (XES Conversion with Log package)", extensions = { "csv", "zip", "csv.gz", "txt" })
 public final class CSVImportPlugin extends AbstractImportPlugin {
 
 	@Override

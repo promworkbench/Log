@@ -13,8 +13,6 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.Progress;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.util.ui.widgets.helper.UserCancelledException;
-import org.processmining.log.csvimport.CSVConversion.ConversionConfig;
-import org.processmining.log.csvimport.CSVConversion.ImportConfig;
 import org.processmining.log.csvimport.CSVConversion.ProgressListener;
 import org.processmining.log.csvimport.exception.CSVConversionConfigException;
 import org.processmining.log.csvimport.exception.CSVConversionException;
@@ -26,13 +24,21 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.io.Files;
 
+/**
+ * CSV to XES XLog conversion plug-in
+ * 
+ * @author F. Mannhardt
+ * 
+ */
 public final class CSVConversionPlugin {
 
-	@Plugin(name = "Convert CSV to XES", parameterLabels = { "CSV" }, returnLabels = { "XES Log" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1)
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt", email = "f.mannhardt@tue.nl")
+	@Plugin(name = "Convert CSV to XES", parameterLabels = { "CSV" }, returnLabels = { "XES Log" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,
+	// categories = { PluginCategory.Enhancement },
+	keywords = { "CSV", "XES", "Conversion" }, help = "Converts the CSV file to a XES XLog object.")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt", email = "f.mannhardt@tue.nl", website = "http://fmannhardt.de")
 	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csv) throws IOException, UserCancelledException {
-		ImportConfig importConfig = CSVConversion.queryImportConfig(context, csv);
-		ConversionConfig conversionConfig = CSVConversion.queryConversionConfig(context, csv, importConfig);
+		CSVImportConfig importConfig = CSVConversion.queryImportConfig(context, csv);
+		CSVConversionConfig conversionConfig = CSVConversion.queryConversionConfig(context, csv, importConfig);
 		CSVConversion csvConversion = new CSVConversion();
 		try {
 			XLog convertedLog = csvConversion.doConvertCSVToXES(new ProgressListener() {

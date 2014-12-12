@@ -4,22 +4,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryRegistry;
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.plugin.Progress;
@@ -54,58 +49,6 @@ public final class CSVConversion {
 		LITERAL, DISCRETE, CONTINUOUS, TIME, BOOLEAN
 	}
 
-	/**
-	 * Configuration regarding the conversion
-	 * 
-	 * @author F. Mannhardt
-	 *
-	 */
-	public static final class ConversionConfig {
-		public String[] caseColumns;
-		public String eventNameColumn;
-		public String completionTimeColumn;
-		public String startTimeColumn;
-
-		public boolean isRepairDataTypes = true;
-		public boolean strictMode = false;
-		public boolean omitNULL = true;
-		public Map<Integer, Datatype> datatypeMapping = new HashMap<>();
-		public String timeFormat;
-
-		public void check() throws CSVConversionConfigException {
-			if (caseColumns == null || caseColumns.length == 0) {
-				throw new CSVConversionConfigException("Configuration is missing the case column!");
-			}
-			if (eventNameColumn == null || eventNameColumn.isEmpty()) {
-				throw new CSVConversionConfigException("Configuration is missing the event column!");
-			}
-			if (completionTimeColumn == null && startTimeColumn == null) {
-				throw new CSVConversionConfigException("Configuration is missing both time columns!");
-			}
-			try {
-				if (timeFormat != null) {
-					new SimpleDateFormat(timeFormat);
-				}
-			} catch (IllegalArgumentException e) {
-				throw new CSVConversionConfigException("User-defined Time Format '"+timeFormat+"' is invalid!", e);
-			}
-		}
-
-	}
-
-	/**
-	 * Configuration for the import of the CSV
-	 * 
-	 * @author F. Mannhardt
-	 *
-	 */
-	public static final class ImportConfig {
-		public XFactory factory = XFactoryRegistry.instance().currentDefault();
-		public String charset = Charset.defaultCharset().name();
-		public SeperatorChar separator = SeperatorChar.COMMA;
-		public char quoteChar = '"';
-	}
-
 	@SuppressWarnings("serial")
 	static final Set<DateFormat> STANDARD_DATE_FORMATTERS = new LinkedHashSet<DateFormat>() {
 		{
@@ -114,7 +57,6 @@ public final class CSVConversion {
 			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
 			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss"));
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
-			add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss"));
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"));
 			add(new SimpleDateFormat("yyyy-MM-dd"));
@@ -194,13 +136,13 @@ public final class CSVConversion {
 	 * @throws CSVConversionException
 	 * @throws CSVConversionConfigException
 	 */
-	public XLog doConvertCSVToXES(final ProgressListener progressListener, CSVFile csvFile, ImportConfig importConfig,
-			ConversionConfig conversionConfig) throws CSVConversionException, CSVConversionConfigException {
+	public XLog doConvertCSVToXES(final ProgressListener progressListener, CSVFile csvFile, CSVImportConfig importConfig,
+			CSVConversionConfig conversionConfig) throws CSVConversionException, CSVConversionConfigException {
 		return convertCSV(progressListener, importConfig, conversionConfig, csvFile, new XESConversionHandlerImpl(
 				importConfig, conversionConfig));
 	}
 
-	public static ImportConfig queryImportConfig(UIPluginContext context, CSVFile csv) throws UserCancelledException {
+	public static CSVImportConfig queryImportConfig(UIPluginContext context, CSVFile csv) throws UserCancelledException {
 		ImportConfigUI importConfigUI = new ImportConfigUI(csv);
 		InteractionResult result = context.showConfiguration("Configure Import of CSV", importConfigUI);
 		if (result == InteractionResult.CONTINUE || result == InteractionResult.FINISHED) {
@@ -210,7 +152,7 @@ public final class CSVConversion {
 		}
 	}
 
-	public static ConversionConfig queryConversionConfig(UIPluginContext context, CSVFile csv, ImportConfig importConfig)
+	public static CSVConversionConfig queryConversionConfig(UIPluginContext context, CSVFile csv, CSVImportConfig importConfig)
 			throws UserCancelledException, IOException {
 		try (ConversionConfigUI conversionConfigUI = new ConversionConfigUI(csv, importConfig)) {
 			InteractionResult result = context.showConfiguration("Configure Conversion from CSV to XES",
@@ -226,7 +168,7 @@ public final class CSVConversion {
 	/**
 	 * Converts a {@link CSVFileReference} into something determined by the supplied
 	 * {@link CSVConversionHandler}. Use
-	 * {@link #doConvertCSVToXES(ProgressListener, CSVFileReference, ImportConfig, ConversionConfig)}
+	 * {@link #doConvertCSVToXES(ProgressListener, CSVFileReference, CSVImportConfig, CSVConversionConfig)}
 	 * in case you want to convert to an {@link XLog}.
 	 * 
 	 * @param progress
@@ -238,7 +180,7 @@ public final class CSVConversion {
 	 * @throws CSVConversionException
 	 * @throws CSVConversionConfigException
 	 */
-	public <R> R convertCSV(ProgressListener progress, ImportConfig config, ConversionConfig conversionConfig,
+	public <R> R convertCSV(ProgressListener progress, CSVImportConfig config, CSVConversionConfig conversionConfig,
 			CSVFile csvFile, CSVConversionHandler<R> conversionHandler) throws CSVConversionException,
 			CSVConversionConfigException {
 
@@ -265,8 +207,8 @@ public final class CSVConversion {
 		int startTimeColumnIndex = -1;
 		String[] header = null;
 
-		try (CSVReader reader = CSVUtils.createCSVReader(CSVUtils.getCSVInputStream(csvFile), config)) {
-			header = reader.readNext();
+		try {
+			header = csvFile.readHeader(config);
 			for (int i = 0; i < conversionConfig.caseColumns.length; i++) {
 				caseColumnIndex[i] = findColumnIndex(header, conversionConfig.caseColumns[i]);
 			}
@@ -408,7 +350,7 @@ public final class CSVConversion {
 		return conversionHandler.getResult();
 	}
 
-	private <R> void parseAttributes(ProgressListener progress, ConversionConfig conversionConfig,
+	private <R> void parseAttributes(ProgressListener progress, CSVConversionConfig conversionConfig,
 			CSVConversionHandler<R> handler, SimpleDateFormat userDefinedDateFormat, int lineIndex, int i, String name,
 			String value) throws ParseException, CSVConversionException {
 		Datatype dataType = conversionConfig.datatypeMapping.get(i);

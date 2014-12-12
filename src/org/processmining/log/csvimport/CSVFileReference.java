@@ -1,6 +1,9 @@
 package org.processmining.log.csvimport;
 
+import java.io.IOException;
 import java.nio.file.Path;
+
+import au.com.bytecode.opencsv.CSVReader;
 
 /**
  * Class holding a reference to a CSV file on disk. 
@@ -52,6 +55,19 @@ public final class CSVFileReference implements CSVFile {
 	@Override
 	public Path getDirectory() {
 		return path;
+	}
+
+	public String[] readHeader(CSVImportConfig importConfig) throws IOException {
+		try (CSVReader reader = CSVUtils.createCSVReader(CSVUtils.getCSVInputStream(this), importConfig)) {
+			String[] header = reader.readNext();
+			return header;
+		} catch (IOException e) {
+			throw new IOException(e);
+		}		
+	}
+
+	public CSVReader createReader(CSVImportConfig importConfig) throws IOException {
+		return CSVUtils.createCSVReader(CSVUtils.getCSVInputStream(this), importConfig);
 	}
 
 }

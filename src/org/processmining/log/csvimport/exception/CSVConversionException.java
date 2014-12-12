@@ -1,5 +1,10 @@
 package org.processmining.log.csvimport.exception;
 
+
+/**
+ * @author F. Mannhardt
+ *
+ */
 public class CSVConversionException extends Exception {
 
 	private static final long serialVersionUID = -4532347650248107292L;

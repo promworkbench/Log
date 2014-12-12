@@ -13,14 +13,16 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.processmining.log.csvimport.CSVConversion.ImportConfig;
-
 import au.com.bytecode.opencsv.CSVParser;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
 import com.google.common.io.Files;
 
+/**
+ * @author F. Mannhardt
+ *
+ */
 public final class CSVUtils {
 
 	private static final int BUFFER_SIZE = 8192 * 4;
@@ -29,7 +31,7 @@ public final class CSVUtils {
 		super();
 	}
 
-	public static CSVReader createCSVReader(InputStream is, ImportConfig importConfig)
+	public static CSVReader createCSVReader(InputStream is, CSVImportConfig importConfig)
 			throws UnsupportedEncodingException {	
 		if (importConfig.quoteChar == Character.UNASSIGNED) {
 			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.charset), BUFFER_SIZE), importConfig.separator.getSeperatorChar(),
@@ -41,7 +43,7 @@ public final class CSVUtils {
 
 	 }
 
-	public static CSVWriter createCSVWriter(OutputStream os, ImportConfig importConfig)
+	public static CSVWriter createCSVWriter(OutputStream os, CSVImportConfig importConfig)
 			throws UnsupportedEncodingException {		
 		return new CSVWriter(new BufferedWriter(new OutputStreamWriter(os, importConfig.charset), BUFFER_SIZE), importConfig.separator.getSeperatorChar(),
 				importConfig.quoteChar);

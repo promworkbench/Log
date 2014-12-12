@@ -14,9 +14,9 @@ import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
-import org.processmining.log.csvimport.CSVConversion.ConversionConfig;
-import org.processmining.log.csvimport.CSVConversion.ImportConfig;
 import org.processmining.log.csvimport.CSVFile;
+import org.processmining.log.csvimport.CSVConversionConfig;
+import org.processmining.log.csvimport.CSVImportConfig;
 
 /**
  * Handler to create an XLog
@@ -37,7 +37,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	private int instanceCounter = 0;
 	private XEvent currentStartEvent;
 
-	public XESConversionHandlerImpl(ImportConfig importConfig, ConversionConfig conversionConfig) {
+	public XESConversionHandlerImpl(CSVImportConfig importConfig, CSVConversionConfig conversionConfig) {
 		this.factory = importConfig.factory;
 	}
 

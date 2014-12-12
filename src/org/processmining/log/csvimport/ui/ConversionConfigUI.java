@@ -21,11 +21,10 @@ import javax.swing.event.DocumentListener;
 
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.ProMTextField;
-import org.processmining.log.csvimport.CSVConversion.ConversionConfig;
 import org.processmining.log.csvimport.CSVConversion.Datatype;
-import org.processmining.log.csvimport.CSVConversion.ImportConfig;
+import org.processmining.log.csvimport.CSVConversionConfig;
 import org.processmining.log.csvimport.CSVFile;
-import org.processmining.log.csvimport.CSVUtils;
+import org.processmining.log.csvimport.CSVImportConfig;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -127,7 +126,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 
 	private static final long serialVersionUID = 1L;
 
-	private final ConversionConfig conversionConfig;
+	private final CSVConversionConfig conversionConfig;
 
 	private final String[] headers;
 	private final String[] headersInclEmpties;
@@ -148,10 +147,10 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 	private final CSVPreviewFrame previewFrame;
 	private int maxLoad = 5000;
 
-	public ConversionConfigUI(final CSVFile csv, final ImportConfig importConfig) throws IOException {
-		conversionConfig = new ConversionConfig();
+	public ConversionConfigUI(final CSVFile csv, final CSVImportConfig importConfig) throws IOException {
+		conversionConfig = new CSVConversionConfig();
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		reader = CSVUtils.createCSVReader(CSVUtils.getCSVInputStream(csv), importConfig);
+		reader = csv.createReader(importConfig);
 		headers = reader.readNext();
 		headersInclEmpties = Lists.asList("", headers).toArray(new String[headers.length + 1]);
 
@@ -391,7 +390,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		previewFrame.setVisible(false);
 	}
 
-	public ConversionConfig getConversionConfig() {
+	public CSVConversionConfig getConversionConfig() {
 		return conversionConfig;
 	}
 

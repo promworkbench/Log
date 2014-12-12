@@ -27,8 +27,8 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
-import org.processmining.log.csvimport.CSVConversion.ConversionConfig;
 import org.processmining.log.csvimport.CSVConversion.Datatype;
+import org.processmining.log.csvimport.CSVConversionConfig;
 
 /**
  * Frame showing a part of the CSV file.
@@ -61,10 +61,10 @@ public final class CSVPreviewFrame extends JFrame {
 
 		private static final long serialVersionUID = 1L;
 
-		private final ConversionConfig conversionConfig;
+		private final CSVConversionConfig conversionConfig;
 		private final String[] header;
 
-		public DataTypeTableModel(ConversionConfig conversionConfig, String[] header) {
+		public DataTypeTableModel(CSVConversionConfig conversionConfig, String[] header) {
 			this.conversionConfig = conversionConfig;
 			this.header = header;
 		}
@@ -117,7 +117,7 @@ public final class CSVPreviewFrame extends JFrame {
 	}
 
 	@SuppressWarnings("serial")
-	public CSVPreviewFrame(String[] header, ConversionConfig conversionConfig) {
+	public CSVPreviewFrame(String[] header, CSVConversionConfig conversionConfig) {
 		super();
 		setTitle("CSV Preview");
 		setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));

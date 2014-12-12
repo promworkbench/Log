@@ -18,7 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.processmining.log.csvimport.CSVConversion.ImportConfig;
 import org.processmining.log.csvimport.CSVConversion.ProgressListener;
 import org.processmining.log.csvimport.exception.CSVSortException;
 
@@ -36,6 +35,11 @@ import com.fasterxml.sort.TempFileProvider;
 import com.ning.compress.lzf.LZFInputStream;
 import com.ning.compress.lzf.parallel.PLZFOutputStream;
 
+
+/**
+ * @author F. Mannhardt
+ *
+ */
 final class CSVSorter {
 
 	private static final class UncompressedOpenCSVReader extends DataReader<String[]> {
@@ -43,7 +47,7 @@ final class CSVSorter {
 		private final CSVReader reader;
 		private final int numColumns;
 
-		private UncompressedOpenCSVReader(InputStream inputStream, ImportConfig importConfig, int numColumns)
+		private UncompressedOpenCSVReader(InputStream inputStream, CSVImportConfig importConfig, int numColumns)
 				throws UnsupportedEncodingException {
 			this.numColumns = numColumns;
 			this.reader = CSVUtils.createCSVReader(inputStream, importConfig);
@@ -69,9 +73,9 @@ final class CSVSorter {
 	}
 
 	private static final class CompressedOpenCSVDataWriterFactory extends DataWriterFactory<String[]> {
-		private final ImportConfig importConfig;
+		private final CSVImportConfig importConfig;
 
-		private CompressedOpenCSVDataWriterFactory(ImportConfig importConfig) {
+		private CompressedOpenCSVDataWriterFactory(CSVImportConfig importConfig) {
 			this.importConfig = importConfig;
 		}
 
@@ -92,9 +96,9 @@ final class CSVSorter {
 	}
 
 	private static final class CompressedOpenCSVDataReaderFactory extends DataReaderFactory<String[]> {
-		private final ImportConfig importConfig;
+		private final CSVImportConfig importConfig;
 
-		private CompressedOpenCSVDataReaderFactory(ImportConfig importConfig) {
+		private CompressedOpenCSVDataReaderFactory(CSVImportConfig importConfig) {
 			this.importConfig = importConfig;
 		}
 
@@ -120,7 +124,7 @@ final class CSVSorter {
 	private CSVSorter() {
 	}
 
-	public static File sortCSV(final ProgressListener progress, final CSVFile csv, final ImportConfig importConfig, final Comparator<String[]> rowComparator,
+	public static File sortCSV(final ProgressListener progress, final CSVFile csv, final CSVImportConfig importConfig, final Comparator<String[]> rowComparator,
 			final int maxMemory, final int numColumns) throws CSVSortException {
 		
 		// Create Sorter
