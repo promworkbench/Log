@@ -16,13 +16,11 @@ public final class CSVFileReference implements CSVFile {
 	private final Path file;
 	private final String filename;
 	private long fileSizeInBytes;
-	private final Path path;
 
-	public CSVFileReference(Path file, String filename, long fileSizeInBytes, Path directory) {
+	public CSVFileReference(Path file, String filename, long fileSizeInBytes) {
 		this.file = file;
 		this.filename = filename;
 		this.fileSizeInBytes = fileSizeInBytes;
-		this.path = directory;
 	}
 
 	/* (non-Javadoc)
@@ -48,15 +46,7 @@ public final class CSVFileReference implements CSVFile {
 	public long getFileSizeInBytes() {
 		return fileSizeInBytes;
 	}
-
-	/* (non-Javadoc)
-	 * @see org.processmining.log.csvimport.ICSVFile#getDirectory()
-	 */
-	@Override
-	public Path getDirectory() {
-		return path;
-	}
-
+	
 	public String[] readHeader(CSVImportConfig importConfig) throws IOException {
 		try (CSVReader reader = CSVUtils.createCSVReader(CSVUtils.getCSVInputStream(this), importConfig)) {
 			String[] header = reader.readNext();

@@ -134,7 +134,7 @@ final class CSVSorter {
 				maxMemory * 1024l * 1024l).withTempFileProvider(new TempFileProvider() {
 
 			public File provide() throws IOException {
-				return Files.createTempFile(csv.getDirectory(), "merge-sort", ".lzf").toFile();
+				return Files.createTempFile(csv.getFilename()+"-merge-sort", ".lzf").toFile();
 			}
 		}), dataReaderFactory, dataWriterFactory, rowComparator);
 		
@@ -151,7 +151,7 @@ final class CSVSorter {
 					
 					// Write sorted result to compressed file
 					if (result != null) {			
-						File sortedCsvFile = Files.createTempFile(csv.getDirectory(), "sorted", ".lzf").toFile();
+						File sortedCsvFile = Files.createTempFile(csv.getFilename()+"-sorted", ".lzf").toFile();
 						DataWriter<String[]> dataWriter = dataWriterFactory
 								.constructWriter(new FileOutputStream(sortedCsvFile));
 						try {

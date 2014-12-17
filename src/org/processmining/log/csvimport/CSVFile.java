@@ -27,11 +27,6 @@ public interface CSVFile {
 	long getFileSizeInBytes();
 
 	/**
-	 * @return the directory of the CSV file
-	 */
-	Path getDirectory();
-
-	/**
 	 * Returns the first row of the CSV file. 
 	 * 
 	 * @param config

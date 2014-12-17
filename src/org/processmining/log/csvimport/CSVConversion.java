@@ -42,6 +42,7 @@ public final class CSVConversion {
 
 	public interface ProgressListener {
 		Progress getProgress();
+
 		void log(String message);
 	}
 
@@ -125,8 +126,8 @@ public final class CSVConversion {
 	}
 
 	/**
-	 * Convert a {@link CSVFileReference} into an {@link XLog} using the supplied
-	 * configuration.
+	 * Convert a {@link CSVFileReference} into an {@link XLog} using the
+	 * supplied configuration.
 	 * 
 	 * @param progressListener
 	 * @param csvFile
@@ -136,8 +137,9 @@ public final class CSVConversion {
 	 * @throws CSVConversionException
 	 * @throws CSVConversionConfigException
 	 */
-	public XLog doConvertCSVToXES(final ProgressListener progressListener, CSVFile csvFile, CSVImportConfig importConfig,
-			CSVConversionConfig conversionConfig) throws CSVConversionException, CSVConversionConfigException {
+	public XLog doConvertCSVToXES(final ProgressListener progressListener, CSVFile csvFile,
+			CSVImportConfig importConfig, CSVConversionConfig conversionConfig) throws CSVConversionException,
+			CSVConversionConfigException {
 		return convertCSV(progressListener, importConfig, conversionConfig, csvFile, new XESConversionHandlerImpl(
 				importConfig, conversionConfig));
 	}
@@ -152,8 +154,8 @@ public final class CSVConversion {
 		}
 	}
 
-	public static CSVConversionConfig queryConversionConfig(UIPluginContext context, CSVFile csv, CSVImportConfig importConfig)
-			throws UserCancelledException, IOException {
+	public static CSVConversionConfig queryConversionConfig(UIPluginContext context, CSVFile csv,
+			CSVImportConfig importConfig) throws UserCancelledException, IOException {
 		try (ConversionConfigUI conversionConfigUI = new ConversionConfigUI(csv, importConfig)) {
 			InteractionResult result = context.showConfiguration("Configure Conversion from CSV to XES",
 					conversionConfigUI);
@@ -166,8 +168,8 @@ public final class CSVConversion {
 	}
 
 	/**
-	 * Converts a {@link CSVFileReference} into something determined by the supplied
-	 * {@link CSVConversionHandler}. Use
+	 * Converts a {@link CSVFileReference} into something determined by the
+	 * supplied {@link CSVConversionHandler}. Use
 	 * {@link #doConvertCSVToXES(ProgressListener, CSVFileReference, CSVImportConfig, CSVConversionConfig)}
 	 * in case you want to convert to an {@link XLog}.
 	 * 
@@ -246,19 +248,21 @@ public final class CSVConversion {
 			// The following code assumes that the file is sorted by cases and written to disk compressed with LZF
 			progress.log("Reading cases ...");
 			try (CSVReader reader = CSVUtils.createCSVReader(sortedCsvInputStream, config)) {
+				
 				int caseIndex = 0;
 				int eventIndex = 0;
 				int lineIndex = -1;
 				String[] nextLine;
-
 				String currentCaseId = null;
-				StringBuilder eventsWithErrors = new StringBuilder();
+				
+				final StringBuilder eventsWithErrors = new StringBuilder();
 
 				while ((nextLine = reader.readNext()) != null && (caseIndex % 1000 != 0 || !p.isCancelled())) {
 					lineIndex++;
 
-					String newCaseID = readCaseID(caseColumnIndex, nextLine);
+					final String newCaseID = readCaseID(caseColumnIndex, nextLine);
 
+					// Handle new traces
 					if (!newCaseID.equals(currentCaseId)) {
 
 						if (currentCaseId != null) {
@@ -277,13 +281,14 @@ public final class CSVConversion {
 							progress.log("Reading line " + lineIndex + ", already " + caseIndex + " cases and "
 									+ eventIndex + " events processed ...");
 						}
+						
 					}
 
 					// Create new event
 					try {
 
-						String eventClass = nextLine[eventNameColumnIndex];
-						Date completionTime = parseDate(userDefinedDateFormat, nextLine[completionTimeColumnIndex]);
+						final String eventClass = nextLine[eventNameColumnIndex];
+						final Date completionTime = parseDate(userDefinedDateFormat, nextLine[completionTimeColumnIndex]);
 						Date startTime = null;
 						if (startTimeColumnIndex != -1) {
 							startTime = parseDate(userDefinedDateFormat, nextLine[startTimeColumnIndex]);
@@ -297,8 +302,8 @@ public final class CSVConversion {
 								continue;
 							}
 
-							String name = header[i];
-							String value = nextLine[i];
+							final String name = header[i];
+							final String value = nextLine[i];
 
 							if (considerColumn(name, value)) {
 
@@ -313,16 +318,21 @@ public final class CSVConversion {
 						// Already sorted by time
 						conversionHandler.endEvent();
 						eventIndex++;
+						
 					} catch (ParseException e) {
 						if (conversionConfig.strictMode) {
 							throw new CSVConversionException("Could not add event " + nextLine[eventNameColumnIndex]
 									+ ". Problematic Date in CSV on line " + lineIndex, e);
 						} else {
-							eventsWithErrors.append(nextLine[eventNameColumnIndex] + " on line "+lineIndex +": " + e+"\n");
+							eventsWithErrors.append(nextLine[eventNameColumnIndex] + " on line " + lineIndex + ": " + e
+									+ "\n");
 						}
 					}
 				}
 				
+				// Close last trace
+				conversionHandler.endTrace(currentCaseId);
+
 				if (eventsWithErrors.length() > 0) {
 					progress.log("Could not convert the following events:\n");
 					progress.log(eventsWithErrors.toString());
