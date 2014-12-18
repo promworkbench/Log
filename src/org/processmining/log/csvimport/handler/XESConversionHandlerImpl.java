@@ -1,6 +1,8 @@
 package org.processmining.log.csvimport.handler;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -14,8 +16,8 @@ import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
-import org.processmining.log.csvimport.CSVFile;
 import org.processmining.log.csvimport.CSVConversionConfig;
+import org.processmining.log.csvimport.CSVFile;
 import org.processmining.log.csvimport.CSVImportConfig;
 
 /**
@@ -32,6 +34,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	
 	private XTrace currentTrace = null;
 	private List<XEvent> currentEvents = new ArrayList<>();
+	private boolean hasStartEvents = false;
 	
 	private XEvent currentEvent = null;
 	private int instanceCounter = 0;
@@ -48,11 +51,20 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 
 	public void startTrace(String caseId) {
 		currentEvents.clear();
+		hasStartEvents = false;
 		currentTrace = factory.createTrace();
 		assignName(factory, currentTrace, caseId);
 	}
 
 	public void endTrace(String caseId) {
+		if (hasStartEvents) {
+			Collections.sort(currentEvents, new Comparator<XEvent>() {
+
+				public int compare(XEvent o1, XEvent o2) {					
+					return XTimeExtension.instance().extractTimestamp(o1).compareTo(XTimeExtension.instance().extractTimestamp(o2));
+				}
+			});
+		}
 		currentTrace.addAll(currentEvents);		
 		log.add(currentTrace);
 	}
@@ -60,6 +72,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	public void startEvent(String eventClass, Date completionTime, Date startTime) {
 		if (startTime != null) {			
 			String instance = String.valueOf((instanceCounter++));
+			hasStartEvents = true;
 			
 			currentStartEvent = factory.createEvent();
 			assignName(factory, currentStartEvent, eventClass);
