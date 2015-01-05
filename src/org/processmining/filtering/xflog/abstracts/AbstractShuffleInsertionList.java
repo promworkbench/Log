@@ -22,6 +22,8 @@ public abstract class AbstractShuffleInsertionList<T> extends AbstractList<T> im
 
 	protected List<T> source;
 	protected int[] positions;
+
+	@SuppressWarnings("unchecked")
 	protected T[] newElements = (T[]) new Object[0];
 
 	public AbstractShuffleInsertionList(List<T> source) {
@@ -61,6 +63,7 @@ public abstract class AbstractShuffleInsertionList<T> extends AbstractList<T> im
 		return positions.length;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object clone() {
 		AbstractShuffleInsertionList<T> clone = null;

@@ -16,6 +16,11 @@ import org.processmining.filtering.filter.interfaces.FilterStack;
  */
 public class FilterStackImpl<T> extends ArrayList<Filter<T>> implements FilterStack<T> {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6042187895669094422L;
+
 	public FilterStackImpl(List<Filter<T>> filters) {
 		this.addAll(filters);
 	}

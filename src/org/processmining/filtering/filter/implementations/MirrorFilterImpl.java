@@ -18,8 +18,9 @@ public class MirrorFilterImpl<T> implements Filter<T> {
 		return t;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object clone() {
-		Object clone = null;
+		MirrorFilterImpl<T> clone = null;
 		try {
 			clone = (MirrorFilterImpl<T>) super.clone();
 		} catch (CloneNotSupportedException e) {

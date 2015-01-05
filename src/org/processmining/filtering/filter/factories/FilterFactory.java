@@ -10,7 +10,7 @@ import org.processmining.filtering.filter.interfaces.FilterStack;
 public class FilterFactory {
 
 	public static <T> Filter<T> mirrorFilter() {
-		return new MirrorFilterImpl();
+		return new MirrorFilterImpl<T>();
 	}
 
 	public static <T> FilterStack<T> filterStack(List<Filter<T>> filters) {
