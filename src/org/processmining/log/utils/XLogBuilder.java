@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2014 F. Mannhardt (f.mannhardt@tue.nl)
+ * 
+ * LICENSE:
+ * 
+ * This code is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+ */
 package org.processmining.log.utils;
 
 import java.util.Date;
@@ -10,6 +29,30 @@ import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 
+/**
+ * Fluent-style builder for create a XLog in an easy way. Get an instance by
+ * calling {@link XLogBuilder#newInstance()}, then it can be used as follows: 
+
+ * <pre>
+ * {@code
+ *  XLog log = XLogBuilder.newInstance()
+ *	 	.startLog("logName")
+ *		.addTrace("traceName", 2)
+ *		.addAttribute("traceAttribute", "test")
+ *			.addEvent("Event1")
+ *			.addAttribute("eventAttribute", 21)
+ *			.addEvent("Event2")
+ *			.addEvent("Event3")
+ *			.addEvent("Event4", 2)
+ *		.build();
+ * }
+ * </pre>
+ * Please note that a {@link XLogBuilder} instance is design to be used to 
+ * create one log only. 
+ * 
+ * @author F. Mannhardt
+ * 
+ */
 public class XLogBuilder {
 
 	public static XLogBuilder newInstance() {
@@ -46,7 +89,7 @@ public class XLogBuilder {
 		if (currentEvent != null) {
 			addCurrentEventToTrace();
 		}
-		if (currentTrace != null) {			
+		if (currentTrace != null) {
 			addCurrentTraceToLog();
 			currentEvent = null;
 		}
@@ -61,8 +104,8 @@ public class XLogBuilder {
 	private void addCurrentTraceToLog() {
 		log.add(currentTrace);
 		if (currentTraceMultiplicity > 1) {
-			for (int i = 0; i < currentTraceMultiplicity-1; i++) {
-				XTrace clone = (XTrace)currentTrace.clone();
+			for (int i = 0; i < currentTraceMultiplicity - 1; i++) {
+				XTrace clone = (XTrace) currentTrace.clone();
 				String name = conceptInstance.extractName(clone);
 				if (name != null) {
 					conceptInstance.assignName(clone, name.concat("-1"));
@@ -71,7 +114,7 @@ public class XLogBuilder {
 			}
 		}
 	}
-	
+
 	public XLogBuilder addEvent(String name) {
 		addEvent(name, 1);
 		return this;
@@ -89,11 +132,11 @@ public class XLogBuilder {
 		currentEventMultiplicity = numberOfEvents;
 		return this;
 	}
-	
+
 	private void addCurrentEventToTrace() {
 		currentTrace.add(currentEvent);
 		if (currentEventMultiplicity > 1) {
-			for (int i = 0; i < currentEventMultiplicity-1; i++) {
+			for (int i = 0; i < currentEventMultiplicity - 1; i++) {
 				currentTrace.add((XEvent) currentEvent.clone());
 			}
 		}
