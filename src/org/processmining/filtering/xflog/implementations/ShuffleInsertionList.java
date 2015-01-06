@@ -1,4 +1,4 @@
-package org.processmining.filtering.xflog.abstracts;
+package org.processmining.filtering.xflog.implementations;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.Map;
  * @param <T>
  *            generic type of elements within the list.
  */
-public abstract class AbstractShuffleInsertionList<T> extends AbstractList<T> implements Cloneable {
+public class ShuffleInsertionList<T> extends AbstractList<T> implements Cloneable {
 
 	protected List<T> source;
 	protected int[] positions;
@@ -26,7 +26,7 @@ public abstract class AbstractShuffleInsertionList<T> extends AbstractList<T> im
 	@SuppressWarnings("unchecked")
 	protected T[] newElements = (T[]) new Object[0];
 
-	public AbstractShuffleInsertionList(List<T> source) {
+	public ShuffleInsertionList(List<T> source) {
 		this.source = source;
 		positions = new int[source.size()];
 		for (int i = 0; i < source.size(); i++) {
@@ -34,13 +34,13 @@ public abstract class AbstractShuffleInsertionList<T> extends AbstractList<T> im
 		}
 	}
 
-	public AbstractShuffleInsertionList(List<T> source, int[] eventPositions) {
+	public ShuffleInsertionList(List<T> source, int[] eventPositions) {
 		this.source = source;
 		this.positions = eventPositions;
 	}
 
 	//TODO: Test addition of (artificial) events
-	public AbstractShuffleInsertionList(List<T> source, List<T> modifiedOrder) {
+	public ShuffleInsertionList(List<T> source, List<T> modifiedOrder) {
 		this.source = source;
 		Map<T, Integer> newElementMap = new HashMap<>();
 		positions = new int[modifiedOrder.size()];
@@ -66,9 +66,9 @@ public abstract class AbstractShuffleInsertionList<T> extends AbstractList<T> im
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object clone() {
-		AbstractShuffleInsertionList<T> clone = null;
+		ShuffleInsertionList<T> clone = null;
 		try {
-			clone = (AbstractShuffleInsertionList<T>) super.clone();
+			clone = (ShuffleInsertionList<T>) super.clone();
 			clone.source = new ArrayList<T>(source);
 			clone.positions = positions.clone();
 			clone.newElements = newElements.clone();

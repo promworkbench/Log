@@ -13,15 +13,14 @@ import org.processmining.filtering.filter.interfaces.Filter;
  */
 public class MirrorFilterImpl<T> implements Filter<T> {
 
-	@Override
 	public T apply(T t) {
 		return t;
 	}
 
 	@SuppressWarnings("unchecked")
-	public Object clone() {
-		MirrorFilterImpl<T> clone = null;
-		try {
+	public Filter<T> clone() {
+		Filter<T> clone = null;
+		try  {
 			clone = (MirrorFilterImpl<T>) super.clone();
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();

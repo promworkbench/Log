@@ -14,10 +14,9 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.model.XVisitor;
 import org.processmining.filtering.filter.interfaces.Filter;
-import org.processmining.filtering.xflog.abstracts.AbstractShuffleInsertionList;
 import org.processmining.filtering.xflog.interfaces.XFLog;
 
-public class XFLogImpl extends AbstractShuffleInsertionList<XTrace> implements XFLog {
+public class XFLogImpl extends ShuffleInsertionList<XTrace> implements XFLog {
 
 	/**
 	 * Filter related variables

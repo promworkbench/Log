@@ -12,5 +12,7 @@ import java.util.List;
  *            generic type on which this filter is applied.
  */
 public interface FilterStack<T> extends Filter<T>, List<Filter<T>> {
+	
+	public FilterStack<T> clone();
 
 }

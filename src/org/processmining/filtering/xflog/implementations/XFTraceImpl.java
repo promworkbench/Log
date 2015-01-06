@@ -12,10 +12,9 @@ import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.model.XVisitor;
 import org.deckfour.xes.util.XAttributeUtils;
 import org.processmining.filtering.filter.interfaces.Filter;
-import org.processmining.filtering.xflog.abstracts.AbstractShuffleInsertionList;
 import org.processmining.filtering.xflog.interfaces.XFTrace;
 
-public class XFTraceImpl extends AbstractShuffleInsertionList<XEvent> implements XFTrace {
+public class XFTraceImpl extends ShuffleInsertionList<XEvent> implements XFTrace {
 
 	protected XAttributeMap attributes;
 	protected XTrace source;

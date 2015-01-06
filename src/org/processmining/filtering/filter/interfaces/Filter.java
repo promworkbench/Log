@@ -8,7 +8,7 @@ package org.processmining.filtering.filter.interfaces;
  *            generic type on which this filter is applied.
  */
 public interface Filter<T> extends Cloneable {
-
+	
 	/**
 	 * Apply this filter on some input.
 	 * 
@@ -23,5 +23,5 @@ public interface Filter<T> extends Cloneable {
 	 * 
 	 * @return clone of filter.
 	 */
-	public Object clone();
+	public Filter<T> clone();
 }

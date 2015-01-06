@@ -16,9 +16,6 @@ import org.processmining.filtering.filter.interfaces.FilterStack;
  */
 public class FilterStackImpl<T> extends ArrayList<Filter<T>> implements FilterStack<T> {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 6042187895669094422L;
 
 	public FilterStackImpl(List<Filter<T>> filters) {
@@ -33,5 +30,13 @@ public class FilterStackImpl<T> extends ArrayList<Filter<T>> implements FilterSt
 		}
 		return result;
 	}
+	
+	@SuppressWarnings("unchecked")
+	public FilterStack<T> clone() {
+		FilterStackImpl<T> clone = null;
+		clone = (FilterStackImpl<T>) super.clone();
+		return clone;
+	}
+	
 
 }
