@@ -8,7 +8,7 @@ import org.processmining.log.csvimport.CSVConversion.Datatype;
 import org.processmining.log.csvimport.exception.CSVConversionConfigException;
 
 /**
- * Configuration regarding the conversion
+ * Configuration regarding the conversion of the CSV file.
  * 
  * @author F. Mannhardt
  *
@@ -23,7 +23,12 @@ public final class CSVConversionConfig {
 	public boolean isRepairDataTypes = true;
 	public boolean strictMode = false;
 	public boolean omitNULL = true;
+	
 	public Map<Integer, Datatype> datatypeMapping = new HashMap<>();
+	
+	/**
+	 * A format string that needs to be formatted according to {@link SimpleDateFormat}. 
+	 */
 	public String timeFormat;
 
 	public void check() throws CSVConversionConfigException {
