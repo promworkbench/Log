@@ -108,7 +108,7 @@ public class XLogBuilder {
 				XTrace clone = (XTrace) currentTrace.clone();
 				String name = conceptInstance.extractName(clone);
 				if (name != null) {
-					conceptInstance.assignName(clone, name.concat("-1"));
+					conceptInstance.assignName(clone, name.concat("-").concat(String.valueOf(i+1)));
 				}
 				log.add(clone);
 			}
