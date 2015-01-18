@@ -19,6 +19,7 @@
  */
 package org.processmining.log.utils;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.TreeSet;
@@ -26,8 +27,10 @@ import java.util.TreeSet;
 import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.classification.XEventNameClassifier;
 import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.model.XAttributable;
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XAttributeBoolean;
 import org.deckfour.xes.model.XAttributeContainer;
@@ -49,6 +52,14 @@ import org.deckfour.xes.model.XTrace;
  *
  */
 public class XUtils {
+	
+	public static String getConceptName(XAttributable element) {
+		return XConceptExtension.instance().extractName(element);
+	}
+	
+	public static Date getTimestamp(XEvent event) {
+		return XTimeExtension.instance().extractTimestamp(event);
+	}
 
 	public static boolean containsEventWithName(String eventName, XTrace trace) {
 		XConceptExtension instance = XConceptExtension.instance();
