@@ -124,7 +124,11 @@
 
 	      <!-- JUnit: test cases to run -->
     	  <sysproperty key="test.testFileRoot" path="${dir.testfiles}"/>
-	      <test name="org.processmining.tests.log.LogTest" todir="${test.basedir}" />
+	      <batchtest todir="${test.basedir}">
+			<fileset dir="${test.basedir}/src-test">
+				<include name="**/*Test.java" />
+			</fileset>
+		  </batchtest>
 	    </junit>
 		
 		<!-- Cobertura: generate HTML coverage report -->
