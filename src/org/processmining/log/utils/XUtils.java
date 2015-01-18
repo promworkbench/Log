@@ -62,9 +62,8 @@ public class XUtils {
 	}
 
 	public static boolean containsEventWithName(String eventName, XTrace trace) {
-		XConceptExtension instance = XConceptExtension.instance();
 		for (XEvent xEvent : trace) {
-			if (eventName.equals(instance.extractName(xEvent))) {
+			if (eventName.equals(getConceptName(xEvent))) {
 				return true;
 			}
 		}
@@ -73,9 +72,8 @@ public class XUtils {
 
 	public static XEvent getLatestEventWithName(String eventName, XTrace trace) {
 		XEvent latestEvent = null;
-		XConceptExtension instance = XConceptExtension.instance();
 		for (XEvent xEvent : trace) {
-			if (eventName.equals(instance.extractName(xEvent))) {
+			if (eventName.equals(getConceptName(xEvent))) {
 				latestEvent = xEvent;
 			}
 		}
@@ -84,10 +82,9 @@ public class XUtils {
 
 	public static NavigableSet<String> getAllEventNamesSorted(XLog log) {
 		NavigableSet<String> eventNames = new TreeSet<String>();
-		XConceptExtension extension = XConceptExtension.instance();
 		for (XTrace trace : log) {
 			for (XEvent event : trace) {
-				eventNames.add(extension.extractName(event));
+				eventNames.add(getConceptName(event));
 			}
 		}
 		return eventNames;
