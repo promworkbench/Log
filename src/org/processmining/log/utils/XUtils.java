@@ -24,7 +24,9 @@ import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 
+import org.deckfour.xes.classification.XEventAndClassifier;
 import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.classification.XEventLifeTransClassifier;
 import org.deckfour.xes.classification.XEventNameClassifier;
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
@@ -52,6 +54,24 @@ import org.deckfour.xes.model.XTrace;
  *
  */
 public class XUtils {
+	
+	public static final XEventClassifier STANDARDCLASSIFIER = new XEventAndClassifier(new XEventNameClassifier(), new XEventLifeTransClassifier());
+	/**
+	 * Added by Eric Verbeek
+	 * 
+	 * Returns a default classifier to use with an event log.
+	 * If the log contains classifiers, then the first classifier is returned.
+	 * Otherwise, the standard MXML classifier is constructed and returned.
+	 * 
+	 * @param log
+	 * @return A default classifier to use with the provided log.
+	 */
+	public static XEventClassifier getDefaultClassifier(XLog log) {
+		if (log.getClassifiers().isEmpty()) {
+			return STANDARDCLASSIFIER;
+		}
+		return log.getClassifiers().get(0);
+	}
 	
 	public static String getConceptName(XAttributable element) {
 		return XConceptExtension.instance().extractName(element);
