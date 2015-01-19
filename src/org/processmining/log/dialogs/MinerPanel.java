@@ -1,4 +1,4 @@
-package org.processmining.dialogs;
+package org.processmining.log.dialogs;
 
 import info.clearthought.layout.TableLayout;
 import info.clearthought.layout.TableLayoutConstants;
@@ -13,7 +13,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.processmining.framework.util.ui.widgets.ProMList;
-import org.processmining.parameters.MinerParameter;
+import org.processmining.log.parameters.MinerParameter;
 
 public class MinerPanel extends JPanel {
 	

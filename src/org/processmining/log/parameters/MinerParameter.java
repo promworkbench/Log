@@ -1,4 +1,4 @@
-package org.processmining.parameters;
+package org.processmining.log.parameters;
 
 public interface MinerParameter {
 

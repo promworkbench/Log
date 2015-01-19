@@ -1,4 +1,4 @@
-package org.processmining.dialogs;
+package org.processmining.log.dialogs;
 
 import info.clearthought.layout.TableLayout;
 import info.clearthought.layout.TableLayoutConstants;
@@ -14,7 +14,7 @@ import javax.swing.event.ListSelectionListener;
 
 import org.deckfour.xes.classification.XEventClassifier;
 import org.processmining.framework.util.ui.widgets.ProMList;
-import org.processmining.parameters.ClassifierParameter;
+import org.processmining.log.parameters.ClassifierParameter;
 
 public class ClassifierPanel extends JPanel {
 	

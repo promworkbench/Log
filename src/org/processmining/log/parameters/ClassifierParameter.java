@@ -1,4 +1,4 @@
-package org.processmining.parameters;
+package org.processmining.log.parameters;
 
 import org.deckfour.xes.classification.XEventClassifier;
 
