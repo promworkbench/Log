@@ -231,9 +231,7 @@ public final class RepairAttributeDataType {
 
 		// Determine best datatype
 		for (XTrace trace : log) {
-			for (XEvent event : trace) {
-				buildDataTypeMap(event.getAttributes(), guessedDataType, dateFormats);
-			}
+			buildDataTypeMap(trace.getAttributes(), guessedDataType, dateFormats);			
 			if (progBar.isCancelled()) {
 				return;
 			}
@@ -330,7 +328,11 @@ public final class RepairAttributeDataType {
 				if (!(entry.getValue() instanceof XAttributeTimestamp)) {
 					Class<? extends XAttribute> dataType = attributeDataType.get(entry.getKey());
 					try {
-						entry.setValue(createAttribute(dataType, entry, factory, dateFormats));
+						if (dataType != null) {
+							entry.setValue(createAttribute(dataType, entry, factory, dateFormats));	
+						} else {
+							throw new RuntimeException(String.format("Could not find datatype of attribute %s. Available data types are %s", entry.getKey(), attributeDataType));
+						}
 					} catch (NumberFormatException e) {
 						context.log("Could not convert value of attribute " + entry.getKey() + " to " + dataType,
 								MessageLevel.ERROR);
@@ -383,7 +385,7 @@ public final class RepairAttributeDataType {
 						// Fallback to Literal
 						if (lastDataType != XAttributeLiteral.class) {
 							attributeDataType.put(attribute.getKey(), XAttributeLiteral.class);	
-						}						
+						}
 					}
 				}
 
@@ -411,7 +413,7 @@ public final class RepairAttributeDataType {
 		} else if (XAttributeTimestamp.class.equals(dataType)) {
 			return factory.createAttributeTimestamp(entry.getKey(), getAttrAsDate(entry.getValue(), dateFormats), null);
 		} else {
-			throw new IllegalArgumentException("Unexpected Attribute " + entry.getValue());
+			throw new IllegalArgumentException(String.format("Unexpected Attribute %s: Type %s instead %s", entry.getValue(), entry.getValue().getClass().getSimpleName(), dataType.getSimpleName()));
 		}
 	}
 
