@@ -30,6 +30,7 @@ public class HighFrequencyFilterArrayPlugin {
 			EventLogArray filteredLogs = EventLogArrayFactory.createEventLogArray();
 			filteredLogs.init();
 			for (int i = 0; i < logs.getSize(); i++) {
+				parameters.displayMessage("[HighFrequencyFilterArrayPlugin] Filtering log " + i + " of " + logs.getSize());
 				filteredLogs.addLog((new HighFrequencyFilterAlgorithm()).apply(context, logs.getLog(i), parameters));
 			}
 			return filteredLogs;
@@ -44,6 +45,7 @@ public class HighFrequencyFilterArrayPlugin {
 			EventLogArray filteredLogs = EventLogArrayFactory.createEventLogArray();
 			filteredLogs.init();
 			for (int i = 0; i < logs.getSize(); i++) {
+				parameters.displayMessage("[HighFrequencyFilterArrayPlugin] Filtering log " + i + " of " + logs.getSize());
 				filteredLogs.addLog((new HighFrequencyFilterAlgorithm()).apply(context, logs.getLog(i), parameters));
 			}
 			return filteredLogs;
@@ -59,6 +61,7 @@ public class HighFrequencyFilterArrayPlugin {
 			EventLogArray filteredLogs = EventLogArrayFactory.createEventLogArray();
 			filteredLogs.init();
 			for (int i = 0; i < logs.getSize(); i++) {
+				parameters.displayMessage("[HighFrequencyFilterArrayPlugin] Filtering log " + i + " of " + logs.getSize());
 				filteredLogs.addLog((new HighFrequencyFilterAlgorithm()).apply(context, logs.getLog(i), parameters));
 			}
 			return filteredLogs;
