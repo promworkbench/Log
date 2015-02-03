@@ -19,6 +19,10 @@
  */
 package org.processmining.log.utils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.NavigableSet;
@@ -46,6 +50,8 @@ import org.deckfour.xes.model.XAttributeTimestamp;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
+import org.deckfour.xes.out.XSerializer;
+import org.deckfour.xes.out.XesXmlSerializer;
 
 /**
  * Commonly used methods for handling XES logs
@@ -56,6 +62,7 @@ import org.deckfour.xes.model.XTrace;
 public class XUtils {
 	
 	public static final XEventClassifier STANDARDCLASSIFIER = new XEventAndClassifier(new XEventNameClassifier(), new XEventLifeTransClassifier());
+	
 	/**
 	 * Added by Eric Verbeek
 	 * 
@@ -80,6 +87,13 @@ public class XUtils {
 	public static Date getTimestamp(XEvent event) {
 		return XTimeExtension.instance().extractTimestamp(event);
 	}
+	
+	public static void saveLog(XLog log, File file) throws FileNotFoundException, IOException {
+		try (FileOutputStream out = new FileOutputStream(file)) {
+			XSerializer logSerializer = new XesXmlSerializer();
+			logSerializer.serialize(log, out);
+		}
+	}
 
 	public static boolean containsEventWithName(String eventName, XTrace trace) {
 		for (XEvent xEvent : trace) {
@@ -101,7 +115,7 @@ public class XUtils {
 	}
 
 	public static NavigableSet<String> getAllEventNamesSorted(XLog log) {
-		NavigableSet<String> eventNames = new TreeSet<String>();
+		NavigableSet<String> eventNames = new TreeSet<>();
 		for (XTrace trace : log) {
 			for (XEvent event : trace) {
 				eventNames.add(getConceptName(event));
