@@ -45,6 +45,13 @@ public class HighFrequencyFilterAlgorithm implements LogFilterAlgorithm {
 		List<Integer> occurrences = new ArrayList<Integer>(traceOccurrenceMap.values());
 		Collections.sort(occurrences);
 
+//		SummaryStatistics statistics = new SummaryStatistics();
+//		for (int occurrence : occurrences) {
+//			for (int i = 0; i < occurrence; i++) {
+//				statistics.addValue(occurrence);
+//			}
+//		}
+//		int threshold = (int) Math.round(statistics.getMean() - 1.0 * statistics.getStandardDeviation());
 		int threshold = ((100 - ((HighFrequencyFilterParameters) parameters).getFrequencyThreshold()) * clonedLog
 				.size()) / 100;
 		int sum = 0;
@@ -67,6 +74,7 @@ public class HighFrequencyFilterAlgorithm implements LogFilterAlgorithm {
 			 */
 			threshold--;
 		}
+		System.out.println("Threshold = " + threshold);
 
 		Collection<XTrace> tracesToRemove = new HashSet<XTrace>();
 
