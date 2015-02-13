@@ -206,9 +206,11 @@ public final class ImportConfigUI extends JPanel {
 
 	private Set<XFactory> getAvailableXFactories() {
 		//Try to register XESLite Factories
-		tryRegisterFactory("org.progressmining.xeslite.lite.factory.XFactoryLiteImpl");
-		tryRegisterFactory("org.progressmining.xeslite.external.XFactoryExternalImpl$MapDBDiskImpl");
-		tryRegisterFactory("org.progressmining.xeslite.external.XFactoryExternalImpl$MapDBDiskSequentialAccessImpl");
+		tryRegisterFactory("org.processmining.xeslite.lite.factory.XFactoryLiteImpl");
+		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskImpl");
+		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskWithoutCacheImpl");
+		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskSequentialAccessImpl");
+		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskSequentialAccessWithoutCacheImpl");		
 		return XFactoryRegistry.instance().getAvailable();
 	}
 
