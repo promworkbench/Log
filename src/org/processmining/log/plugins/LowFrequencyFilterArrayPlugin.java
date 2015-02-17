@@ -18,7 +18,7 @@ public class LowFrequencyFilterArrayPlugin {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
 	@PluginVariant(variantLabel = "Filter Out Low-Frequency Traces (Multiple Logs), UI", requiredParameterLabels = { 0 })
-	public EventLogArray publicUIArray(UIPluginContext context, EventLogArray logs) {
+	public EventLogArray runUI(UIPluginContext context, EventLogArray logs) {
 		if (logs.getSize() > 0) {
 			XLog log = logs.getLog(0);
 			LowFrequencyFilterParameters parameters = new LowFrequencyFilterParameters(log);
@@ -30,15 +30,23 @@ public class LowFrequencyFilterArrayPlugin {
 			EventLogArray filteredLogs = EventLogArrayFactory.createEventLogArray();
 			filteredLogs.init();
 			for (int i = 0; i < logs.getSize(); i++) {
-				filteredLogs.addLog((new LowFrequencyFilterAlgorithm()).apply(context, logs.getLog(i), parameters));
+				filteredLogs.addLog((new LowFrequencyFilterPlugin()).run(context, logs.getLog(i), parameters));
 			}
 			return filteredLogs;
 		}
 		return null;
 	}
 
+	/**
+	 * @deprecated Use runUI instead.
+	 */
+	@Deprecated
+	public EventLogArray publicUIArray(UIPluginContext context, EventLogArray logs) {
+		return runUI(context, logs);
+	}
+	
 	@PluginVariant(variantLabel = "Filter Out Low-Frequency Traces (Multiple Logs), Parameters", requiredParameterLabels = { 0 })
-	public EventLogArray publicParameters(PluginContext context, EventLogArray logs,
+	public EventLogArray run(PluginContext context, EventLogArray logs,
 			LowFrequencyFilterParameters parameters) {
 		if (logs.getSize() > 0) {
 			EventLogArray filteredLogs = EventLogArrayFactory.createEventLogArray();
@@ -51,9 +59,18 @@ public class LowFrequencyFilterArrayPlugin {
 		return null;
 	}
 
+	/**
+	 * @deprecated Use run instead.
+	 */
+	@Deprecated
+	public EventLogArray publicParameters(PluginContext context, EventLogArray logs,
+			LowFrequencyFilterParameters parameters) {
+		return run(context, logs, parameters);
+	}
+	
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
 	@PluginVariant(variantLabel = "Filter Out Low-Frequency Traces (Multiple Logs), Default", requiredParameterLabels = { 0 })
-	public EventLogArray publicDefault(PluginContext context, EventLogArray logs) {
+	public EventLogArray runDefault(PluginContext context, EventLogArray logs) {
 		if (logs.getSize() > 0) {
 			LowFrequencyFilterParameters parameters = new LowFrequencyFilterParameters(logs.getLog(0));
 			EventLogArray filteredLogs = EventLogArrayFactory.createEventLogArray();
@@ -64,5 +81,13 @@ public class LowFrequencyFilterArrayPlugin {
 			return filteredLogs;
 		}
 		return null;
+	}
+
+	/**
+	 * @deprecated Use runDefault instead.
+	 */
+	@Deprecated
+	public EventLogArray publicDefault(PluginContext context, EventLogArray logs) {
+		return runDefault(context, logs);
 	}
 }

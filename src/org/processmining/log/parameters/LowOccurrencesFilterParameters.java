@@ -8,11 +8,16 @@ public class LowOccurrencesFilterParameters extends AbstractLogFilterParameters 
 	private int threshold;
 
 	public LowOccurrencesFilterParameters(XLog log) {
+		super(XUtils.getDefaultClassifier(log));
 		/*
 		 * Traces that occur at least 2 times will be retained.
 		 */
 		setThreshold(2);
-		setClassifier(XUtils.getDefaultClassifier(log));
+	}
+	
+	public LowOccurrencesFilterParameters(LowOccurrencesFilterParameters parameters) {
+		super(parameters);
+		setThreshold(parameters.getThreshold());
 	}
 	
 	public int getThreshold() {
@@ -21,5 +26,14 @@ public class LowOccurrencesFilterParameters extends AbstractLogFilterParameters 
 
 	public void setThreshold(int threshold) {
 		this.threshold = threshold;
+	}
+	
+	public boolean equals(Object object) {
+		if (object instanceof LowOccurrencesFilterParameters) {
+			LowOccurrencesFilterParameters parameters = (LowOccurrencesFilterParameters) object;
+			return super.equals(parameters) &&
+					getThreshold() == parameters.getThreshold();
+		}
+		return false;
 	}
 }

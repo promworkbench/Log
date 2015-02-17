@@ -13,9 +13,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.processmining.contexts.uitopia.UIPluginContext;
+import org.processmining.log.algorithms.LogCentralityVisualizerAlgorithm;
 import org.processmining.log.models.LogCentrality;
 import org.processmining.log.parameters.LogCentralityFilterParameters;
-import org.processmining.log.plugins.LogCentralityVisualizerPlugin;
 
 import com.fluxicon.slickerbox.components.NiceSlider;
 import com.fluxicon.slickerbox.components.NiceSlider.Orientation;
@@ -38,7 +38,7 @@ public class LogCentralityFilterDialog extends JPanel{
 		add(holder, "0, 0");
 		double holderSize[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.FILL } };
 		holder.setLayout(new TableLayout(holderSize));
-		holder.add((new LogCentralityVisualizerPlugin()).visualize(centrality, parameters), "0, 0");
+		holder.add((new LogCentralityVisualizerAlgorithm()).apply(centrality, parameters), "0, 0");
 		
 		final NiceSlider percSlider = SlickerFactory.instance().createNiceIntegerSlider("Select Happy Percentage", 0, 100,  parameters.getPercentage(),
 				Orientation.HORIZONTAL);
@@ -47,7 +47,7 @@ public class LogCentralityFilterDialog extends JPanel{
 			public void stateChanged(ChangeEvent e) {
 				parameters.setPercentage(percSlider.getSlider().getValue());
 				holder.removeAll();
-				holder.add((new LogCentralityVisualizerPlugin()).visualize(centrality, parameters), "0, 0");
+				holder.add((new LogCentralityVisualizerAlgorithm()).apply(centrality, parameters), "0, 0");
 				revalidate();
 				repaint();
 			}
@@ -62,7 +62,7 @@ public class LogCentralityFilterDialog extends JPanel{
 			public void actionPerformed(ActionEvent e) {
 				parameters.setFilterIn(filterInBox.isSelected());
 				holder.removeAll();
-				holder.add((new LogCentralityVisualizerPlugin()).visualize(centrality, parameters), "0, 0");
+				holder.add((new LogCentralityVisualizerAlgorithm()).apply(centrality, parameters), "0, 0");
 				revalidate();
 				repaint();
 			}

@@ -1,24 +1,23 @@
 package org.processmining.log.parameters;
 
-import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XLog;
 import org.processmining.log.utils.XUtils;
 
-public class LogCentralityParameters {
-
-	private XEventClassifier classifier;
+public class LogCentralityParameters extends AbstractLogFilterParameters {
 
 	public LogCentralityParameters(XLog log) {
-		setClassifier(XUtils.getDefaultClassifier(log));
+		super(XUtils.getDefaultClassifier(log));
 	}
 
-
-	public void setClassifier(XEventClassifier classifier) {
-		this.classifier = classifier;
+	public LogCentralityParameters(LogCentralityParameters parameters) {
+		super(parameters);
 	}
 
-	public XEventClassifier getClassifier() {
-		return classifier;
+	public boolean equals(Object object) {
+		if (object instanceof LogCentralityParameters) {
+			LogCentralityParameters parameters = (LogCentralityParameters) object;
+			return super.equals(parameters);
+		}
+		return false;
 	}
-
 }

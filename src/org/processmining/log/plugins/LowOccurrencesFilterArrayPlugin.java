@@ -7,7 +7,6 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginVariant;
-import org.processmining.log.algorithms.LowOccurrencesFilterAlgorithm;
 import org.processmining.log.dialogs.LowOccurrencesFilterDialog;
 import org.processmining.log.models.EventLogArray;
 import org.processmining.log.models.impl.EventLogArrayFactory;
@@ -18,7 +17,7 @@ public class LowOccurrencesFilterArrayPlugin {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
 	@PluginVariant(variantLabel = "Filter Out Low-Occurrence Traces (Multiple Logs), UI", requiredParameterLabels = { 0 })
-	public EventLogArray publicUIArray(UIPluginContext context, EventLogArray logs) {
+	public EventLogArray runUI(UIPluginContext context, EventLogArray logs) {
 		if (logs.getSize() > 0) {
 			XLog log = logs.getLog(0);
 			LowOccurrencesFilterParameters parameters = new LowOccurrencesFilterParameters(log);
@@ -30,39 +29,65 @@ public class LowOccurrencesFilterArrayPlugin {
 			EventLogArray filteredLogs = EventLogArrayFactory.createEventLogArray();
 			filteredLogs.init();
 			for (int i = 0; i < logs.getSize(); i++) {
-				filteredLogs.addLog((new LowOccurrencesFilterAlgorithm()).apply(context, logs.getLog(i), parameters));
+				filteredLogs.addLog((new LowOccurrencesFilterPlugin()).run(context, logs.getLog(i), parameters));
 			}
 			return filteredLogs;
 		}
 		return null;
 	}
 
+	/**
+	 * @deprecated Use runUI instead.
+	 */
+	@Deprecated
+	public EventLogArray publicUIArray(UIPluginContext context, EventLogArray logs) {
+		return runUI(context, logs);
+	}
+	
 	@PluginVariant(variantLabel = "Filter Out Low-Occurrence Traces (Multiple Logs), Parameters", requiredParameterLabels = { 0 })
-	public EventLogArray publicParameters(PluginContext context, EventLogArray logs,
+	public EventLogArray run(PluginContext context, EventLogArray logs,
 			LowOccurrencesFilterParameters parameters) {
 		if (logs.getSize() > 0) {
 			EventLogArray filteredLogs = EventLogArrayFactory.createEventLogArray();
 			filteredLogs.init();
 			for (int i = 0; i < logs.getSize(); i++) {
-				filteredLogs.addLog((new LowOccurrencesFilterAlgorithm()).apply(context, logs.getLog(i), parameters));
+				filteredLogs.addLog((new LowOccurrencesFilterPlugin()).run(context, logs.getLog(i), parameters));
 			}
 			return filteredLogs;
 		}
 		return null;
 	}
 
+	/**
+	 * @deprecated Use run instead.
+	 */
+	@Deprecated
+	public EventLogArray publicParameters(UIPluginContext context, EventLogArray logs,
+			LowOccurrencesFilterParameters parameters) {
+		return run(context, logs, parameters);
+	}
+	
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
 	@PluginVariant(variantLabel = "Filter Out Low-Occurrence Traces (Multiple Logs), Default", requiredParameterLabels = { 0 })
-	public EventLogArray publicDefault(PluginContext context, EventLogArray logs) {
+	public EventLogArray runDefault(PluginContext context, EventLogArray logs) {
 		if (logs.getSize() > 0) {
 			LowOccurrencesFilterParameters parameters = new LowOccurrencesFilterParameters(logs.getLog(0));
 			EventLogArray filteredLogs = EventLogArrayFactory.createEventLogArray();
 			filteredLogs.init();
 			for (int i = 0; i < logs.getSize(); i++) {
-				filteredLogs.addLog((new LowOccurrencesFilterAlgorithm()).apply(context, logs.getLog(i), parameters));
+				filteredLogs.addLog((new LowOccurrencesFilterPlugin()).run(context, logs.getLog(i), parameters));
 			}
 			return filteredLogs;
 		}
 		return null;
 	}
+
+	/**
+	 * @deprecated Use runDefault instead.
+	 */
+	@Deprecated
+	public EventLogArray publicDefault(UIPluginContext context, EventLogArray logs) {
+		return runDefault(context, logs);
+	}
+	
 }
