@@ -216,5 +216,28 @@ public class XUtils {
 			throw new IllegalArgumentException("Unexpected attribute type!");
 		}
 	}
+	
+
+	public static Object getAttributeValue(XAttribute attribute) {
+		if (attribute instanceof XAttributeList) {
+			return ((XAttributeList)attribute).getCollection();
+		} else if (attribute instanceof XAttributeContainer) {
+			return ((XAttributeContainer)attribute).getCollection();
+		} else if (attribute instanceof XAttributeLiteral) {
+			return ((XAttributeLiteral)attribute).getValue();
+		} else if (attribute instanceof XAttributeBoolean) {
+			return ((XAttributeBoolean)attribute).getValue();
+		} else if (attribute instanceof XAttributeContinuous) {
+			return ((XAttributeContinuous)attribute).getValue();
+		} else if (attribute instanceof XAttributeDiscrete) {
+			return ((XAttributeDiscrete)attribute).getValue();
+		} else if (attribute instanceof XAttributeTimestamp) {
+			return ((XAttributeTimestamp)attribute).getValue();
+		} else if (attribute instanceof XAttributeID) {
+			return ((XAttributeID)attribute).getValue();
+		} else {
+			throw new IllegalArgumentException("Unexpected attribute type!");
+		}
+	}
 
 }
