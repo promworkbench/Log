@@ -27,6 +27,15 @@ import org.processmining.framework.plugin.annotations.Plugin;
 //@UIImportPlugin(description = "ProM log files", extensions = { "mxml", "xml", "gz", "zip", "xes", "xez" })
 public class OpenLogFilePlugin extends AbstractImportPlugin {
 
+	/**
+	 * Holds zip file, if zip file is open.
+	 */
+	private ZipFile zipFile;
+	
+	public OpenLogFilePlugin() {
+		zipFile = null;
+	}
+	
 	protected Object importFromStream(PluginContext context, InputStream input, String filename, long fileSizeInBytes,
 			XFactory factory) throws Exception {
 		context.getFutureResult(0).setLabel(filename);
@@ -65,6 +74,12 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 					errorMessage = errorMessage + " [" + p.name() + ":" + e1 + "]";
 				}
 			}
+		}
+		
+		// Log file has been read from the stream. The zip file (if present) can now be closed.
+		if (zipFile != null) {
+			zipFile.close();
+			zipFile = null;
 		}
 
 		// log sanity checks;
@@ -116,13 +131,16 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 			return new GZIPInputStream(stream);
 		}
 		if (file.getName().endsWith(".zip")) {
-			ZipFile zip = new ZipFile(file);
-			Enumeration<? extends ZipEntry> entries = zip.entries();
+			// Open zip file.
+			zipFile = new ZipFile(file);
+			Enumeration<? extends ZipEntry> entries = zipFile.entries();
 			ZipEntry zipEntry = entries.nextElement();
 			if (entries.hasMoreElements()) {
 				throw new InvalidParameterException("Zipped log files should not contain more than one entry.");
 			}
-			return zip.getInputStream(zipEntry);
+			// Return stream of only entry in zip file.
+			// Do not yet close zip file, as the retruend stream still needs to be read.
+			return zipFile.getInputStream(zipEntry);
 		}
 		return stream;
 	}

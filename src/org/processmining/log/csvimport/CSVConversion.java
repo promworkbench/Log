@@ -71,7 +71,7 @@ public final class CSVConversion {
 		private final SimpleDateFormat userDefinedDateFormat;
 
 		private final int completionTimeIndex;
-		private final int startTimeIndex;
+//		private final int startTimeIndex;
 
 		private final boolean strictTimeParsing;
 
@@ -79,7 +79,7 @@ public final class CSVConversion {
 				int startTimeIndex, boolean strictTimeParsing) {
 			this.indices = indices;
 			this.userDefinedDateFormat = userDefinedDateFormat;
-			this.startTimeIndex = startTimeIndex;
+//			this.startTimeIndex = startTimeIndex;
 			this.completionTimeIndex = completionTimeIndex;
 			this.strictTimeParsing = strictTimeParsing;
 		}
