@@ -93,7 +93,7 @@ public class LogFilter {
 		int i = 0;
 		Iterator<XTrace> itTrace = filtered.iterator();
 //		long time = -System.currentTimeMillis();
-		long progressTime = 0;
+//		long progressTime = 0;
 		while (itTrace.hasNext()) {
 			XTrace trace = itTrace.next();
 			Iterator<XEvent> itEvent = trace.iterator();
@@ -103,14 +103,14 @@ public class LogFilter {
 					itEvent.remove();
 				}
 				// Check for progress and signal if necessary
-				progressTime -= System.currentTimeMillis();
+//				progressTime -= System.currentTimeMillis();
 				if (progress != null) {
 					if (i % barSize == 0) {
 						progress.inc();
 					}
 					i++;
 				}
-				progressTime += System.currentTimeMillis();
+//				progressTime += System.currentTimeMillis();
 			}
 			if (trace.isEmpty() || !traceCondition.keepTrace(trace)) {
 				itTrace.remove();
@@ -186,20 +186,20 @@ public class LogFilter {
 		int i = 0;
 		Iterator<XTrace> itTrace = filtered.iterator();
 //		long time = -System.currentTimeMillis();
-		long progressTime = 0;
+//		long progressTime = 0;
 		while (itTrace.hasNext()) {
 			XTrace trace = itTrace.next();
 			if (!traceCondition.keepTrace(trace)) {
 				itTrace.remove();
 			}
-			progressTime -= System.currentTimeMillis();
+//			progressTime -= System.currentTimeMillis();
 			if (progress != null) {
 				if (i % barSize == 0) {
 					progress.inc();
 				}
 				i++;
 			}
-			progressTime += System.currentTimeMillis();
+//			progressTime += System.currentTimeMillis();
 		}
 //		time += System.currentTimeMillis();
 //		System.err.println("[LogFilter] time = " + time + ", progressTime = " + progressTime);

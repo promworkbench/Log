@@ -52,7 +52,7 @@ public class AttributeFilterDialog extends JPanel {
 		sortedKeys.addAll(values.keySet());
 		Collections.sort(sortedKeys, new AlphanumComparator());
 		for (String key : sortedKeys) {
-			DefaultListModel listModel = new DefaultListModel();
+			DefaultListModel<String>listModel = new DefaultListModel<String>();
 			int[] selected = new int[values.get(key).size()];
 			int i = 0;
 			for (String value: values.get(key)) {

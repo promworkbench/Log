@@ -30,7 +30,7 @@ public class LogCentralityDialog extends JPanel{
 		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.FILL } };
 		setLayout(new TableLayout(size));
 
-		DefaultListModel listModel = new DefaultListModel();
+		DefaultListModel<XEventClassifier> listModel = new DefaultListModel<XEventClassifier>();
 		for (XEventClassifier classifier: log.getClassifiers()) {
 			listModel.addElement(classifier);
 		}

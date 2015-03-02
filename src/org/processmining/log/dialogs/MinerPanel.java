@@ -28,7 +28,7 @@ public class MinerPanel extends JPanel {
 
 		setOpaque(false);
 		
-		DefaultListModel listModel = new DefaultListModel();
+		DefaultListModel<String> listModel = new DefaultListModel<String>();
 		for (String miner: miners) {
 			listModel.addElement(miner);
 		}

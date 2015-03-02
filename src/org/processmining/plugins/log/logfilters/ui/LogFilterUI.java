@@ -205,7 +205,7 @@ public class LogFilterUI {
 	protected Color colorListHeader = new Color(10, 10, 10);
 	protected Color colorListDescription = new Color(60, 60, 60);
 
-	protected JComponent configureList(JList list, String title, String description) {
+	protected JComponent configureList(JList<Object> list, String title, String description) {
 		list.setFont(list.getFont().deriveFont(13f));
 		list.setBackground(colorListBg);
 		list.setForeground(colorListFg);
@@ -337,7 +337,7 @@ public class LogFilterUI {
 		 * The simple selection list used in steps 2,3 , and 4.
 		 */
 		protected JComponent comp;
-		protected JList list;
+		protected JList<Object> list;
 		/**
 		 * Whether to use the advanced (true) or simple (false) selection list.
 		 */
@@ -467,7 +467,7 @@ public class LogFilterUI {
 					}
 					sortedEventClasses = new ArrayList<XEventClass>(eventClasses.getClasses());
 					Collections.sort(sortedEventClasses, new EventClassComparator());
-					list = new JList(sortedEventClasses.toArray());
+					list = new JList<Object>(sortedEventClasses.toArray());
 					comp = configureList(list, heading, text);
 					this.add(comp, "0, 0, 1, 0");
 				}
@@ -576,10 +576,10 @@ public class LogFilterUI {
 
 		public XLog getLog() {
 			// TODO Auto-generated method stub
-			Object[] selectedObjects = list.getSelectedValues();
-			String[] startIds = new String[selectedObjects.length];
-			for (int i = 0; i < selectedObjects.length; i++) {
-				startIds[i] = selectedObjects[i].toString();
+			List<Object> selectedObjects = list.getSelectedValuesList();
+			String[] startIds = new String[selectedObjects.size()];
+			for (int i = 0; i < selectedObjects.size(); i++) {
+				startIds[i] = selectedObjects.get(i).toString();
 			}
 			//			PluginContext filterContext = context.createChildContext("Start Event Log Filter");
 			StartEventLogFilter filter = new StartEventLogFilter();
@@ -608,10 +608,10 @@ public class LogFilterUI {
 
 		public XLog getLog() {
 			// TODO Auto-generated method stub
-			Object[] selectedObjects = list.getSelectedValues();
-			String[] endIds = new String[selectedObjects.length];
-			for (int i = 0; i < selectedObjects.length; i++) {
-				endIds[i] = selectedObjects[i].toString();
+			List<Object> selectedObjects = list.getSelectedValuesList();
+			String[] endIds = new String[selectedObjects.size()];
+			for (int i = 0; i < selectedObjects.size(); i++) {
+				endIds[i] = selectedObjects.get(i).toString();
 			}
 			//			PluginContext filterContext = context.createChildContext("Final Event Log Filter");
 			FinalEventLogFilter filter = new FinalEventLogFilter();
@@ -640,10 +640,10 @@ public class LogFilterUI {
 
 		public XLog getLog() {
 			// TODO Auto-generated method stub
-			Object[] selectedObjects = list.getSelectedValues();
-			String[] selectedIds = new String[selectedObjects.length];
-			for (int i = 0; i < selectedObjects.length; i++) {
-				selectedIds[i] = selectedObjects[i].toString();
+			List<Object> selectedObjects = list.getSelectedValuesList();
+			String[] selectedIds = new String[selectedObjects.size()];
+			for (int i = 0; i < selectedObjects.size(); i++) {
+				selectedIds[i] = selectedObjects.get(i).toString();
 			}
 			//			PluginContext filterContext = context.createChildContext("Event Log Filter");
 			EventLogFilter filter = new EventLogFilter();

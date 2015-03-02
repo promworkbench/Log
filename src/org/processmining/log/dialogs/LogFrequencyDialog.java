@@ -10,6 +10,11 @@ import org.processmining.log.parameters.LogFrequencyParameters;
 
 public class LogFrequencyDialog extends JPanel {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2707936407167128579L;
+
 	public LogFrequencyDialog(XLog eventLog, final LogFrequencyParameters parameters) {
 		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.FILL, } };
 		setLayout(new TableLayout(size));
