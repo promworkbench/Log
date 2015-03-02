@@ -1,14 +1,9 @@
 package org.processmining.log.parameters;
 
+import org.processmining.basicutils.parameters.PluginParameters;
 
-public interface LogFilterParameters extends ClassifierParameter {
 
-	public void setMessageLevel(int level);
-	
-	public int getMessageLevel();
-	
-	public boolean isTryConnections();
+public interface LogFilterParameters extends PluginParameters, ClassifierParameter {
 
-	public void setTryConnections(boolean useConnections);
 
 }

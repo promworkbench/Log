@@ -1,24 +1,24 @@
 package org.processmining.log.parameters;
 
+import org.processmining.basicutils.parameters.impl.PluginParametersImpl;
 import org.processmining.log.models.LogCentrality;
 
 
-public class LogCentralityFilterParameters {
+public class LogCentralityFilterParameters extends PluginParametersImpl {
 
 	private int percentage;
 	private boolean filterIn;
-	private boolean tryConnections;
 
 	public LogCentralityFilterParameters(LogCentrality centrality) {
+		super();
 		setPercentage(80);
 		setFilterIn(true);
-		setTryConnections(true);
 	}
 
 	public LogCentralityFilterParameters(LogCentralityFilterParameters parameters) {
+		super(parameters);
 		setPercentage(parameters.getPercentage());
 		setFilterIn(parameters.isFilterIn());
-		setTryConnections(parameters.isTryConnections());
 	}
 	
 	public void setPercentage(int percentage) {
@@ -37,20 +37,12 @@ public class LogCentralityFilterParameters {
 		return filterIn;
 	}
 
-	public boolean isTryConnections() {
-		return tryConnections;
-	}
-
-	public void setTryConnections(boolean tryConnections) {
-		this.tryConnections = tryConnections;
-	}
-	
 	public boolean equals(Object object) {
 		if (object instanceof LogCentralityFilterParameters) {
 			LogCentralityFilterParameters parameters = (LogCentralityFilterParameters) object;
-			return getPercentage() == parameters.getPercentage() &&
-					isFilterIn() == parameters.isFilterIn() &&
-					isTryConnections() == parameters.isTryConnections();
+			return super.equals(parameters) &&
+					getPercentage() == parameters.getPercentage() &&
+					isFilterIn() == parameters.isFilterIn();
 		}
 		return false;
 	}
