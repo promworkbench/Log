@@ -32,6 +32,7 @@ import org.deckfour.xes.classification.XEventAndClassifier;
 import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.classification.XEventLifeTransClassifier;
 import org.deckfour.xes.classification.XEventNameClassifier;
+import org.deckfour.xes.extension.XExtension;
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
@@ -60,15 +61,16 @@ import org.deckfour.xes.out.XesXmlSerializer;
  *
  */
 public class XUtils {
-	
-	public static final XEventClassifier STANDARDCLASSIFIER = new XEventAndClassifier(new XEventNameClassifier(), new XEventLifeTransClassifier());
-	
+
+	public static final XEventClassifier STANDARDCLASSIFIER = new XEventAndClassifier(new XEventNameClassifier(),
+			new XEventLifeTransClassifier());
+
 	/**
 	 * Added by Eric Verbeek
 	 * 
-	 * Returns a default classifier to use with an event log.
-	 * If the log contains classifiers, then the first classifier is returned.
-	 * Otherwise, the standard MXML classifier is constructed and returned.
+	 * Returns a default classifier to use with an event log. If the log
+	 * contains classifiers, then the first classifier is returned. Otherwise,
+	 * the standard MXML classifier is constructed and returned.
 	 * 
 	 * @param log
 	 * @return A default classifier to use with the provided log.
@@ -79,15 +81,23 @@ public class XUtils {
 		}
 		return log.getClassifiers().get(0);
 	}
-	
+
+	/**
+	 * @param element
+	 * @return the value of the "concept:name" attribute or "null"
+	 */
 	public static String getConceptName(XAttributable element) {
 		return XConceptExtension.instance().extractName(element);
 	}
-	
+
+	/**
+	 * @param event
+	 * @return the value of the "time:timestamp" attribute or "null"
+	 */
 	public static Date getTimestamp(XEvent event) {
 		return XTimeExtension.instance().extractTimestamp(event);
 	}
-	
+
 	public static void saveLog(XLog log, File file) throws FileNotFoundException, IOException {
 		try (FileOutputStream out = new FileOutputStream(file)) {
 			XSerializer logSerializer = new XesXmlSerializer();
@@ -180,63 +190,118 @@ public class XUtils {
 		return sBuilder.toString();
 	}
 
-	public static XAttribute cloneAttributeWithChangedKey(XAttribute oldAttribute, String key) {
+	/**
+	 * Creates a copy of the {@link XAttribute} with the same value, but a
+	 * changed key.
+	 * 
+	 * @param oldAttribute
+	 * @param newKey
+	 * @return copy of the supplied attribute
+	 */
+	public static XAttribute cloneAttributeWithChangedKey(XAttribute oldAttribute, String newKey) {
 		XFactory factory = XFactoryRegistry.instance().currentDefault();
 		if (oldAttribute instanceof XAttributeList) {
-			XAttributeList newAttribute = factory.createAttributeList(key, oldAttribute.getExtension());
+			XAttributeList newAttribute = factory.createAttributeList(newKey, oldAttribute.getExtension());
 			for (XAttribute a : ((XAttributeList) oldAttribute).getCollection()) {
 				newAttribute.addToCollection(a);
 			}
 			return newAttribute;
 		} else if (oldAttribute instanceof XAttributeContainer) {
-			XAttributeContainer newAttribute = factory.createAttributeContainer(key, oldAttribute.getExtension());
+			XAttributeContainer newAttribute = factory.createAttributeContainer(newKey, oldAttribute.getExtension());
 			for (XAttribute a : ((XAttributeContainer) oldAttribute).getCollection()) {
 				newAttribute.addToCollection(a);
 			}
 			return newAttribute;
 		} else if (oldAttribute instanceof XAttributeLiteral) {
-			return factory.createAttributeLiteral(key, ((XAttributeLiteral) oldAttribute).getValue(),
+			return factory.createAttributeLiteral(newKey, ((XAttributeLiteral) oldAttribute).getValue(),
 					oldAttribute.getExtension());
 		} else if (oldAttribute instanceof XAttributeBoolean) {
-			return factory.createAttributeBoolean(key, ((XAttributeBoolean) oldAttribute).getValue(),
+			return factory.createAttributeBoolean(newKey, ((XAttributeBoolean) oldAttribute).getValue(),
 					oldAttribute.getExtension());
 		} else if (oldAttribute instanceof XAttributeContinuous) {
-			return factory.createAttributeContinuous(key, ((XAttributeContinuous) oldAttribute).getValue(),
+			return factory.createAttributeContinuous(newKey, ((XAttributeContinuous) oldAttribute).getValue(),
 					oldAttribute.getExtension());
 		} else if (oldAttribute instanceof XAttributeDiscrete) {
-			return factory.createAttributeDiscrete(key, ((XAttributeDiscrete) oldAttribute).getValue(),
+			return factory.createAttributeDiscrete(newKey, ((XAttributeDiscrete) oldAttribute).getValue(),
 					oldAttribute.getExtension());
 		} else if (oldAttribute instanceof XAttributeTimestamp) {
-			return factory.createAttributeTimestamp(key, ((XAttributeTimestamp) oldAttribute).getValue(),
+			return factory.createAttributeTimestamp(newKey, ((XAttributeTimestamp) oldAttribute).getValue(),
 					oldAttribute.getExtension());
 		} else if (oldAttribute instanceof XAttributeID) {
-			return factory
-					.createAttributeID(key, ((XAttributeID) oldAttribute).getValue(), oldAttribute.getExtension());
+			return factory.createAttributeID(newKey, ((XAttributeID) oldAttribute).getValue(),
+					oldAttribute.getExtension());
 		} else {
 			throw new IllegalArgumentException("Unexpected attribute type!");
 		}
 	}
-	
 
+	/**
+	 * Returns the value of the {@link XAttribute} as {@link Object}
+	 * 
+	 * @param attribute
+	 * @return value of the attribute
+	 */
 	public static Object getAttributeValue(XAttribute attribute) {
 		if (attribute instanceof XAttributeList) {
-			return ((XAttributeList)attribute).getCollection();
+			return ((XAttributeList) attribute).getCollection();
 		} else if (attribute instanceof XAttributeContainer) {
-			return ((XAttributeContainer)attribute).getCollection();
+			return ((XAttributeContainer) attribute).getCollection();
 		} else if (attribute instanceof XAttributeLiteral) {
-			return ((XAttributeLiteral)attribute).getValue();
+			return ((XAttributeLiteral) attribute).getValue();
 		} else if (attribute instanceof XAttributeBoolean) {
-			return ((XAttributeBoolean)attribute).getValue();
+			return ((XAttributeBoolean) attribute).getValue();
 		} else if (attribute instanceof XAttributeContinuous) {
-			return ((XAttributeContinuous)attribute).getValue();
+			return ((XAttributeContinuous) attribute).getValue();
 		} else if (attribute instanceof XAttributeDiscrete) {
-			return ((XAttributeDiscrete)attribute).getValue();
+			return ((XAttributeDiscrete) attribute).getValue();
 		} else if (attribute instanceof XAttributeTimestamp) {
-			return ((XAttributeTimestamp)attribute).getValue();
+			return ((XAttributeTimestamp) attribute).getValue();
 		} else if (attribute instanceof XAttributeID) {
-			return ((XAttributeID)attribute).getValue();
+			return ((XAttributeID) attribute).getValue();
 		} else {
 			throw new IllegalArgumentException("Unexpected attribute type!");
+		}
+	}
+
+	/**	 
+	 * Creates an appropriate {@link XAttribute}, decided on the type of the
+	 * parameter atttributeValue.
+	 * 
+	 * @param attributeName
+	 * @param attributeValue
+	 * @return
+	 */
+	public static XAttribute createAttribute(String attributeName, Object attributeValue) {
+		return createAttribute(attributeName, attributeValue);
+	}
+
+	/**
+	 * Creates an appropriate {@link XAttribute}, decided on the type of the
+	 * parameter atttributeValue.
+	 * 
+	 * @param attributeName
+	 * @param attributeValue
+	 * @param extension
+	 * @return
+	 */
+	public static XAttribute createAttribute(String attributeName, Object attributeValue, XExtension extension) {
+		XFactory f = XFactoryRegistry.instance().currentDefault();
+		if (attributeValue instanceof Double || attributeValue instanceof Float) {
+			return f.createAttributeContinuous(attributeName, ((Number) attributeValue).doubleValue(), extension);
+		} else if (attributeValue instanceof Integer || attributeValue instanceof Long) {
+			return f.createAttributeDiscrete(attributeName, ((Number) attributeValue).longValue(), extension);
+		} else if (attributeValue instanceof Date) {
+			return f.createAttributeTimestamp(attributeName, ((Date) attributeValue), extension);
+		} else if (attributeValue instanceof Boolean) {
+			return f.createAttributeBoolean(attributeName, ((Boolean) attributeValue), extension);
+		} else {
+			return f.createAttributeLiteral(attributeName, attributeValue.toString(), extension);
+		}
+	}
+
+	public static void putAttributes(XAttributable attributable, Iterable<XAttribute> attributes) {
+		for (XAttribute a: attributes) {
+			attributable.getAttributes().put(a.getKey(), a);
 		}
 	}
 
