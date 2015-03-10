@@ -272,7 +272,7 @@ public class XUtils {
 	 * @return
 	 */
 	public static XAttribute createAttribute(String attributeName, Object attributeValue) {
-		return createAttribute(attributeName, attributeValue);
+		return createAttribute(attributeName, attributeValue, null);
 	}
 
 	/**
