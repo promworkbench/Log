@@ -52,6 +52,7 @@ import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.out.XSerializer;
+import org.deckfour.xes.out.XesXmlGZIPSerializer;
 import org.deckfour.xes.out.XesXmlSerializer;
 
 /**
@@ -99,8 +100,19 @@ public class XUtils {
 	}
 
 	public static void saveLog(XLog log, File file) throws FileNotFoundException, IOException {
+		saveLogPlain(log, file);
+	}
+	
+	public static void saveLogPlain(XLog log, File file) throws FileNotFoundException, IOException {
+		saveLogWithSerializer(log, file, new XesXmlSerializer());
+	}
+	
+	public static void saveLogGzip(XLog log, File file) throws FileNotFoundException, IOException {
+		saveLogWithSerializer(log, file, new XesXmlGZIPSerializer());
+	}
+	
+	public static void saveLogWithSerializer(XLog log, File file, XSerializer logSerializer) throws FileNotFoundException, IOException {
 		try (FileOutputStream out = new FileOutputStream(file)) {
-			XSerializer logSerializer = new XesXmlSerializer();
 			logSerializer.serialize(log, out);
 		}
 	}
