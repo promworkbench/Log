@@ -18,7 +18,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csvimport.CSVConversion.ProgressListener;
+import org.processmining.log.csvimport.config.CSVImportConfig;
 import org.processmining.log.csvimport.exception.CSVSortException;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -35,8 +37,9 @@ import com.fasterxml.sort.TempFileProvider;
 import com.ning.compress.lzf.LZFInputStream;
 import com.ning.compress.lzf.parallel.PLZFOutputStream;
 
-
 /**
+ * Sorts an {@link CSVFile}
+ * 
  * @author F. Mannhardt
  *
  */
@@ -124,36 +127,53 @@ final class CSVSorter {
 	private CSVSorter() {
 	}
 
-	public static File sortCSV(final ProgressListener progress, final CSVFile csv, final CSVImportConfig importConfig, final Comparator<String[]> rowComparator,
-			final int maxMemory, final int numColumns) throws CSVSortException {
-		
+	/**
+	 * Sorts an {@link CSVFile} using only a configurable, limited amount of
+	 * memory.
+	 * 
+	 * @param csvFile
+	 * @param rowComparator
+	 * @param importConfig
+	 * @param maxMemory
+	 * @param numOfColumnsInCSV
+	 * @param progress
+	 * @return a {@link File} containing the sorted CSV
+	 * @throws CSVSortException
+	 */
+	public static File sortCSV(final CSVFile csvFile, final Comparator<String[]> rowComparator,
+			final CSVImportConfig importConfig, final int maxMemory, final int numOfColumnsInCSV,
+			final ProgressListener progress) throws CSVSortException {
+
 		// Create Sorter
-		final CompressedOpenCSVDataReaderFactory dataReaderFactory = new CompressedOpenCSVDataReaderFactory(importConfig);
-		final CompressedOpenCSVDataWriterFactory dataWriterFactory = new CompressedOpenCSVDataWriterFactory(importConfig);
+		final CompressedOpenCSVDataReaderFactory dataReaderFactory = new CompressedOpenCSVDataReaderFactory(
+				importConfig);
+		final CompressedOpenCSVDataWriterFactory dataWriterFactory = new CompressedOpenCSVDataWriterFactory(
+				importConfig);
 		final IteratingSorter<String[]> sorter = new IteratingSorter<>(new SortConfig().withMaxMemoryUsage(
 				maxMemory * 1024l * 1024l).withTempFileProvider(new TempFileProvider() {
 
 			public File provide() throws IOException {
-				return Files.createTempFile(csv.getFilename()+"-merge-sort", ".lzf").toFile();
+				return Files.createTempFile(csvFile.getFilename() + "-merge-sort", ".lzf").toFile();
 			}
 		}), dataReaderFactory, dataWriterFactory, rowComparator);
-		
+
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		Future<File> future = executorService.submit(new Callable<File>() {
 
 			public File call() throws Exception {
-				
+
 				// Read uncompressed CSV
-				InputStream inputStream = skipFirstLine(CSVUtils.getCSVInputStream(csv));
-				DataReader<String[]> inputDataReader = new UncompressedOpenCSVReader(inputStream, importConfig, numColumns);
+				InputStream inputStream = skipFirstLine(CSVUtils.getCSVInputStream(csvFile));
+				DataReader<String[]> inputDataReader = new UncompressedOpenCSVReader(inputStream, importConfig,
+						numOfColumnsInCSV);
 				try {
 					Iterator<String[]> result = sorter.sort(inputDataReader);
-					
+
 					// Write sorted result to compressed file
-					if (result != null) {			
-						File sortedCsvFile = Files.createTempFile(csv.getFilename()+"-sorted", ".lzf").toFile();
-						DataWriter<String[]> dataWriter = dataWriterFactory
-								.constructWriter(new FileOutputStream(sortedCsvFile));
+					if (result != null) {
+						File sortedCsvFile = Files.createTempFile(csvFile.getFilename() + "-sorted", ".lzf").toFile();
+						DataWriter<String[]> dataWriter = dataWriterFactory.constructWriter(new FileOutputStream(
+								sortedCsvFile));
 						try {
 							while (result.hasNext()) {
 								dataWriter.writeEntry(result.next());
@@ -163,12 +183,12 @@ final class CSVSorter {
 						}
 						return sortedCsvFile;
 					}
-					
+
 				} finally {
 					sorter.close();
 				}
-				
-				throw new CSVSortException("Could not sort file.");				
+
+				throw new CSVSortException("Could not sort file.");
 			}
 		});
 
@@ -182,22 +202,24 @@ final class CSVSorter {
 					sorter.cancel();
 					throw new CSVSortException("User cancelled sorting");
 				}
-				if (sorter.getPhase() == Phase.PRE_SORTING) {			
+				if (sorter.getPhase() == Phase.PRE_SORTING) {
 					if (sorter.getSortRound() != sortRound) {
 						sortRound = sorter.getSortRound();
-						progress.log(MessageFormat.format("Pre-sorting finished segment {0} in memory ...", sortRound+1));
+						progress.log(MessageFormat.format("Pre-sorting finished segment {0} in memory ...",
+								sortRound + 1));
 					}
 					if (sorter.getNumberOfPreSortFiles() != preSortFiles) {
 						preSortFiles = sorter.getNumberOfPreSortFiles();
-						progress.log(MessageFormat.format("Pre-sorting finished segment {0} ...", preSortFiles+1));	
-					}					
+						progress.log(MessageFormat.format("Pre-sorting finished segment {0} ...", preSortFiles + 1));
+					}
 				} else if (sorter.getPhase() == Phase.SORTING) {
 					if (sorter.getSortRound() != sortRound) {
 						sortRound = sorter.getSortRound();
-						progress.log(MessageFormat.format("Sorting finished round {0}/{1} ...", sortRound+1, sorter.getNumberOfSortRounds()+1));
-					}					
+						progress.log(MessageFormat.format("Sorting finished round {0}/{1} ...", sortRound + 1,
+								sorter.getNumberOfSortRounds() + 1));
+					}
 				}
-			}			
+			}
 			return future.get();
 		} catch (InterruptedException e) {
 			progress.log("Cancelling sorting, this might take a while ...");

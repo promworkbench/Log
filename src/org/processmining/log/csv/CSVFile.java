@@ -1,7 +1,9 @@
-package org.processmining.log.csvimport;
+package org.processmining.log.csv;
 
 import java.io.IOException;
 import java.nio.file.Path;
+
+import org.processmining.log.csvimport.config.CSVImportConfig;
 
 import au.com.bytecode.opencsv.CSVReader;
 

@@ -13,7 +13,10 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.Progress;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.util.ui.widgets.helper.UserCancelledException;
+import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csvimport.CSVConversion.ProgressListener;
+import org.processmining.log.csvimport.config.CSVConversionConfig;
+import org.processmining.log.csvimport.config.CSVImportConfig;
 import org.processmining.log.csvimport.exception.CSVConversionConfigException;
 import org.processmining.log.csvimport.exception.CSVConversionException;
 import org.processmining.log.repair.RepairAttributeDataType;
@@ -33,7 +36,6 @@ import com.google.common.io.Files;
 public final class CSVConversionPlugin {
 
 	@Plugin(name = "Convert CSV to XES", parameterLabels = { "CSV" }, returnLabels = { "XES Log" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,
-	// categories = { PluginCategory.Enhancement },
 	keywords = { "CSV", "XES", "Conversion" }, help = "Converts the CSV file to a XES XLog object.")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt", email = "f.mannhardt@tue.nl", website = "http://fmannhardt.de")
 	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csv) throws IOException, UserCancelledException {
@@ -52,7 +54,7 @@ public final class CSVConversionPlugin {
 
 				}
 			}, csv, importConfig, conversionConfig);
-			if (conversionConfig.isRepairDataTypes) {
+			if (conversionConfig.shouldGuessDataTypes) {
 				RepairAttributeDataType repairTypes = new RepairAttributeDataType();
 				Builder<DateFormat> dateFormatSet = ImmutableSet.<DateFormat>builder().addAll(
 						CSVConversion.STANDARD_DATE_FORMATTERS);

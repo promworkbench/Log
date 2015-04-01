@@ -1,4 +1,4 @@
-package org.processmining.log.csvimport;
+package org.processmining.log.csvimport.config;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -15,13 +15,19 @@ import org.processmining.log.csvimport.exception.CSVConversionConfigException;
  */
 public final class CSVConversionConfig {
 	
+	public enum CSVErrorHandlingMode {
+		ABORT_ON_ERROR, OMIT_TRACE_ON_ERROR, OMIT_EVENT_ON_ERROR, BEST_EFFORT
+	}
+
+	// Mapping to the XES standard extensions
 	public String[] caseColumns;
 	public String eventNameColumn;
 	public String completionTimeColumn;
 	public String startTimeColumn;
 
-	public boolean isRepairDataTypes = true;
-	public boolean strictMode = false;
+	// Various "expert" configuration options
+	public boolean shouldGuessDataTypes = true;
+	public CSVErrorHandlingMode errorHandlingMode = CSVErrorHandlingMode.OMIT_TRACE_ON_ERROR;
 	public boolean omitNULL = true;
 	
 	public Map<Integer, Datatype> datatypeMapping = new HashMap<>();
@@ -32,15 +38,6 @@ public final class CSVConversionConfig {
 	public String timeFormat;
 
 	public void check() throws CSVConversionConfigException {
-		if (caseColumns == null || caseColumns.length == 0) {
-			throw new CSVConversionConfigException("Configuration is missing the case column!");
-		}
-		if (eventNameColumn == null || eventNameColumn.isEmpty()) {
-			throw new CSVConversionConfigException("Configuration is missing the event column!");
-		}
-		if (completionTimeColumn == null && startTimeColumn == null) {
-			throw new CSVConversionConfigException("Configuration is missing both time columns!");
-		}
 		try {
 			if (timeFormat != null) {
 				new SimpleDateFormat(timeFormat);

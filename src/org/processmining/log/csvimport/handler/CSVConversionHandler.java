@@ -2,7 +2,8 @@ package org.processmining.log.csvimport.handler;
 
 import java.util.Date;
 
-import org.processmining.log.csvimport.CSVFile;
+import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csvimport.exception.CSVConversionException;
 
 /**
  * Handler for the conversion following a visitor-like pattern.
@@ -34,6 +35,8 @@ public interface CSVConversionHandler<R> {
 	void endAttribute();
 
 	void endEvent();
+	
+	void errorDetected(int line, Object content, Exception e) throws CSVConversionException;
 
 	R getResult();
 

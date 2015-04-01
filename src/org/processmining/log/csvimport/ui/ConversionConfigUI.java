@@ -21,10 +21,11 @@ import javax.swing.event.DocumentListener;
 
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.ProMTextField;
+import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csvimport.CSVConversion.Datatype;
-import org.processmining.log.csvimport.CSVConversionConfig;
-import org.processmining.log.csvimport.CSVFile;
-import org.processmining.log.csvimport.CSVImportConfig;
+import org.processmining.log.csvimport.config.CSVConversionConfig;
+import org.processmining.log.csvimport.config.CSVConversionConfig.CSVErrorHandlingMode;
+import org.processmining.log.csvimport.config.CSVImportConfig;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -97,7 +98,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		}
 
 		private ProMComboBox<String> createNewComboBox() {
-			ProMComboBox<String> proMComboBox = new ProMComboBox<>(headersInclEmpties);
+			ProMComboBox<String> proMComboBox = new ProMComboBox<>(headersInclEmpty);
 			proMComboBox.setPreferredSize(null);
 			proMComboBox.setMinimumSize(null);
 			proMComboBox.setAlignmentX(LEFT_ALIGNMENT);
@@ -129,7 +130,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 	private final CSVConversionConfig conversionConfig;
 
 	private final String[] headers;
-	private final String[] headersInclEmpties;
+	private final String[] headersInclEmpty;
 
 	private final JPanel caseColumnBox;
 	private final Deque<ProMComboBox<String>> caseColumnCbxStack;
@@ -140,7 +141,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 
 	private final ProMComboBox<Boolean> repairDataTypesCbx;
 	private final ProMComboBox<Boolean> omitNULLCbx;
-	private final ProMComboBox<Boolean> strictModeCbx;
+	private final ProMComboBox<CSVErrorHandlingMode> errorHandlingModeCbx;
 	private final ProMTextField timeFormatField;
 
 	private final CSVReader reader;
@@ -152,9 +153,9 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		reader = csv.createReader(importConfig);
 		headers = reader.readNext();
-		headersInclEmpties = Lists.asList("", headers).toArray(new String[headers.length + 1]);
+		headersInclEmpty = Lists.asList("", headers).toArray(new String[headers.length + 1]);
 
-		JLabel standardAttributesLabel = SlickerFactory.instance().createLabel("Mapping to 'Standard' XES Attributes)");
+		JLabel standardAttributesLabel = SlickerFactory.instance().createLabel("Mapping to 'standard' XES attributes");
 		standardAttributesLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(standardAttributesLabel);
 
@@ -164,11 +165,11 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		caseColumnBox.setOpaque(false);
 		caseColumnBox.setAlignmentX(LEFT_ALIGNMENT);
 		caseColumnCbxStack = new ArrayDeque<>();
-		ProMComboBox<String> proMComboBox = new ProMComboBox<>(headersInclEmpties);
+		ProMComboBox<String> proMComboBox = new ProMComboBox<>(headersInclEmpty);
 		proMComboBox.setPreferredSize(null);
 		proMComboBox.setMinimumSize(null);
 		proMComboBox.setAlignmentX(LEFT_ALIGNMENT);
-		JLabel caseLabel = SlickerFactory.instance().createLabel("Case Column(s) (Used to group events into traces)");
+		JLabel caseLabel = SlickerFactory.instance().createLabel("Case Column(s) (Optional - Groups events into traces)");
 		caseLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(caseLabel);
 		caseColumnBox.add(proMComboBox);
@@ -178,36 +179,35 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		proMComboBox.addActionListener(changeListener);
 		caseColumnCbxStack.add(proMComboBox);
 
-		eventColumnCbx = new ProMComboBox<>(headers);
+		eventColumnCbx = new ProMComboBox<>(headersInclEmpty);
 		eventColumnCbx.setPreferredSize(null);
 		eventColumnCbx.setMinimumSize(null);
 		eventColumnCbx.setAlignmentX(LEFT_ALIGNMENT);
-		JLabel eventLabel = SlickerFactory.instance().createLabel("Event Column (Mapped to 'concept:name')");
+		JLabel eventLabel = SlickerFactory.instance().createLabel("Event Column (Optional - Mapped to 'concept:name')");
 		eventLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(eventLabel);
 		add(eventColumnCbx);
 		eventColumnCbx.addActionListener(changeListener);
 
-		completionTimeColumnCbx = new ProMComboBox<>(headers);
+		completionTimeColumnCbx = new ProMComboBox<>(headersInclEmpty);
 		completionTimeColumnCbx.setPreferredSize(null);
 		completionTimeColumnCbx.setMinimumSize(null);
 		completionTimeColumnCbx.setAlignmentX(LEFT_ALIGNMENT);
 		JLabel completionTimeLabel = SlickerFactory.instance().createLabel(
-				"Completion Time Column (Mapped to 'time:timestamp'");
+				"Completion Time Column (Optional - Mapped to 'time:timestamp'");
 		completionTimeLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(completionTimeLabel);
 		add(completionTimeColumnCbx);
 		completionTimeColumnCbx.addActionListener(changeListener);
 
-		List<String> headersWithEmpty = Lists.asList("", headers);
-		startTimeColumnCbx = new ProMComboBox<>(headersWithEmpty);
+		startTimeColumnCbx = new ProMComboBox<>(headersInclEmpty);
 		startTimeColumnCbx.setPreferredSize(null);
 		startTimeColumnCbx.setMinimumSize(null);
 		startTimeColumnCbx.setAlignmentX(LEFT_ALIGNMENT);
 		JLabel startTimeLabel = SlickerFactory
 				.instance()
 				.createLabel(
-						"Start Time Column (Mapped to the 'time:timestamp' of a new event, linked through an automatically generated 'concept:instance'");
+						"Start Time Column (Optional - Mapped to 'time:timestamp' of a separate event with automatically generated 'concept:instance'");
 		startTimeLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(startTimeLabel);
 		add(startTimeColumnCbx);
@@ -250,7 +250,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		repairDataTypesCbx = new ProMComboBox<>(new Boolean[] { true, false });
 		repairDataTypesCbx.setPreferredSize(null);
 		repairDataTypesCbx.setMinimumSize(null);
-		repairDataTypesCbx.setSelectedItem(conversionConfig.isRepairDataTypes);
+		repairDataTypesCbx.setSelectedItem(conversionConfig.shouldGuessDataTypes);
 		repairDataTypesCbx.setAlignmentX(LEFT_ALIGNMENT);
 		JLabel repairDataTypesLabel = SlickerFactory
 				.instance()
@@ -262,7 +262,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		repairDataTypesCbx.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
-				conversionConfig.isRepairDataTypes = (Boolean) repairDataTypesCbx.getSelectedItem();
+				conversionConfig.shouldGuessDataTypes = (Boolean) repairDataTypesCbx.getSelectedItem();
 			}
 		});
 
@@ -283,39 +283,24 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 			}
 		});
 
-		strictModeCbx = new ProMComboBox<>(new Boolean[] { true, false });
-		strictModeCbx.setPreferredSize(null);
-		strictModeCbx.setMinimumSize(null);
-		strictModeCbx.setSelectedItem(conversionConfig.strictMode);
-		strictModeCbx.setAlignmentX(LEFT_ALIGNMENT);
+		errorHandlingModeCbx = new ProMComboBox<>(CSVErrorHandlingMode.values());
+		errorHandlingModeCbx.setPreferredSize(null);
+		errorHandlingModeCbx.setMinimumSize(null);
+		errorHandlingModeCbx.setSelectedItem(conversionConfig.errorHandlingMode);
+		errorHandlingModeCbx.setAlignmentX(LEFT_ALIGNMENT);
 		JLabel strictModeLabel = SlickerFactory.instance().createLabel(
 				"Strict Mode: Stop conversion upon malformed input or try to import as much as possible?");
 		strictModeLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(strictModeLabel);
-		add(strictModeCbx);
-		strictModeCbx.addActionListener(new ActionListener() {
+		add(errorHandlingModeCbx);
+		errorHandlingModeCbx.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
-				conversionConfig.strictMode = (Boolean) strictModeCbx.getSelectedItem();
+				conversionConfig.errorHandlingMode = (CSVErrorHandlingMode) errorHandlingModeCbx.getSelectedItem();
 			}
 		});
 		
 		previewFrame = new CSVPreviewFrame(headers, conversionConfig);
-		previewFrame.showFrame(this);
-
-		autoDetectCaseColumn();
-		autoDetectEventColumn();
-		autoDetectCompletionTimeColumn();
-		
-		changeListener.updateSettings();
-
-		try {
-			// Update Content
-			new LoadCSVRecordsWorker().execute();
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "Error parsing CSV " + e.getMessage(), "CSV Parsing Error",
-					JOptionPane.ERROR_MESSAGE);
-		}
 		previewFrame.getMainScrollPane().getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
 
 			public void adjustmentValueChanged(AdjustmentEvent e) {
@@ -327,6 +312,21 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 			}
 		});
 
+		autoDetectCaseColumn();
+		autoDetectEventColumn();
+		autoDetectCompletionTimeColumn();		
+		changeListener.updateSettings();
+	}
+
+	private void showPreviewFrame() {
+		previewFrame.showFrame(this);
+		try {
+			// Update Content
+			new LoadCSVRecordsWorker().execute();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, "Error parsing CSV " + e.getMessage(), "CSV Parsing Error",
+					JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	private void autoDetectCaseColumn() {
@@ -379,12 +379,22 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		}
 
 	}
+	
+	/* (non-Javadoc)
+	 * @see javax.swing.JComponent#addNotify()
+	 */
+	@Override
+	public void addNotify() {
+		super.addNotify();
+		showPreviewFrame();
+	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see javax.swing.JComponent#removeNotify()
 	 */
+	@Override
 	public void removeNotify() {
 		super.removeNotify();
 		previewFrame.setVisible(false);

@@ -19,6 +19,11 @@ import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.plugin.Progress;
 import org.processmining.framework.util.ui.widgets.helper.UserCancelledException;
+import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csv.CSVFileReference;
+import org.processmining.log.csvimport.config.CSVConversionConfig;
+import org.processmining.log.csvimport.config.CSVConversionConfig.CSVErrorHandlingMode;
+import org.processmining.log.csvimport.config.CSVImportConfig;
 import org.processmining.log.csvimport.exception.CSVConversionConfigException;
 import org.processmining.log.csvimport.exception.CSVConversionException;
 import org.processmining.log.csvimport.exception.CSVSortException;
@@ -60,9 +65,18 @@ public final class CSVConversion {
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy-MM-dd HH:mm"));
 			add(new SimpleDateFormat("yyyy-MM-dd"));
+			add(new SimpleDateFormat("MM/dd/yyyy HH:mm"));
+			add(new SimpleDateFormat("MM/dd/yyyy"));
 		}
 	};
+
+	static {
+		for (DateFormat df : STANDARD_DATE_FORMATTERS) {
+			df.setLenient(false);
+		}
+	}
 
 	private static final class ImportOrdering extends Ordering<String[]> {
 
@@ -71,17 +85,15 @@ public final class CSVConversion {
 		private final SimpleDateFormat userDefinedDateFormat;
 
 		private final int completionTimeIndex;
-//		private final int startTimeIndex;
 
-		private final boolean strictTimeParsing;
+		private final CSVErrorHandlingMode errorHandlingMode;
 
 		public ImportOrdering(int[] indices, SimpleDateFormat userDefinedDateFormat, int completionTimeIndex,
-				int startTimeIndex, boolean strictTimeParsing) {
+				int startTimeIndex, CSVErrorHandlingMode errorHandlingMode) {
 			this.indices = indices;
 			this.userDefinedDateFormat = userDefinedDateFormat;
-//			this.startTimeIndex = startTimeIndex;
 			this.completionTimeIndex = completionTimeIndex;
-			this.strictTimeParsing = strictTimeParsing;
+			this.errorHandlingMode = errorHandlingMode;
 		}
 
 		public int compare(String[] o1, String[] o2) {
@@ -97,7 +109,14 @@ public final class CSVConversion {
 				}
 			}
 			// Same over all indices
-			return compareTime(o1[completionTimeIndex], o2[completionTimeIndex]);
+			if (completionTimeIndex != -1) {
+				// Sort by completion time
+				//TODO what to do with start & completion time
+				return compareTime(o1[completionTimeIndex], o2[completionTimeIndex]);
+			} else {
+				// Keep ordering
+				return 0;
+			}
 		}
 
 		private int compareTime(String t1, String t2) {
@@ -105,7 +124,7 @@ public final class CSVConversion {
 			try {
 				d1 = parseDate(userDefinedDateFormat, t1);
 			} catch (ParseException e) {
-				if (strictTimeParsing) {
+				if (errorHandlingMode == CSVErrorHandlingMode.ABORT_ON_ERROR) {
 					throw new IllegalArgumentException("Cannot parse date: " + t1);
 				} else {
 					d1 = new Date(0);
@@ -115,8 +134,8 @@ public final class CSVConversion {
 			try {
 				d2 = parseDate(userDefinedDateFormat, t2);
 			} catch (ParseException e) {
-				if (strictTimeParsing) {
-					throw new IllegalArgumentException("Cannot parse date: " + t1);
+				if (errorHandlingMode == CSVErrorHandlingMode.ABORT_ON_ERROR) {
+					throw new IllegalArgumentException("Cannot parse date: " + t2);
 				} else {
 					d2 = new Date(0);
 				}
@@ -141,7 +160,7 @@ public final class CSVConversion {
 			CSVImportConfig importConfig, CSVConversionConfig conversionConfig) throws CSVConversionException,
 			CSVConversionConfigException {
 		return convertCSV(progressListener, importConfig, conversionConfig, csvFile, new XESConversionHandlerImpl(
-				importConfig, conversionConfig));
+				progressListener, importConfig, conversionConfig));
 	}
 
 	public static CSVImportConfig queryImportConfig(UIPluginContext context, CSVFile csv) throws UserCancelledException {
@@ -187,6 +206,7 @@ public final class CSVConversion {
 			CSVConversionConfigException {
 
 		Progress p = progress.getProgress();
+		//TODO can we provide determinate progress? maybe based on bytes of CSV read
 		p.setMinimum(0);
 		p.setMaximum(1);
 		p.setValue(0);
@@ -215,7 +235,9 @@ public final class CSVConversion {
 				caseColumnIndex[i] = findColumnIndex(header, conversionConfig.caseColumns[i]);
 			}
 			eventNameColumnIndex = findColumnIndex(header, conversionConfig.eventNameColumn);
-			completionTimeColumnIndex = findColumnIndex(header, conversionConfig.completionTimeColumn);
+			if (conversionConfig.completionTimeColumn != "") {
+				completionTimeColumnIndex = findColumnIndex(header, conversionConfig.completionTimeColumn);
+			}
 			if (conversionConfig.startTimeColumn != "") {
 				startTimeColumnIndex = findColumnIndex(header, conversionConfig.startTimeColumn);
 			}
@@ -234,8 +256,8 @@ public final class CSVConversion {
 						"Sorting CSV file (%s MB) by case and time using maximal %s MB of memory ...",
 						(csvFile.getFileSizeInBytes() / 1024 / 1024), maxMemory));
 				Ordering<String[]> caseComparator = new ImportOrdering(caseColumnIndex, userDefinedDateFormat,
-						completionTimeColumnIndex, startTimeColumnIndex, conversionConfig.strictMode);
-				sortedFile = CSVSorter.sortCSV(progress, csvFile, config, caseComparator, maxMemory, header.length);
+						completionTimeColumnIndex, startTimeColumnIndex, conversionConfig.errorHandlingMode);
+				sortedFile = CSVSorter.sortCSV(csvFile, caseComparator, config, maxMemory, header.length, progress);
 				sortedCsvInputStream = new LZFInputStream(new FileInputStream(sortedFile));
 				long endSortTime = System.currentTimeMillis();
 				progress.log(String.format("Finished sorting in %d seconds", (endSortTime - startSortTime) / 1000));
@@ -248,13 +270,13 @@ public final class CSVConversion {
 			// The following code assumes that the file is sorted by cases and written to disk compressed with LZF
 			progress.log("Reading cases ...");
 			try (CSVReader reader = CSVUtils.createCSVReader(sortedCsvInputStream, config)) {
-				
+
 				int caseIndex = 0;
 				int eventIndex = 0;
 				int lineIndex = -1;
 				String[] nextLine;
 				String currentCaseId = null;
-				
+
 				final StringBuilder eventsWithErrors = new StringBuilder();
 
 				while ((nextLine = reader.readNext()) != null && (caseIndex % 1000 != 0 || !p.isCancelled())) {
@@ -281,18 +303,15 @@ public final class CSVConversion {
 							progress.log("Reading line " + lineIndex + ", already " + caseIndex + " cases and "
 									+ eventIndex + " events processed ...");
 						}
-						
+
 					}
 
 					// Create new event
 					try {
 
-						final String eventClass = nextLine[eventNameColumnIndex];
-						final Date completionTime = parseDate(userDefinedDateFormat, nextLine[completionTimeColumnIndex]);
-						Date startTime = null;
-						if (startTimeColumnIndex != -1) {
-							startTime = parseDate(userDefinedDateFormat, nextLine[startTimeColumnIndex]);
-						}
+						final String eventClass = eventNameColumnIndex != -1 ? nextLine[eventNameColumnIndex] : null;
+						final Date completionTime = completionTimeColumnIndex != -1 ? parseDate(userDefinedDateFormat, nextLine[completionTimeColumnIndex]) : null;
+						final Date startTime = startTimeColumnIndex != -1 ? parseDate(userDefinedDateFormat, nextLine[startTimeColumnIndex]) : null;
 						conversionHandler.startEvent(eventClass, completionTime, startTime);
 
 						for (int i = 0; i < nextLine.length; i++) {
@@ -318,18 +337,13 @@ public final class CSVConversion {
 						// Already sorted by time
 						conversionHandler.endEvent();
 						eventIndex++;
-						
+
 					} catch (ParseException e) {
-						if (conversionConfig.strictMode) {
-							throw new CSVConversionException("Could not add event " + nextLine[eventNameColumnIndex]
-									+ ". Problematic Date in CSV on line " + lineIndex, e);
-						} else {
-							eventsWithErrors.append(nextLine[eventNameColumnIndex] + " on line " + lineIndex + ": " + e
-									+ "\n");
-						}
+						conversionHandler.errorDetected(lineIndex, nextLine, e);
 					}
+
 				}
-				
+
 				// Close last trace
 				conversionHandler.endTrace(currentCaseId);
 
@@ -395,19 +409,17 @@ public final class CSVConversion {
 						break;
 				}
 			} catch (NumberFormatException e) {
-				if (conversionConfig.strictMode) {
-					throw new CSVConversionException("Could not add attribute " + name
-							+ ". Problematic Date in CSV on line " + lineIndex, e);
-				} else {
-					progress.log("Could not convert attribute " + name + " with value " + value + " to " + dataType);
-					handler.startAttribute(name, value);
-				}
+				handler.errorDetected(lineIndex, value, e);
+				handler.startAttribute(name, value);
 			}
 		}
 		handler.endAttribute();
 	}
 
 	private String readCaseID(int[] caseColumnIndex, String[] nextLine) {
+		if (caseColumnIndex.length == 0) {
+			return "";
+		}
 		int size = 0;
 		for (int index : caseColumnIndex) {
 			size += nextLine[index].length();

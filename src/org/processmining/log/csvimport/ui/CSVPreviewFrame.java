@@ -28,7 +28,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
 import org.processmining.log.csvimport.CSVConversion.Datatype;
-import org.processmining.log.csvimport.CSVConversionConfig;
+import org.processmining.log.csvimport.config.CSVConversionConfig;
 
 /**
  * Frame showing a part of the CSV file.
@@ -202,11 +202,16 @@ public final class CSVPreviewFrame extends JFrame {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] gs = ge.getScreenDevices();
 		if (gs.length > 1) {
-			JFrame dummy = new JFrame(gs[1].getDefaultConfiguration());
-			setLocationRelativeTo(dummy);
-			setExtendedState(Frame.MAXIMIZED_BOTH);
-			setAlwaysOnTop(true);
-			dummy.dispose();
+			for (int i = 0; i < gs.length; i++) {
+				if (gs[i] != parent.getGraphicsConfiguration().getDevice()) {
+					JFrame dummy = new JFrame(gs[i].getDefaultConfiguration());
+					setLocationRelativeTo(dummy);
+					setExtendedState(Frame.MAXIMIZED_BOTH);
+					setAlwaysOnTop(true);
+					dummy.dispose();
+					break;
+				}
+			}
 		} else {
 			setLocationRelativeTo(parent);
 			setAlwaysOnTop(true);

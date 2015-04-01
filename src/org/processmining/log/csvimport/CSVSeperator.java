@@ -1,11 +1,7 @@
 package org.processmining.log.csvimport;
 
 
-/**
- * @author F. Mannhardt
- *
- */
-public enum SeperatorChar {
+public enum CSVSeperator {
 	COMMA("Comma (,)", ','), 
 	SEMICOLON("Semicolon (;)",';'),
 	TAB("Tab", '\t'),
@@ -14,7 +10,7 @@ public enum SeperatorChar {
 	private final String description;
 	private final char seperatorChar;
 
-	private SeperatorChar(String description, char seperatorChar) {
+	private CSVSeperator(String description, char seperatorChar) {
 		this.description = description;
 		this.seperatorChar = seperatorChar;
 	}

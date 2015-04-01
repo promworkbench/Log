@@ -24,9 +24,9 @@ import org.mozilla.universalchardet.CharsetListener;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.ProMTextField;
-import org.processmining.log.csvimport.CSVFile;
-import org.processmining.log.csvimport.CSVImportConfig;
-import org.processmining.log.csvimport.SeperatorChar;
+import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csvimport.CSVSeperator;
+import org.processmining.log.csvimport.config.CSVImportConfig;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -49,18 +49,17 @@ public final class ImportConfigUI extends JPanel {
 
 	private final ProMComboBox<XFactory> xFactoryChoice;
 	private final ProMComboBox<String> charsetCbx;
-	private final ProMComboBox<SeperatorChar> separatorField;
+	private final ProMComboBox<CSVSeperator> separatorField;
 	private final ProMTextField quoteField;
 
-	private CSVPreviewFrame previewFrame;
+	private final CSVPreviewFrame previewFrame;
 
 	public ImportConfigUI(final CSVFile csv) {
 		super();
 		this.csv = csv;
 		this.importConfig = new CSVImportConfig();
 		this.previewFrame = new CSVPreviewFrame();
-		this.previewFrame.showFrame(getRootPane());
-		
+
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
 		JLabel header = new JLabel("Please choose parameters regarding the format of the CSV file and OpenXES.");
@@ -112,7 +111,7 @@ public final class ImportConfigUI extends JPanel {
 			}
 		});
 
-		separatorField = new ProMComboBox<>(SeperatorChar.values());
+		separatorField = new ProMComboBox<>(CSVSeperator.values());
 		separatorField.setPreferredSize(null);
 		separatorField.setMinimumSize(null);
 		separatorField.setSelectedItem(importConfig.separator);
@@ -123,7 +122,7 @@ public final class ImportConfigUI extends JPanel {
 		separatorField.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
-				importConfig.separator = ((SeperatorChar) separatorField.getSelectedItem());
+				importConfig.separator = ((CSVSeperator) separatorField.getSelectedItem());
 				refreshPreview();
 			}
 		});
@@ -165,6 +164,10 @@ public final class ImportConfigUI extends JPanel {
 		quoteField.setAlignmentX(LEFT_ALIGNMENT);
 
 		refreshPreview();
+	}
+
+	public void showPreviewFrame() {
+		this.previewFrame.showFrame(getRootPane());
 	}
 
 	private void autoDetectCharset(final CharsetListener listener) {
@@ -227,11 +230,21 @@ public final class ImportConfigUI extends JPanel {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see javax.swing.JComponent#addNotify()
+	 */
+	@Override
+	public void addNotify() {
+		super.addNotify();
+		previewFrame.showFrame(getRootPane());
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see javax.swing.JComponent#removeNotify()
 	 */
+	@Override
 	public void removeNotify() {
 		super.removeNotify();
 		previewFrame.setVisible(false);

@@ -13,6 +13,9 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csvimport.config.CSVImportConfig;
+
 import au.com.bytecode.opencsv.CSVParser;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -20,6 +23,8 @@ import au.com.bytecode.opencsv.CSVWriter;
 import com.google.common.io.Files;
 
 /**
+ * Utilities of handling CSV files with OpenCSV.
+ * 
  * @author F. Mannhardt
  *
  */
@@ -32,24 +37,24 @@ public final class CSVUtils {
 	}
 
 	public static CSVReader createCSVReader(InputStream is, CSVImportConfig importConfig)
-			throws UnsupportedEncodingException {	
+			throws UnsupportedEncodingException {
 		if (importConfig.quoteChar == Character.UNASSIGNED) {
-			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.charset), BUFFER_SIZE), importConfig.separator.getSeperatorChar(),
-					CSVParser.DEFAULT_QUOTE_CHARACTER, CSVParser.DEFAULT_ESCAPE_CHARACTER, 0, false, false, true);			
+			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.charset), BUFFER_SIZE),
+					importConfig.separator.getSeperatorChar(), CSVParser.DEFAULT_QUOTE_CHARACTER,
+					CSVParser.DEFAULT_ESCAPE_CHARACTER, 0, false, false, true);
 		} else {
-			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.charset), BUFFER_SIZE), importConfig.separator.getSeperatorChar(),
-					importConfig.quoteChar);
+			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.charset), BUFFER_SIZE),
+					importConfig.separator.getSeperatorChar(), importConfig.quoteChar);
 		}
 
-	 }
+	}
 
 	public static CSVWriter createCSVWriter(OutputStream os, CSVImportConfig importConfig)
-			throws UnsupportedEncodingException {		
-		return new CSVWriter(new BufferedWriter(new OutputStreamWriter(os, importConfig.charset), BUFFER_SIZE), importConfig.separator.getSeperatorChar(),
-				importConfig.quoteChar);
+			throws UnsupportedEncodingException {
+		return new CSVWriter(new BufferedWriter(new OutputStreamWriter(os, importConfig.charset), BUFFER_SIZE),
+				importConfig.separator.getSeperatorChar(), importConfig.quoteChar);
 	}
-	
-	
+
 	public static InputStream getCSVInputStream(CSVFile csv) throws IOException {
 		String ext = Files.getFileExtension(csv.getFile().toFile().getName());
 		if (ext.equalsIgnoreCase("csv")) {
@@ -60,11 +65,11 @@ public final class CSVUtils {
 			if (nextEntry == null) {
 				throw new IOException("ZIP files does not contain any files");
 			}
-			return zipInputStream;			
+			return zipInputStream;
 		} else if (ext.equalsIgnoreCase("gz")) {
 			return new GZIPInputStream(new FileInputStream(csv.getFile().toFile()));
 		}
-		throw new UnsupportedOperationException("Unsupported file type "+ext);
+		throw new UnsupportedOperationException("Unsupported file type " + ext);
 	}
 
 }
