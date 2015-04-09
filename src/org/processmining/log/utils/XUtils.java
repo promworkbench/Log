@@ -23,8 +23,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 
@@ -37,6 +39,7 @@ import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XAttributable;
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XAttributeBoolean;
@@ -84,6 +87,29 @@ public class XUtils {
 	}
 
 	/**
+	 * Returns both the event classifiers defined by the XLog, as well as the
+	 * three standard classifiers {@link XLogInfoImpl#NAME_CLASSIFIER},
+	 * {@link XLogInfoImpl#RESOURCE_CLASSIFIER} and
+	 * {@link XLogInfoImpl#STANDARD_CLASSIFIER}.
+	 * 
+	 * @param log
+	 * @return a list of event classifiers that can be used on the log
+	 */
+	public static List<XEventClassifier> getStandardAndLogDefinedEventClassifiers(XLog log) {
+		List<XEventClassifier> classList = new ArrayList<>(log.getClassifiers());
+		if (!classList.contains(XLogInfoImpl.RESOURCE_CLASSIFIER)) {
+			classList.add(XLogInfoImpl.RESOURCE_CLASSIFIER);
+		}
+		if (!classList.contains(XLogInfoImpl.STANDARD_CLASSIFIER)) {
+			classList.add(XLogInfoImpl.STANDARD_CLASSIFIER);
+		}
+		if (!classList.contains(XLogInfoImpl.NAME_CLASSIFIER)) {
+			classList.add(0, XLogInfoImpl.NAME_CLASSIFIER);
+		}
+		return classList;
+	}
+
+	/**
 	 * @param element
 	 * @return the value of the "concept:name" attribute or "null"
 	 */
@@ -102,16 +128,17 @@ public class XUtils {
 	public static void saveLog(XLog log, File file) throws FileNotFoundException, IOException {
 		saveLogPlain(log, file);
 	}
-	
+
 	public static void saveLogPlain(XLog log, File file) throws FileNotFoundException, IOException {
 		saveLogWithSerializer(log, file, new XesXmlSerializer());
 	}
-	
+
 	public static void saveLogGzip(XLog log, File file) throws FileNotFoundException, IOException {
 		saveLogWithSerializer(log, file, new XesXmlGZIPSerializer());
 	}
-	
-	public static void saveLogWithSerializer(XLog log, File file, XSerializer logSerializer) throws FileNotFoundException, IOException {
+
+	public static void saveLogWithSerializer(XLog log, File file, XSerializer logSerializer)
+			throws FileNotFoundException, IOException {
 		try (FileOutputStream out = new FileOutputStream(file)) {
 			logSerializer.serialize(log, out);
 		}
@@ -275,7 +302,7 @@ public class XUtils {
 		}
 	}
 
-	/**	 
+	/**
 	 * Creates an appropriate {@link XAttribute}, decided on the type of the
 	 * parameter atttributeValue.
 	 * 
@@ -312,7 +339,7 @@ public class XUtils {
 	}
 
 	public static void putAttributes(XAttributable attributable, Iterable<XAttribute> attributes) {
-		for (XAttribute a: attributes) {
+		for (XAttribute a : attributes) {
 			attributable.getAttributes().put(a.getKey(), a);
 		}
 	}
