@@ -7,11 +7,12 @@ import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.log.dialogs.LogFrequencyDialog;
+import org.processmining.log.help.LogFrequencyArrayHelp;
 import org.processmining.log.models.EventLogArray;
 import org.processmining.log.models.LogFrequencyArray;
 import org.processmining.log.parameters.LogFrequencyParameters;
 
-@Plugin(name = "Create Frequency Distributions", parameterLabels = { "Event Logs" }, returnLabels = { "Log Frequency Distribution" }, returnTypes = { LogFrequencyArray.class }, userAccessible = true, help = "Log Frequency Distribution Plug-in")
+@Plugin(name = "Create Frequency Distributions", parameterLabels = { "Event Logs" }, returnLabels = { "Log Frequency Distribution" }, returnTypes = { LogFrequencyArray.class }, userAccessible = true, help = LogFrequencyArrayHelp.TEXT)
 public class LogFrequencyArrayPlugin {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")

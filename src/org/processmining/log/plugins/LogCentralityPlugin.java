@@ -13,10 +13,11 @@ import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.log.algorithms.LogCentralityAlgorithm;
 import org.processmining.log.connections.LogCentralityConnection;
 import org.processmining.log.dialogs.LogCentralityDialog;
+import org.processmining.log.help.LogCentralityHelp;
 import org.processmining.log.models.LogCentrality;
 import org.processmining.log.parameters.LogCentralityParameters;
 
-@Plugin(name = "Create Happifiable Log", parameterLabels = { "Event Log", "Parameters" }, returnLabels = { "Happifiable Log" }, returnTypes = { LogCentrality.class })
+@Plugin(name = "Create Happifiable Log", parameterLabels = { "Event Log", "Parameters" }, returnLabels = { "Happifiable Log" }, returnTypes = { LogCentrality.class }, help = LogCentralityHelp.TEXT)
 public class LogCentralityPlugin extends LogCentralityAlgorithm {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")

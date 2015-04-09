@@ -13,10 +13,11 @@ import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.log.algorithms.LogFrequencyAlgorithm;
 import org.processmining.log.connections.LogFrequencyConnection;
 import org.processmining.log.dialogs.LogFrequencyDialog;
+import org.processmining.log.help.LogFrequencyHelp;
 import org.processmining.log.models.LogFrequency;
 import org.processmining.log.parameters.LogFrequencyParameters;
 
-@Plugin(name = "Create Frequency Distribution", parameterLabels = { "Event Log" }, returnLabels = { "Log Frequency Distribution" }, returnTypes = { LogFrequency.class }, userAccessible = true, help = "Log Frequency Distribution Plug-in")
+@Plugin(name = "Create Frequency Distribution", parameterLabels = { "Event Log" }, returnLabels = { "Log Frequency Distribution" }, returnTypes = { LogFrequency.class }, userAccessible = true, help = LogFrequencyHelp.TEXT)
 public class LogFrequencyPlugin {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")

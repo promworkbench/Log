@@ -13,9 +13,10 @@ import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.log.algorithms.HighFrequencyFilterAlgorithm;
 import org.processmining.log.connections.HighFrequencyFilterConnection;
 import org.processmining.log.dialogs.HighFrequencyFilterDialog;
+import org.processmining.log.help.HighFrequencyFilterHelp;
 import org.processmining.log.parameters.HighFrequencyFilterParameters;
 
-@Plugin(name = "Filter In High-Frequency Traces (Single Log)", parameterLabels = {"Event Log"}, returnLabels = { "Filtered Log" }, returnTypes = {XLog.class }, userAccessible = true, help = "Log Filtering Plug-in")
+@Plugin(name = "Filter In High-Frequency Traces (Single Log)", parameterLabels = { "Event Log" }, returnLabels = { "Filtered Log" }, returnTypes = { XLog.class }, userAccessible = true, help = HighFrequencyFilterHelp.TEXT)
 public class HighFrequencyFilterPlugin {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
@@ -37,12 +38,12 @@ public class HighFrequencyFilterPlugin {
 	public XLog publicUI(UIPluginContext context, XLog log) {
 		return runUI(context, log);
 	}
-	
+
 	@PluginVariant(variantLabel = "Filter In High-Frequency Traces (Single Log), Parameters", requiredParameterLabels = { 0 })
 	public XLog run(PluginContext context, XLog log, HighFrequencyFilterParameters parameters) {
 		return runConnections(context, log, parameters);
 	}
-	
+
 	/**
 	 * @deprecated Use run() instead.
 	 */
@@ -50,14 +51,14 @@ public class HighFrequencyFilterPlugin {
 	public XLog publicParameters(PluginContext context, XLog log, HighFrequencyFilterParameters parameters) {
 		return run(context, log, parameters);
 	}
-	
+
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
 	@PluginVariant(variantLabel = "Filter In High-Frequency Traces (Single Log), Default", requiredParameterLabels = { 0 })
 	public XLog runDefault(PluginContext context, XLog log) {
 		HighFrequencyFilterParameters parameters = new HighFrequencyFilterParameters(log);
 		return runConnections(context, log, parameters);
 	}
-	
+
 	/**
 	 * @deprecated Use runDefault() instead.
 	 */
@@ -65,18 +66,17 @@ public class HighFrequencyFilterPlugin {
 	public XLog publicDefault(PluginContext context, XLog log) {
 		return runDefault(context, log);
 	}
-	
+
 	private XLog runConnections(PluginContext context, XLog log, HighFrequencyFilterParameters parameters) {
 		if (parameters.isTryConnections()) {
 			Collection<HighFrequencyFilterConnection> connections;
 			try {
-				connections = context.getConnectionManager().getConnections(
-						HighFrequencyFilterConnection.class, context, log);
+				connections = context.getConnectionManager().getConnections(HighFrequencyFilterConnection.class,
+						context, log);
 				for (HighFrequencyFilterConnection connection : connections) {
-					if (connection.getObjectWithRole(HighFrequencyFilterConnection.LOG)
-							.equals(log) && connection.getParameters().equals(parameters)) {
-						return connection
-								.getObjectWithRole(HighFrequencyFilterConnection.FILTEREDLOG);
+					if (connection.getObjectWithRole(HighFrequencyFilterConnection.LOG).equals(log)
+							&& connection.getParameters().equals(parameters)) {
+						return connection.getObjectWithRole(HighFrequencyFilterConnection.FILTEREDLOG);
 					}
 				}
 			} catch (ConnectionCannotBeObtained e) {
