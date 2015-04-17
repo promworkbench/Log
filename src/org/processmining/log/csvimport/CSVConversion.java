@@ -253,8 +253,8 @@ public final class CSVConversion {
 				long startSortTime = System.currentTimeMillis();
 				int maxMemory = (int) ((Runtime.getRuntime().maxMemory() * 0.50) / 1024 / 1024);
 				progress.log(String.format(
-						"Sorting CSV file (%s MB) by case and time using maximal %s MB of memory ...",
-						(csvFile.getFileSizeInBytes() / 1024 / 1024), maxMemory));
+						"Sorting CSV file (%.2f MB) by case and time using maximal %s MB of memory ...",
+						((double)csvFile.getFileSizeInBytes() / 1024 / 1024), maxMemory));
 				Ordering<String[]> caseComparator = new ImportOrdering(caseColumnIndex, userDefinedDateFormat,
 						completionTimeColumnIndex, startTimeColumnIndex, conversionConfig.errorHandlingMode);
 				sortedFile = CSVSorter.sortCSV(csvFile, caseComparator, config, maxMemory, header.length, progress);
@@ -345,7 +345,11 @@ public final class CSVConversion {
 				}
 
 				// Close last trace
-				conversionHandler.endTrace(currentCaseId);
+				if (currentCaseId != null) {
+					conversionHandler.endTrace(currentCaseId);
+				} else {
+					throw new CSVConversionException("Error converting the CSV file to XES. Could not read a single trace, either the input file is empty or there has been an issue during sorting!");
+				}
 
 				if (eventsWithErrors.length() > 0) {
 					progress.log("Could not convert the following events:\n");

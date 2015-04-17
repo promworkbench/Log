@@ -1,5 +1,6 @@
 package org.processmining.log.csvimport;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -170,7 +171,7 @@ final class CSVSorter {
 					Iterator<String[]> result = sorter.sort(inputDataReader);
 
 					// Write sorted result to compressed file
-					if (result != null) {
+					if (result != null && result.hasNext()) {
 						File sortedCsvFile = Files.createTempFile(csvFile.getFilename() + "-sorted", ".lzf").toFile();
 						DataWriter<String[]> dataWriter = dataWriterFactory.constructWriter(new FileOutputStream(
 								sortedCsvFile));
@@ -182,13 +183,18 @@ final class CSVSorter {
 							dataWriter.close();
 						}
 						return sortedCsvFile;
+					} else {
+						if (!result.hasNext()) {
+							throw new CSVSortException("Could not sort file! Input parser returned empty file.");
+						} else {
+							throw new CSVSortException("Could not sort file! Unkown error while sorting.");
+						}
 					}
 
 				} finally {
 					sorter.close();
 				}
 
-				throw new CSVSortException("Could not sort file.");
 			}
 		});
 
@@ -230,12 +236,19 @@ final class CSVSorter {
 		}
 	}
 
-	private static InputStream skipFirstLine(InputStream is) throws IOException {
+	private static InputStream skipFirstLine(InputStream inputStream) throws IOException {
+		InputStream is = new BufferedInputStream(inputStream);
 		int val = -1;
 		do {
 			val = (byte) is.read();
-		} while (val != -1 && (val != '\n'));
-		return is;
+		} while (val != -1 && ((val != '\n') && val != '\r'));
+		is.mark(1);
+		if (is.read() == '\n') {
+			return is;
+		} else {
+			is.reset();
+			return is;
+		}
 	}
 
 	private static int estimateSize(String[] item) {
