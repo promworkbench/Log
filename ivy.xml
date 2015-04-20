@@ -1,0 +1,5 @@
+<ivy-module version="2.0">
+    <info organisation="prom" module="Log" revision="latest"/>
+    <dependencies>
+    </dependencies>
+</ivy-module>
