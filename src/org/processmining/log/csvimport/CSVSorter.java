@@ -9,7 +9,6 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
@@ -48,6 +47,9 @@ final class CSVSorter {
 
 	private static final class UncompressedOpenCSVReader extends DataReader<String[]> {
 
+		private static final int MAX_COLUMNS_FOR_ERROR_REPORTING = 32;
+		private static final int MAX_FIELD_LENGTH_FOR_ERROR_REPORTING = 64;
+		
 		private final CSVReader reader;
 		private final int numColumns;
 
@@ -68,11 +70,37 @@ final class CSVSorter {
 		public String[] readNext() throws IOException {
 			String[] val = reader.readNext();
 			if (val != null && val.length != numColumns) {
+				String offendingLine = safeToString(val);
 				throw new IOException("Inconsistent number of fields in a row of the CSV file. Should be " + numColumns
 						+ " according to the header, but read a line with " + val.length + " files! Invalid line: "
-						+ Arrays.toString(val));
+						+ offendingLine);
 			}
 			return val;
+		}
+
+		private String safeToString(String[] valueArray) {
+			if (valueArray == null) {
+				return "NULL";
+			} else if (valueArray.length == 0) {
+				return "[]";
+			} else {
+				StringBuilder sb = new StringBuilder();
+				sb.append('[');
+				for (int i = 0;; i++) {
+					String value = valueArray[i];
+					if (value.length() < MAX_FIELD_LENGTH_FOR_ERROR_REPORTING) {
+						sb.append(value);
+					} else {
+						sb.append(value.substring(0, MAX_FIELD_LENGTH_FOR_ERROR_REPORTING-1));
+					}
+					if (i > MAX_COLUMNS_FOR_ERROR_REPORTING) {
+						return sb.append(String.format("[... omitted %s further columns]", valueArray.length - i)).toString();
+					}
+					if (i == valueArray.length-1)
+						return sb.append(']').toString();
+					sb.append(", ");
+				}
+			}
 		}
 	}
 

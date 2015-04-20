@@ -5,13 +5,13 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.swing.JOptionPane;
-
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
+import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.Progress;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
 import org.processmining.framework.util.ui.widgets.helper.UserCancelledException;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csvimport.CSVConversion.ProgressListener;
@@ -35,14 +35,25 @@ import com.google.common.io.Files;
  */
 public final class CSVConversionPlugin {
 
-	@Plugin(name = "Convert CSV to XES", parameterLabels = { "CSV" }, returnLabels = { "XES Log" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,
-	keywords = { "CSV", "XES", "Conversion" }, help = "Converts the CSV file to a XES XLog object.")
+	@Plugin(name = "Convert CSV to XES", parameterLabels = { "CSV" }, returnLabels = { "XES Log" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, keywords = {
+			"CSV", "XES", "Conversion" }, help = "Converts the CSV file to a XES XLog object.")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt", email = "f.mannhardt@tue.nl", website = "http://fmannhardt.de")
 	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csv) throws IOException, UserCancelledException {
 		CSVImportConfig importConfig = CSVConversion.queryImportConfig(context, csv);
 		CSVConversionConfig conversionConfig = CSVConversion.queryConversionConfig(context, csv, importConfig);
 		CSVConversion csvConversion = new CSVConversion();
 		try {
+			return doConvertCSVToXes(context, csv, importConfig, conversionConfig, csvConversion);
+		} catch (CSVConversionException e) {
+			String errorMessage = Joiner.on("\n caused by \n").join(Throwables.getCausalChain(e));
+			ProMUIHelper.showErrorMessage(context, errorMessage, "Conversion Failed");
+			context.getFutureResult(0).cancel(false);
+			return null;
+		}
+	}
+
+	public XLog doConvertCSVToXes(final PluginContext context, CSVFile csv, CSVImportConfig importConfig,
+			CSVConversionConfig conversionConfig, CSVConversion csvConversion) throws CSVConversionConfigException, CSVConversionException {
 			XLog convertedLog = csvConversion.doConvertCSVToXES(new ProgressListener() {
 
 				public Progress getProgress() {
@@ -75,17 +86,7 @@ public final class CSVConversionPlugin {
 								+ DateFormat.getTimeInstance().format(new Date()) + ")");
 			}
 			return convertedLog;
-		} catch (CSVConversionConfigException e) {
-			JOptionPane.showMessageDialog(null, Joiner.on("\n caused by \n").join(Throwables.getCausalChain(e)),
-					"Configuration Incomplete", JOptionPane.ERROR_MESSAGE);
-			context.getFutureResult(0).cancel(false);
-			return null;
-		} catch (CSVConversionException e) {
-			JOptionPane.showMessageDialog(null, Joiner.on("\ncaused by: ").join(Throwables.getCausalChain(e)),
-					"Error Converting", JOptionPane.ERROR_MESSAGE);
-			context.getFutureResult(0).cancel(false);
-			return null;
-		}
+
 	}
 
 }

@@ -33,6 +33,8 @@ import org.processmining.log.utils.XUtils;
  */
 public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog> {
 
+	private static final int MAX_ERROR_LENGTH = 16 * 1024 * 1024;
+	
 	private final XFactory factory;
 	private final CSVConversionConfig conversionConfig;
 	private final StringBuilder conversionErrors;
@@ -209,16 +211,22 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 
 	public void errorDetected(int line, Object content, Exception e) throws CSVConversionException {
 		CSVErrorHandlingMode errorMode = conversionConfig.errorHandlingMode;
-		errorDetected = true;		
+		errorDetected = true;
 		switch (errorMode) {
 			case BEST_EFFORT :
-				conversionErrors.append("Line: " + line + ": Skipping attribute " + nulLSafeToString(content) + " Error: " + e + "\n");
+				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
+					conversionErrors.append("Line: " + line + ": Skipping attribute " + nulLSafeToString(content) + " Error: " + e + "\n");	
+				}				
 				break;
-			case OMIT_EVENT_ON_ERROR :				
-				conversionErrors.append("Line: " + line + ": Skipping event, could not convert " + nulLSafeToString(content) + " Error: " + e + "\n");
+			case OMIT_EVENT_ON_ERROR :		
+				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
+					conversionErrors.append("Line: " + line + ": Skipping event, could not convert " + nulLSafeToString(content) + " Error: " + e + "\n");
+				}
 				break;
 			case OMIT_TRACE_ON_ERROR :
-				conversionErrors.append("Line: " + line + ": Skipping trace "+XUtils.getConceptName(currentTrace)+", could not convert" + nulLSafeToString(content) + " Error: " + e + "\n");
+				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
+					conversionErrors.append("Line: " + line + ": Skipping trace "+XUtils.getConceptName(currentTrace)+", could not convert" + nulLSafeToString(content) + " Error: " + e + "\n");
+				}
 				break;
 			default :
 			case ABORT_ON_ERROR :

@@ -277,8 +277,6 @@ public final class CSVConversion {
 				String[] nextLine;
 				String currentCaseId = null;
 
-				final StringBuilder eventsWithErrors = new StringBuilder();
-
 				while ((nextLine = reader.readNext()) != null && (caseIndex % 1000 != 0 || !p.isCancelled())) {
 					lineIndex++;
 
@@ -349,11 +347,6 @@ public final class CSVConversion {
 					conversionHandler.endTrace(currentCaseId);
 				} else {
 					throw new CSVConversionException("Error converting the CSV file to XES. Could not read a single trace, either the input file is empty or there has been an issue during sorting!");
-				}
-
-				if (eventsWithErrors.length() > 0) {
-					progress.log("Could not convert the following events:\n");
-					progress.log(eventsWithErrors.toString());
 				}
 
 			} catch (IOException e) {
