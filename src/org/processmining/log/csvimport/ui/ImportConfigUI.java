@@ -15,16 +15,14 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
 import org.mozilla.universalchardet.CharsetListener;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
-import org.processmining.framework.util.ui.widgets.ProMTextField;
 import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csvimport.CSVQuoteCharacter;
 import org.processmining.log.csvimport.CSVSeperator;
 import org.processmining.log.csvimport.config.CSVImportConfig;
 
@@ -50,7 +48,8 @@ public final class ImportConfigUI extends JPanel {
 	private final ProMComboBox<XFactory> xFactoryChoice;
 	private final ProMComboBox<String> charsetCbx;
 	private final ProMComboBox<CSVSeperator> separatorField;
-	private final ProMTextField quoteField;
+	private final ProMComboBox<CSVQuoteCharacter> quoteField;
+	//private final ProMComboBox<CSVQuoteCharacter> escapeField;
 
 	private final CSVPreviewFrame previewFrame;
 
@@ -128,41 +127,40 @@ public final class ImportConfigUI extends JPanel {
 		});
 		separatorField.setAlignmentX(LEFT_ALIGNMENT);
 
-		quoteField = new ProMTextField("\"");
+		quoteField = new ProMComboBox<>(CSVQuoteCharacter.values());
 		quoteField.setPreferredSize(null);
 		quoteField.setMinimumSize(null);
-		quoteField.setText(String.valueOf(importConfig.quoteChar));
 		JLabel quoteLabel = SlickerFactory.instance().createLabel("Quote Character of the CSV");
 		quoteLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(quoteLabel);
 		add(quoteField);
-		quoteField.getDocument().addDocumentListener(new DocumentListener() {
+		quoteField.addActionListener(new ActionListener() {
 
-			public void removeUpdate(DocumentEvent e) {
-				update();
+			public void actionPerformed(ActionEvent e) {
+				importConfig.quoteChar = (CSVQuoteCharacter) quoteField.getSelectedItem();
+				refreshPreview();
 			}
-
-			public void insertUpdate(DocumentEvent e) {
-				update();
-			}
-
-			public void changedUpdate(DocumentEvent e) {
-				update();
-			}
-
-			private void update() {
-				if (quoteField.getText().length() == 1) {
-					importConfig.quoteChar = quoteField.getText().charAt(0);
-					refreshPreview();
-				} else {
-					importConfig.quoteChar = Character.UNASSIGNED;
-					refreshPreview();
-				}
-			}
-
-		});
+		});	
 		quoteField.setAlignmentX(LEFT_ALIGNMENT);
+		
+		/*
+		escapeField = new ProMComboBox<>(CSVEscapeCharacter.values());
+		escapeField.setPreferredSize(null);
+		escapeField.setMinimumSize(null);
+		JLabel escapeLabel = SlickerFactory.instance().createLabel("Escape Character of the CSV");
+		escapeLabel.setAlignmentX(LEFT_ALIGNMENT);
+		add(escapeLabel);
+		add(escapeField);
+		escapeField.addActionListener(new ActionListener() {
 
+			public void actionPerformed(ActionEvent e) {
+				importConfig.escapeChar = (CSVEscapeCharacter) escapeField.getSelectedItem();
+				refreshPreview();
+			}
+		});	
+		quoteField.setAlignmentX(LEFT_ALIGNMENT);
+		 */
+		
 		refreshPreview();
 	}
 

@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
 import org.deckfour.xes.extension.std.XConceptExtension;
@@ -441,13 +442,15 @@ public final class CSVConversion {
 		return XConceptExtension.KEY_NAME.equals(header) || XTimeExtension.KEY_TIMESTAMP.equals(header)
 				|| XConceptExtension.KEY_INSTANCE.equals(header);
 	}
+	
+	private static Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*");
 
 	private static Date parseDate(SimpleDateFormat customDateFormat, String s) throws ParseException {
 		if (customDateFormat != null) {
 			return customDateFormat.parse(s);
 		}
 		// Milliseconds fix
-		String s2 = s.replaceAll("(\\.[0-9]{3})[0-9]*", "$1");
+		String s2 = INVALID_MS_PATTERN.matcher(s).replaceFirst("$1");
 		ParsePosition pos = new ParsePosition(0);
 		for (DateFormat formatter : STANDARD_DATE_FORMATTERS) {
 			pos.setIndex(0);

@@ -38,13 +38,13 @@ public final class CSVUtils {
 
 	public static CSVReader createCSVReader(InputStream is, CSVImportConfig importConfig)
 			throws UnsupportedEncodingException {
-		if (importConfig.quoteChar == Character.UNASSIGNED) {
+		if (importConfig.quoteChar == null) {
 			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.charset), BUFFER_SIZE),
 					importConfig.separator.getSeperatorChar(), CSVParser.DEFAULT_QUOTE_CHARACTER,
 					CSVParser.DEFAULT_ESCAPE_CHARACTER, 0, false, false, true);
 		} else {
 			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.charset), BUFFER_SIZE),
-					importConfig.separator.getSeperatorChar(), importConfig.quoteChar);
+					importConfig.separator.getSeperatorChar(), importConfig.quoteChar.getQuoteChar());
 		}
 
 	}
@@ -52,7 +52,7 @@ public final class CSVUtils {
 	public static CSVWriter createCSVWriter(OutputStream os, CSVImportConfig importConfig)
 			throws UnsupportedEncodingException {
 		return new CSVWriter(new BufferedWriter(new OutputStreamWriter(os, importConfig.charset), BUFFER_SIZE),
-				importConfig.separator.getSeperatorChar(), importConfig.quoteChar);
+				importConfig.separator.getSeperatorChar(), importConfig.quoteChar.getQuoteChar());
 	}
 
 	public static InputStream getCSVInputStream(CSVFile csv) throws IOException {

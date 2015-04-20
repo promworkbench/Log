@@ -220,29 +220,29 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		conversionOptionsLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(conversionOptionsLabel);
 
-		timeFormatField = new ProMTextField(DEFAULT_FORMAT);
+		timeFormatField = new ProMTextField("", DEFAULT_FORMAT);
 		timeFormatField.setAlignmentX(LEFT_ALIGNMENT);
 		timeFormatField.setPreferredSize(null);
 		timeFormatField.setMinimumSize(null);
 		JLabel timeFormatLabel = SlickerFactory.instance().createLabel(
-				"Time Format (Java 'Style'), there are several common time formats already built in.");
+				"Custom Time Format (Java 'Style'), leave blank to use several built-in formats.");
 		timeFormatLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(timeFormatLabel);
 		add(timeFormatField);
 		timeFormatField.getDocument().addDocumentListener(new DocumentListener() {
 
 			public void removeUpdate(DocumentEvent e) {
-				conversionConfig.timeFormat = timeFormatField.getText().equals(DEFAULT_FORMAT) ? null : timeFormatField
+				conversionConfig.timeFormat = timeFormatField.getText().isEmpty() ? null : timeFormatField
 						.getText();
 			}
 
 			public void insertUpdate(DocumentEvent e) {
-				conversionConfig.timeFormat = timeFormatField.getText().equals(DEFAULT_FORMAT) ? null : timeFormatField
+				conversionConfig.timeFormat = timeFormatField.getText().isEmpty() ? null : timeFormatField
 						.getText();
 			}
 
 			public void changedUpdate(DocumentEvent e) {
-				conversionConfig.timeFormat = timeFormatField.getText().equals(DEFAULT_FORMAT) ? null : timeFormatField
+				conversionConfig.timeFormat = timeFormatField.getText().isEmpty() ? null : timeFormatField
 						.getText();
 			}
 		});

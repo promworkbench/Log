@@ -72,7 +72,7 @@ final class CSVSorter {
 			if (val != null && val.length != numColumns) {
 				String offendingLine = safeToString(val);
 				throw new IOException("Inconsistent number of fields in a row of the CSV file. Should be " + numColumns
-						+ " according to the header, but read a line with " + val.length + " files! Invalid line: "
+						+ " according to the header, but read a line with " + val.length + " fields! Invalid line: "
 						+ offendingLine);
 			}
 			return val;
@@ -233,7 +233,7 @@ final class CSVSorter {
 			while (!executorService.awaitTermination(100, TimeUnit.MILLISECONDS)) {
 				if (progress.getProgress().isCancelled()) {
 					progress.log("Cancelling sorting, this might take a while ...");
-					sorter.cancel();
+					sorter.cancel(new RuntimeException("Cancelled"));
 					throw new CSVSortException("User cancelled sorting");
 				}
 				if (sorter.getPhase() == Phase.PRE_SORTING) {
