@@ -34,9 +34,9 @@ public class ShuffleInsertionList<T> extends AbstractList<T> implements Cloneabl
 		}
 	}
 
-	public ShuffleInsertionList(List<T> source, int[] eventPositions) {
+	public ShuffleInsertionList(List<T> source, int[] elementPositions) {
 		this.source = source;
-		this.positions = eventPositions;
+		this.positions = elementPositions;
 	}
 
 	//TODO: Test addition of (artificial) events

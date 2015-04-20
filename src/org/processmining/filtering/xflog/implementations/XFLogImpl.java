@@ -38,9 +38,9 @@ public class XFLogImpl extends ShuffleInsertionList<XTrace> implements XFLog {
 		init(source, traceFilter, logAttributeFilter);
 	}
 
-	public XFLogImpl(XLog source, int[] eventPositions, Filter<XTrace> traceFilter,
+	public XFLogImpl(XLog source, int[] tracePositions, Filter<XTrace> traceFilter,
 			Filter<XAttributeMap> logAttributeFilter) {
-		super(source, eventPositions);
+		super(source, tracePositions);
 		init(source, traceFilter, logAttributeFilter);
 	}
 
