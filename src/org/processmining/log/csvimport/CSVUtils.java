@@ -57,7 +57,7 @@ public final class CSVUtils {
 
 	public static InputStream getCSVInputStream(CSVFile csv) throws IOException {
 		String ext = Files.getFileExtension(csv.getFile().toFile().getName());
-		if (ext.equalsIgnoreCase("csv")) {
+		if (ext.equalsIgnoreCase("csv") || ext.equalsIgnoreCase("txt")) {
 			return new FileInputStream(csv.getFile().toFile());
 		} else if (ext.equalsIgnoreCase("zip")) {
 			ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(csv.getFile().toFile()));
