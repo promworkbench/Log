@@ -1,5 +1,8 @@
 <ivy-module version="2.0">
     <info organisation="prom" module="Log" revision="latest"/>
     <dependencies>
+       <dependency org="prom" name="ApacheUtils" rev="latest" transitive="true" />
+       <dependency org="prom" name="BasicUtils" rev="latest" transitive="true" />
+       <dependency org="prom" name="Widgets" rev="latest" transitive="false" />
     </dependencies>
 </ivy-module>
