@@ -3,7 +3,7 @@
     <dependencies>
        <dependency org="prom" name="ApacheUtils" rev="latest" transitive="true" />
        <dependency org="prom" name="BasicUtils" rev="latest" transitive="true" />
-       <dependency org="prom" name="Widgets" rev="latest" transitive="false" />
+       <dependency org="prom" name="Widgets" rev="latest" transitive="true" />
        <dependency org="prom-libs" name="OpenXES" rev="latest" transitive="false" />
        <dependency org="prom-libs" name="OpenXES-XStream" rev="latest" transitive="false" />
     </dependencies>
