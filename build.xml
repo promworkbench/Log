@@ -10,6 +10,14 @@
 	<property name="version" value="${major_minor}.${env.BUILD_NUMBER}" />
 	<property name="project" value="Log" />
 
+	<property name="author" value="H.M.W. Verbeek, F. Mannhardt, S.J. van Zelst" />
+	<property name="organization" value="Eindhoven University of Technology" />
+	<property name="description" value="Eclipse Modeling Framework" />
+	<property name="license" value="L-GPL" />
+	<property name="logo" value="http://www.promtools.org/prom6/packages/prom_subtitle_hat_300.png" />
+
+	<property name="ivy.lib.dir" value="ivy" />
+
 	<!-- Set the os to win32, win64, lin32, lin64, mac, or all -->
 	<property name="os" value="all" />
 
@@ -22,6 +30,7 @@
 		<pathelement path="${build}" />
 		<pathelement path="${java.class.path}" />
 		<fileset dir=".">
+			<include name="ivy/**/*.jar" />
 			<include name="lib/**/*.jar" />
 			<include name="stdlib/**/*.jar" />
 			<include name="packagelib/**/*.jar" />
@@ -104,8 +113,7 @@
 			</delete>
 			<zip destfile="${release}/${project}-${version}-${os}.zip">
 				<zipfileset dir="${lib}" prefix="lib">
-					<include name="OpenXES-2.0.jar" />
-					<include name="OpenXES-XStream-2.0.jar" />
+					<include name="**" />
 				</zipfileset>
 				<zipfileset dir="${dist}" prefix="">
 					<include name="${project}.jar" />
@@ -153,6 +161,12 @@
 
 	<target name="resolve">
 		<ivy:retrieve />
+		<copy todir="lib" overwrite="true">
+			<fileset dir="ivy">
+				<include name="OpenXES-2.0.jar" />
+				<include name="OpenXES-XStream-2.0.jar" />
+			</fileset>
+		</copy>
 	</target>
 
 </project>
