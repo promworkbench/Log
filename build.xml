@@ -104,7 +104,8 @@
 			</delete>
 			<zip destfile="${release}/${project}-${version}-${os}.zip">
 				<zipfileset dir="${lib}" prefix="lib">
-					<include name="**" />
+					<include name="OpenXES-2.0.jar" />
+					<include name="OpenXES-XStream-2.0.jar" />
 				</zipfileset>
 				<zipfileset dir="${dist}" prefix="">
 					<include name="${project}.jar" />
