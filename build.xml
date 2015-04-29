@@ -126,9 +126,6 @@
 			<echo file="${release}/packages.xml">
 				&lt;packages&gt;
 					&lt;package name="${project}" version="${version}" os="all" url="http://www.promtools.org/prom6/packages/${project}/${project}-${version}-${os}.zip" desc="Log" org="Eindhoven University of Technology" license="LGPL" author="H.M.W. Verbeek, F. Mannhardt, S.J. van Zelst" auto="false" hasPlugins="true" logo="http://www.promtools.org/prom6/packages/prom_subtitle_hat_300.png"&gt;
-						&lt;dependency name="ApacheUtils" /&gt;
-						&lt;dependency name="BasicUtils" /&gt;
-						&lt;dependency name="Widgets" /&gt;
 			</echo>
 			<concat destfile="${release}/packages.xml" append="true">
 				<filelist files="ivypack.xml" />

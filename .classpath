@@ -60,7 +60,5 @@
 	<classpathentry kind="lib" path="stdlib/commons-math-3.1.jar"/>
 	<classpathentry kind="lib" path="stdlib/jfreechart-1.0.14.jar"/>
 	<classpathentry kind="con" path="org.apache.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/?project=Log&amp;ivyXmlPath=ivy.xml&amp;confs=*&amp;ivySettingsPath=ivysettings.xml&amp;loadSettingsOnDemand=false&amp;ivyUserDir=&amp;propertyFiles="/>
-	<classpathentry kind="lib" path="packagelib/ApacheUtils-lib/opencsv-2.4-patched.jar"/>
-	<classpathentry kind="lib" path="packagelib/BasicUtils-lib/javacsv-2.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
