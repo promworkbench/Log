@@ -14,8 +14,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
-import org.deckfour.xes.extension.std.XConceptExtension;
-import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.plugin.Progress;
@@ -36,6 +34,7 @@ import org.processmining.log.csvimport.ui.ImportConfigUI;
 import au.com.bytecode.opencsv.CSVReader;
 
 import com.google.common.collect.Ordering;
+import com.google.common.primitives.Ints;
 import com.ning.compress.lzf.LZFInputStream;
 
 /**
@@ -70,6 +69,7 @@ public final class CSVConversion {
 			add(new SimpleDateFormat("yyyy-MM-dd"));
 			add(new SimpleDateFormat("MM/dd/yyyy HH:mm"));
 			add(new SimpleDateFormat("MM/dd/yyyy"));
+			add(new SimpleDateFormat("dd-MM-yyyy:HH:mm:ss"));
 		}
 	};
 
@@ -225,7 +225,7 @@ public final class CSVConversion {
 		}
 
 		int[] caseColumnIndex = new int[conversionConfig.caseColumns.length];
-		int eventNameColumnIndex = -1;
+		int[] eventNameColumnIndex = new int[conversionConfig.eventNameColumns.length];
 		int completionTimeColumnIndex = -1;
 		int startTimeColumnIndex = -1;
 		String[] header = null;
@@ -235,7 +235,9 @@ public final class CSVConversion {
 			for (int i = 0; i < conversionConfig.caseColumns.length; i++) {
 				caseColumnIndex[i] = findColumnIndex(header, conversionConfig.caseColumns[i]);
 			}
-			eventNameColumnIndex = findColumnIndex(header, conversionConfig.eventNameColumn);
+			for (int i = 0; i < conversionConfig.eventNameColumns.length; i++) {
+				eventNameColumnIndex[i] = findColumnIndex(header, conversionConfig.eventNameColumns[i]);
+			}
 			if (conversionConfig.completionTimeColumn != "") {
 				completionTimeColumnIndex = findColumnIndex(header, conversionConfig.completionTimeColumn);
 			}
@@ -255,7 +257,7 @@ public final class CSVConversion {
 				int maxMemory = (int) ((Runtime.getRuntime().maxMemory() * 0.50) / 1024 / 1024);
 				progress.log(String.format(
 						"Sorting CSV file (%.2f MB) by case and time using maximal %s MB of memory ...",
-						((double)csvFile.getFileSizeInBytes() / 1024 / 1024), maxMemory));
+						((double) csvFile.getFileSizeInBytes() / 1024 / 1024), maxMemory));
 				Ordering<String[]> caseComparator = new ImportOrdering(caseColumnIndex, userDefinedDateFormat,
 						completionTimeColumnIndex, startTimeColumnIndex, conversionConfig.errorHandlingMode);
 				sortedFile = CSVSorter.sortCSV(csvFile, caseComparator, config, maxMemory, header.length, progress);
@@ -281,7 +283,8 @@ public final class CSVConversion {
 				while ((nextLine = reader.readNext()) != null && (caseIndex % 1000 != 0 || !p.isCancelled())) {
 					lineIndex++;
 
-					final String newCaseID = readCaseID(caseColumnIndex, nextLine);
+					final String newCaseID = readCompositeAttribute(caseColumnIndex, nextLine,
+							conversionConfig.compositeAttributeSeparator);
 
 					// Handle new traces
 					if (!newCaseID.equals(currentCaseId)) {
@@ -291,7 +294,7 @@ public final class CSVConversion {
 							conversionHandler.endTrace(currentCaseId);
 						}
 
-						// Reading next case id
+						// Update current case id to next case id
 						currentCaseId = newCaseID;
 
 						// Create new case
@@ -308,14 +311,21 @@ public final class CSVConversion {
 					// Create new event
 					try {
 
-						final String eventClass = eventNameColumnIndex != -1 ? nextLine[eventNameColumnIndex] : null;
-						final Date completionTime = completionTimeColumnIndex != -1 ? parseDate(userDefinedDateFormat, nextLine[completionTimeColumnIndex]) : null;
-						final Date startTime = startTimeColumnIndex != -1 ? parseDate(userDefinedDateFormat, nextLine[startTimeColumnIndex]) : null;
+						// Read event name
+						final String eventClass = readCompositeAttribute(eventNameColumnIndex, nextLine,
+								conversionConfig.compositeAttributeSeparator);
+
+						// Read timestamps
+						final Date completionTime = completionTimeColumnIndex != -1 ? parseDate(userDefinedDateFormat,
+								nextLine[completionTimeColumnIndex]) : null;
+						final Date startTime = startTimeColumnIndex != -1 ? parseDate(userDefinedDateFormat,
+								nextLine[startTimeColumnIndex]) : null;
+
 						conversionHandler.startEvent(eventClass, completionTime, startTime);
 
 						for (int i = 0; i < nextLine.length; i++) {
-							if (i == eventNameColumnIndex || i == completionTimeColumnIndex
-									|| i == startTimeColumnIndex) {
+							if (Ints.contains(eventNameColumnIndex, i) || Ints.contains(caseColumnIndex, i)
+									|| i == completionTimeColumnIndex || i == startTimeColumnIndex) {
 								// Is already mapped to a special column, do not include again
 								continue;
 							}
@@ -323,13 +333,9 @@ public final class CSVConversion {
 							final String name = header[i];
 							final String value = nextLine[i];
 
-							if (considerColumn(name, value)) {
-
-								if (!(conversionConfig.omitNULL && isNullValue(value))) {
-									parseAttributes(progress, conversionConfig, conversionHandler,
-											userDefinedDateFormat, lineIndex, i, name, value);
-								}
-
+							if (!(conversionConfig.omitNULL && (isNullValue(value) || value.isEmpty()))) {
+								parseAttributes(progress, conversionConfig, conversionHandler,
+										userDefinedDateFormat, lineIndex, i, name, value);
 							}
 						}
 
@@ -340,16 +346,16 @@ public final class CSVConversion {
 					} catch (ParseException e) {
 						conversionHandler.errorDetected(lineIndex, nextLine, e);
 					}
-
 				}
 
 				// Close last trace
 				if (currentCaseId != null) {
 					conversionHandler.endTrace(currentCaseId);
 				} else {
-					throw new CSVConversionException("Error converting the CSV file to XES. Could not read a single trace, either the input file is empty or there has been an issue during sorting!");
+					throw new CSVConversionException(
+							"Error converting the CSV file to XES. Could not read a single trace, either the input file is empty or there has been an issue during sorting!");
 				}
-
+				
 			} catch (IOException e) {
 				throw new CSVConversionException("Error converting the CSV file to XES", e);
 			}
@@ -414,35 +420,26 @@ public final class CSVConversion {
 		handler.endAttribute();
 	}
 
-	private String readCaseID(int[] caseColumnIndex, String[] nextLine) {
-		if (caseColumnIndex.length == 0) {
-			return "";
+	private static String readCompositeAttribute(int[] columnIndex, String[] line, String compositeSeparator) {
+		if (columnIndex.length == 0) {
+			return null;
 		}
 		int size = 0;
-		for (int index : caseColumnIndex) {
-			size += nextLine[index].length();
+		for (int index : columnIndex) {
+			size += line[index].length();
 		}
-		StringBuilder sb = new StringBuilder(size + caseColumnIndex.length);
-		for (int index : caseColumnIndex) {
-			sb.append(nextLine[index]);
-			sb.append(":");
+		StringBuilder sb = new StringBuilder(size + columnIndex.length);
+		for (int index : columnIndex) {
+			sb.append(line[index]);
+			sb.append(compositeSeparator);
 		}
 		return sb.substring(0, sb.length() - 1);
-	}
-
-	private static boolean considerColumn(String name, String value) {
-		return !value.isEmpty() && !specialColumn(name);
 	}
 
 	private static boolean isNullValue(String value) {
 		return "NULL".equalsIgnoreCase(value);
 	}
 
-	private static boolean specialColumn(String header) {
-		return XConceptExtension.KEY_NAME.equals(header) || XTimeExtension.KEY_TIMESTAMP.equals(header)
-				|| XConceptExtension.KEY_INSTANCE.equals(header);
-	}
-	
 	private static Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*");
 
 	private static Date parseDate(SimpleDateFormat customDateFormat, String s) throws ParseException {

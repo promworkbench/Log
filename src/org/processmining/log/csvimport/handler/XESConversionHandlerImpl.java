@@ -34,12 +34,12 @@ import org.processmining.log.utils.XUtils;
 public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog> {
 
 	private static final int MAX_ERROR_LENGTH = 16 * 1024 * 1024;
-	
+
 	private final XFactory factory;
 	private final CSVConversionConfig conversionConfig;
 	private final StringBuilder conversionErrors;
 	private final ProgressListener progress;
-	
+
 	private XLog log = null;
 
 	private XTrace currentTrace = null;
@@ -52,17 +52,18 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 
 	private boolean errorDetected = false;
 
-	public XESConversionHandlerImpl(ProgressListener progress, CSVImportConfig importConfig, CSVConversionConfig conversionConfig) {
+	public XESConversionHandlerImpl(ProgressListener progress, CSVImportConfig importConfig,
+			CSVConversionConfig conversionConfig) {
 		this.progress = progress;
 		this.conversionConfig = conversionConfig;
-		this.factory = importConfig.factory;
+		this.factory = conversionConfig.factory;
 		this.conversionErrors = new StringBuilder();
 	}
 
 	public void startLog(CSVFile inputFile) {
 		log = factory.createLog();
-		if (conversionConfig.eventNameColumn != null) {
-			log.getExtensions().add(XConceptExtension.instance());	
+		if (conversionConfig.eventNameColumns != null) {
+			log.getExtensions().add(XConceptExtension.instance());
 		}
 		if (conversionConfig.completionTimeColumn != null || conversionConfig.startTimeColumn != null) {
 			log.getExtensions().add(XTimeExtension.instance());
@@ -125,8 +126,8 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		} else {
 			currentEvent = factory.createEvent();
 			if (eventClass != null) {
-				assignName(factory, currentEvent, eventClass);	
-			}			
+				assignName(factory, currentEvent, eventClass);
+			}
 			if (completionTime != null) {
 				assignTimestamp(factory, currentEvent, completionTime);
 				assignLifecycleTransition(factory, currentEvent, XLifecycleExtension.StandardModel.COMPLETE);
@@ -139,28 +140,33 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	}
 
 	public void startAttribute(String name, String value) {
-		//TODO allow user configured XExtension to be added
-		assignAttribute(currentEvent, factory.createAttributeLiteral(name, value, null));
+		if (!specialColumn(name)) {
+			assignAttribute(currentEvent, factory.createAttributeLiteral(name, value, null));
+		}
 	}
 
 	public void startAttribute(String name, long value) {
-		//TODO allow user configured XExtension to be added
-		assignAttribute(currentEvent, factory.createAttributeDiscrete(name, value, null));
+		if (!specialColumn(name)) {
+			assignAttribute(currentEvent, factory.createAttributeDiscrete(name, value, null));
+		}
 	}
 
 	public void startAttribute(String name, double value) {
-		//TODO allow user configured XExtension to be added
-		assignAttribute(currentEvent, factory.createAttributeContinuous(name, value, null));
+		if (!specialColumn(name)) {
+			assignAttribute(currentEvent, factory.createAttributeContinuous(name, value, null));
+		}
 	}
 
 	public void startAttribute(String name, Date value) {
-		//TODO allow user configured XExtension to be added
-		assignAttribute(currentEvent, factory.createAttributeTimestamp(name, value, null));
+		if (!specialColumn(name)) {
+			assignAttribute(currentEvent, factory.createAttributeTimestamp(name, value, null));
+		}
 	}
 
 	public void startAttribute(String name, boolean value) {
-		//TODO allow user configured XExtension to be added
-		assignAttribute(currentEvent, factory.createAttributeBoolean(name, value, null));
+		if (!specialColumn(name)) {
+			assignAttribute(currentEvent, factory.createAttributeBoolean(name, value, null));
+		}
 	}
 
 	public void endAttribute() {
@@ -215,17 +221,20 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		switch (errorMode) {
 			case BEST_EFFORT :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ": Skipping attribute " + nulLSafeToString(content) + " Error: " + e + "\n");	
-				}				
+					conversionErrors.append("Line: " + line + ": Skipping attribute " + nulLSafeToString(content)
+							+ " Error: " + e + "\n");
+				}
 				break;
-			case OMIT_EVENT_ON_ERROR :		
+			case OMIT_EVENT_ON_ERROR :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ": Skipping event, could not convert " + nulLSafeToString(content) + " Error: " + e + "\n");
+					conversionErrors.append("Line: " + line + ": Skipping event, could not convert "
+							+ nulLSafeToString(content) + " Error: " + e + "\n");
 				}
 				break;
 			case OMIT_TRACE_ON_ERROR :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ": Skipping trace "+XUtils.getConceptName(currentTrace)+", could not convert" + nulLSafeToString(content) + " Error: " + e + "\n");
+					conversionErrors.append("Line: " + line + ": Skipping trace " + XUtils.getConceptName(currentTrace)
+							+ ", could not convert" + nulLSafeToString(content) + " Error: " + e + "\n");
 				}
 				break;
 			default :
@@ -237,11 +246,16 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	private static String nulLSafeToString(Object obj) {
 		if (obj == null) {
 			return "NULL";
-		} else 	if (obj.getClass().isArray()) {
+		} else if (obj.getClass().isArray()) {
 			return Arrays.toString((Object[]) obj);
 		} else {
 			return obj.toString();
 		}
+	}
+
+	private static boolean specialColumn(String columnName) {
+		return XConceptExtension.KEY_NAME.equals(columnName) || XTimeExtension.KEY_TIMESTAMP.equals(columnName)
+				|| XConceptExtension.KEY_INSTANCE.equals(columnName);
 	}
 
 }

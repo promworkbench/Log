@@ -4,10 +4,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -16,8 +14,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryRegistry;
 import org.mozilla.universalchardet.CharsetListener;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
@@ -45,7 +41,6 @@ public final class ImportConfigUI extends JPanel {
 	private final CSVFile csv;
 	private final CSVImportConfig importConfig;
 
-	private final ProMComboBox<XFactory> xFactoryChoice;
 	private final ProMComboBox<String> charsetCbx;
 	private final ProMComboBox<CSVSeperator> separatorField;
 	private final ProMComboBox<CSVQuoteCharacter> quoteField;
@@ -66,23 +61,6 @@ public final class ImportConfigUI extends JPanel {
 		add(header);
 
 		add(Box.createVerticalStrut(20));
-
-		xFactoryChoice = new ProMComboBox<>(getAvailableXFactories());
-		xFactoryChoice.setSelectedItem(importConfig.factory);
-		xFactoryChoice.setPreferredSize(null);
-		xFactoryChoice.setMinimumSize(null);
-		JLabel xFactoryLabel = SlickerFactory.instance().createLabel(
-				"Which XFactory implementation should be used to create the Log?");
-		xFactoryLabel.setAlignmentX(LEFT_ALIGNMENT);
-		add(xFactoryLabel);
-		add(xFactoryChoice);
-		xFactoryChoice.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e) {
-				importConfig.factory = (XFactory) xFactoryChoice.getSelectedItem();
-			}
-		});
-		xFactoryChoice.setAlignmentX(LEFT_ALIGNMENT);
 
 		charsetCbx = new ProMComboBox<>(Charset.availableCharsets().keySet());
 		charsetCbx.setSelectedItem(importConfig.charset);
@@ -203,29 +181,6 @@ public final class ImportConfigUI extends JPanel {
 					JOptionPane.ERROR_MESSAGE);
 		}
 
-	}
-
-	private Set<XFactory> getAvailableXFactories() {
-		//Try to register XESLite Factories
-		tryRegisterFactory("org.processmining.xeslite.lite.factory.XFactoryLiteImpl");
-		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskImpl");
-		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskWithoutCacheImpl");
-		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskSequentialAccessImpl");
-		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskSequentialAccessWithoutCacheImpl");		
-		return XFactoryRegistry.instance().getAvailable();
-	}
-
-	/**
-	 * Tries to load the class and call the 'register' method.
-	 * 
-	 * @param className 
-	 */
-	private void tryRegisterFactory(String className) {
-		try {
-			getClass().getClassLoader().loadClass(className).getDeclaredMethod("register").invoke(null);
-		} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException
-				| IllegalArgumentException | InvocationTargetException e) {
-		}
 	}
 
 	/* (non-Javadoc)

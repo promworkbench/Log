@@ -5,20 +5,27 @@ import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.factory.XFactoryRegistry;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.ProMTextField;
 import org.processmining.log.csv.CSVFile;
@@ -59,7 +66,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		public void updateSettings() {
 			conversionConfig.datatypeMapping.remove(findColumnIndex(headers, conversionConfig.completionTimeColumn));
 			conversionConfig.caseColumns = updateCaseArray();
-			conversionConfig.eventNameColumn = eventColumnCbx.getSelectedItem().toString();
+			conversionConfig.eventNameColumns = eventComboBox.getElements().toArray(new String[eventComboBox.getElements().size()]);
 			conversionConfig.startTimeColumn = startTimeColumnCbx.getSelectedItem().toString();
 			conversionConfig.completionTimeColumn = completionTimeColumnCbx.getSelectedItem().toString();
 			conversionConfig.datatypeMapping.put(findColumnIndex(headers, conversionConfig.completionTimeColumn),
@@ -132,10 +139,12 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 	private final String[] headers;
 	private final String[] headersInclEmpty;
 
+	private final ProMComboBox<XFactory> xFactoryChoice;
+	
 	private final JPanel caseColumnBox;
 	private final Deque<ProMComboBox<String>> caseColumnCbxStack;
 
-	private final ProMComboBox<String> eventColumnCbx;
+	private final ProMMultiSelectListWithComboBox eventComboBox;
 	private final ProMComboBox<String> completionTimeColumnCbx;
 	private final ProMComboBox<String> startTimeColumnCbx;
 
@@ -179,15 +188,26 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		proMComboBox.addActionListener(changeListener);
 		caseColumnCbxStack.add(proMComboBox);
 
-		eventColumnCbx = new ProMComboBox<>(headersInclEmpty);
-		eventColumnCbx.setPreferredSize(null);
-		eventColumnCbx.setMinimumSize(null);
-		eventColumnCbx.setAlignmentX(LEFT_ALIGNMENT);
+		eventComboBox = new ProMMultiSelectListWithComboBox(new DefaultComboBoxModel<>(headers));
+		eventComboBox.setAlignmentX(LEFT_ALIGNMENT);
 		JLabel eventLabel = SlickerFactory.instance().createLabel("Event Column (Optional - Mapped to 'concept:name')");
 		eventLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(eventLabel);
-		add(eventColumnCbx);
-		eventColumnCbx.addActionListener(changeListener);
+		add(eventComboBox);
+		eventComboBox.getListModel().addListDataListener(new ListDataListener() {
+			
+			public void intervalRemoved(ListDataEvent e) {
+				conversionConfig.eventNameColumns = eventComboBox.getElements().toArray(new String[eventComboBox.getElements().size()]);
+			}
+			
+			public void intervalAdded(ListDataEvent e) {
+				conversionConfig.eventNameColumns = eventComboBox.getElements().toArray(new String[eventComboBox.getElements().size()]);
+			}
+			
+			public void contentsChanged(ListDataEvent e) {
+				conversionConfig.eventNameColumns = eventComboBox.getElements().toArray(new String[eventComboBox.getElements().size()]);
+			}
+		});
 
 		completionTimeColumnCbx = new ProMComboBox<>(headersInclEmpty);
 		completionTimeColumnCbx.setPreferredSize(null);
@@ -299,6 +319,23 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 				conversionConfig.errorHandlingMode = (CSVErrorHandlingMode) errorHandlingModeCbx.getSelectedItem();
 			}
 		});
+
+		xFactoryChoice = new ProMComboBox<>(getAvailableXFactories());
+		xFactoryChoice.setSelectedItem(conversionConfig.factory);
+		xFactoryChoice.setPreferredSize(null);
+		xFactoryChoice.setMinimumSize(null);
+		JLabel xFactoryLabel = SlickerFactory.instance().createLabel(
+				"Which XFactory implementation should be used to create the Log?");
+		xFactoryLabel.setAlignmentX(LEFT_ALIGNMENT);
+		add(xFactoryLabel);
+		add(xFactoryChoice);
+		xFactoryChoice.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				conversionConfig.factory = (XFactory) xFactoryChoice.getSelectedItem();
+			}
+		});
+		xFactoryChoice.setAlignmentX(LEFT_ALIGNMENT);
 		
 		previewFrame = new CSVPreviewFrame(headers, conversionConfig);
 		previewFrame.getMainScrollPane().getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
@@ -316,6 +353,29 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		autoDetectEventColumn();
 		autoDetectCompletionTimeColumn();		
 		changeListener.updateSettings();
+	}
+	
+	private Set<XFactory> getAvailableXFactories() {
+		//Try to register XESLite Factories
+		tryRegisterFactory("org.processmining.xeslite.lite.factory.XFactoryLiteImpl");
+		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskImpl");
+		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskWithoutCacheImpl");
+		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskSequentialAccessImpl");
+		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskSequentialAccessWithoutCacheImpl");		
+		return XFactoryRegistry.instance().getAvailable();
+	}
+
+	/**
+	 * Tries to load the class and call the 'register' method.
+	 * 
+	 * @param className 
+	 */
+	private void tryRegisterFactory(String className) {
+		try {
+			getClass().getClassLoader().loadClass(className).getDeclaredMethod("register").invoke(null);
+		} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException
+				| IllegalArgumentException | InvocationTargetException e) {
+		}
 	}
 
 	private void showPreviewFrame() {
@@ -356,7 +416,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 					|| "activity".equalsIgnoreCase(header)
 					|| "eventid".equalsIgnoreCase(header)
 					|| "activityid".equalsIgnoreCase(header)) {
-				eventColumnCbx.setSelectedItem(header);
+				eventComboBox.addElement(header);
 				return;
 			}
 		}
