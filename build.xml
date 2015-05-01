@@ -163,8 +163,8 @@
 		<ivy:retrieve />
 		<copy todir="lib" overwrite="true">
 			<fileset dir="ivy">
-				<include name="OpenXES-2.0.jar" />
-				<include name="OpenXES-XStream-2.0.jar" />
+				<include name="OpenXES-20150501.jar" />
+				<include name="OpenXES-XStream-20150501.jar" />
 			</fileset>
 		</copy>
 	</target>

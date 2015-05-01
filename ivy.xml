@@ -4,7 +4,7 @@
        <dependency org="prom" name="ApacheUtils" rev="latest" changing="true" transitive="true" />
        <dependency org="prom" name="BasicUtils" rev="latest" changing="true" transitive="true" />
        <dependency org="prom" name="Widgets" rev="latest" changing="true" transitive="true" />
-       <dependency org="prom-libs" name="OpenXES" rev="2.0" transitive="false" />
-       <dependency org="prom-libs" name="OpenXES-XStream" rev="2.0" transitive="false" />
+       <dependency org="prom-libs" name="OpenXES" rev="20150501" transitive="false" />
+       <dependency org="prom-libs" name="OpenXES-XStream" rev="20150501" transitive="false" />
     </dependencies>
 </ivy-module>
