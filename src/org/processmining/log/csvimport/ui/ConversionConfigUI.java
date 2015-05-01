@@ -27,6 +27,7 @@ import javax.swing.event.ListDataListener;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
+import org.processmining.framework.util.ui.widgets.ProMListSortableWithComboBox;
 import org.processmining.framework.util.ui.widgets.ProMTextField;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csvimport.CSVConversion.Datatype;
@@ -144,7 +145,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 	private final JPanel caseColumnBox;
 	private final Deque<ProMComboBox<String>> caseColumnCbxStack;
 
-	private final ProMMultiSelectListWithComboBox eventComboBox;
+	private final ProMListSortableWithComboBox<String> eventComboBox;
 	private final ProMComboBox<String> completionTimeColumnCbx;
 	private final ProMComboBox<String> startTimeColumnCbx;
 
@@ -188,7 +189,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 		proMComboBox.addActionListener(changeListener);
 		caseColumnCbxStack.add(proMComboBox);
 
-		eventComboBox = new ProMMultiSelectListWithComboBox(new DefaultComboBoxModel<>(headers));
+		eventComboBox = new ProMListSortableWithComboBox<>(new DefaultComboBoxModel<>(headers));
 		eventComboBox.setAlignmentX(LEFT_ALIGNMENT);
 		JLabel eventLabel = SlickerFactory.instance().createLabel("Event Column (Optional - Mapped to 'concept:name')");
 		eventLabel.setAlignmentX(LEFT_ALIGNMENT);
