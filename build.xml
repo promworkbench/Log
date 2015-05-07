@@ -160,6 +160,7 @@
 	</target>
 
 	<target name="resolve">
+		<ivy:cleancache />
 		<ivy:retrieve />
 		<copy todir="lib" overwrite="true">
 			<fileset dir="ivy">
