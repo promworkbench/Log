@@ -161,8 +161,8 @@
 
 	<target name="resolve">
 		<!--ivy:cleancache /-->
-		<delete quiet="true">
-			<fileset dir="${ivy.cache.dir}" includes="*-latest.jar" />
+		<delete quiet="false">
+			<fileset dir="ivy" includes="*-latest.jar" />
 		</delete>
 		<ivy:retrieve />
 		<copy todir="lib" overwrite="true">
