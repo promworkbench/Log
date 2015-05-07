@@ -161,7 +161,7 @@
 
 	<target name="resolve">
 		<!--ivy:cleancache /-->
-		<delete dir="${ivy.cache.dir}/prom" />
+		<delete dir="${ivy.cache.dir}/prom" quiet="false" />
 		<ivy:retrieve />
 		<copy todir="lib" overwrite="true">
 			<fileset dir="ivy">
