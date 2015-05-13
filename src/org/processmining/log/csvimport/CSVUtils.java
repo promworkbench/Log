@@ -38,21 +38,21 @@ public final class CSVUtils {
 
 	public static CSVReader createCSVReader(InputStream is, CSVImportConfig importConfig)
 			throws UnsupportedEncodingException {
-		if (importConfig.quoteChar == null) {
-			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.charset), BUFFER_SIZE),
-					importConfig.separator.getSeperatorChar(), CSVParser.DEFAULT_QUOTE_CHARACTER,
+		if (importConfig.getQuoteChar() == null) {
+			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.getCharset()), BUFFER_SIZE),
+					importConfig.getSeparator().getSeperatorChar(), CSVParser.DEFAULT_QUOTE_CHARACTER,
 					CSVParser.DEFAULT_ESCAPE_CHARACTER, 0, false, false, true);
 		} else {
-			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.charset), BUFFER_SIZE),
-					importConfig.separator.getSeperatorChar(), importConfig.quoteChar.getQuoteChar());
+			return new CSVReader(new BufferedReader(new InputStreamReader(is, importConfig.getCharset()), BUFFER_SIZE),
+					importConfig.getSeparator().getSeperatorChar(), importConfig.getQuoteChar().getQuoteChar());
 		}
 
 	}
 
 	public static CSVWriter createCSVWriter(OutputStream os, CSVImportConfig importConfig)
 			throws UnsupportedEncodingException {
-		return new CSVWriter(new BufferedWriter(new OutputStreamWriter(os, importConfig.charset), BUFFER_SIZE),
-				importConfig.separator.getSeperatorChar(), importConfig.quoteChar.getQuoteChar());
+		return new CSVWriter(new BufferedWriter(new OutputStreamWriter(os, importConfig.getCharset()), BUFFER_SIZE),
+				importConfig.getSeparator().getSeperatorChar(), importConfig.getQuoteChar().getQuoteChar());
 	}
 
 	public static InputStream getCSVInputStream(CSVFile csv) throws IOException {

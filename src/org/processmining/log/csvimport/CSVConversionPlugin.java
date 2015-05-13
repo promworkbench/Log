@@ -2,9 +2,11 @@ package org.processmining.log.csvimport;
 
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
@@ -16,10 +18,13 @@ import org.processmining.framework.util.ui.widgets.helper.UserCancelledException
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csvimport.CSVConversion.ProgressListener;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
+import org.processmining.log.csvimport.config.CSVConversionConfig.CSVMapping;
+import org.processmining.log.csvimport.config.CSVConversionConfig.Datatype;
 import org.processmining.log.csvimport.config.CSVImportConfig;
 import org.processmining.log.csvimport.exception.CSVConversionConfigException;
 import org.processmining.log.csvimport.exception.CSVConversionException;
 import org.processmining.log.repair.RepairAttributeDataType;
+import org.processmining.log.repair.RepairAttributeDataType.ReviewCallback;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
@@ -65,22 +70,27 @@ public final class CSVConversionPlugin {
 
 				}
 			}, csv, importConfig, conversionConfig);
-			if (conversionConfig.shouldGuessDataTypes) {
+			if (conversionConfig.isShouldGuessDataTypes()) {
 				RepairAttributeDataType repairTypes = new RepairAttributeDataType();
 				Builder<DateFormat> dateFormatSet = ImmutableSet.<DateFormat>builder().addAll(
 						CSVConversion.STANDARD_DATE_FORMATTERS);
-				if (conversionConfig.timeFormat != null) {
-					try {
-						dateFormatSet.add(new SimpleDateFormat(conversionConfig.timeFormat));
-					} catch (IllegalArgumentException e) {
-						context.log(e);
+				// Add all the custom date formats from the configuration
+				final Map<String, CSVMapping> conversionMap = conversionConfig.getConversionMap();
+				for (Entry<String, CSVMapping> mapping: conversionMap.entrySet()) {
+					if (mapping.getValue().getDataType() == Datatype.TIME && mapping.getValue().getFormat() != null) {
+						dateFormatSet.add((DateFormat) mapping.getValue().getFormat());
 					}
 				}
 				ImmutableSet<DateFormat> dateFormatters = dateFormatSet.build();
 				context.log("Repairing the data types of event attributes in the log ...");
-				repairTypes.doRepairEventAttributes(context, convertedLog, dateFormatters);
-				context.log("Repairing the data types of trace attributes in the log ...");
-				repairTypes.doRepairTraceAttributes(context, convertedLog, dateFormatters);
+				repairTypes.doRepairEventAttributes(context, convertedLog, dateFormatters, new ReviewCallback() {
+					
+					public Map<String, Class<? extends XAttribute>> reviewDataTypes(
+							Map<String, Class<? extends XAttribute>> guessedDataTypes) {
+						//TODO only use guessed type when not overwritten by user defined type
+						return guessedDataTypes;
+					}
+				});
 				context.getFutureResult(0).setLabel(
 						Files.getNameWithoutExtension(csv.getFilename()) + " (converted @"
 								+ DateFormat.getTimeInstance().format(new Date()) + ")");

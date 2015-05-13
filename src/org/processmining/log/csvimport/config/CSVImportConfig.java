@@ -13,8 +13,41 @@ import org.processmining.log.csvimport.CSVSeperator;
  *
  */
 public final class CSVImportConfig {
-	public String charset = Charset.defaultCharset().name();
-	public CSVSeperator separator = CSVSeperator.COMMA;
-	public CSVQuoteCharacter quoteChar = CSVQuoteCharacter.QUOTE;
-	public CSVEscapeCharacter escapeChar = CSVEscapeCharacter.QUOTE;
+	
+	private String charset = Charset.defaultCharset().name();
+	private CSVSeperator separator = CSVSeperator.COMMA;
+	private CSVQuoteCharacter quoteChar = CSVQuoteCharacter.QUOTE;
+	private CSVEscapeCharacter escapeChar = CSVEscapeCharacter.QUOTE;
+
+	public String getCharset() {
+		return charset;
+	}
+
+	public void setCharset(String charset) {
+		this.charset = charset;
+	}
+
+	public CSVSeperator getSeparator() {
+		return separator;
+	}
+
+	public void setSeparator(CSVSeperator separator) {
+		this.separator = separator;
+	}
+
+	public CSVQuoteCharacter getQuoteChar() {
+		return quoteChar;
+	}
+
+	public void setQuoteChar(CSVQuoteCharacter quoteChar) {
+		this.quoteChar = quoteChar;
+	}
+
+	public CSVEscapeCharacter getEscapeChar() {
+		return escapeChar;
+	}
+
+	public void setEscapeChar(CSVEscapeCharacter escapeChar) {
+		this.escapeChar = escapeChar;
+	}
 }

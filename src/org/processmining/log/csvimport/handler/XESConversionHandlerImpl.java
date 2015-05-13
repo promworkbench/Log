@@ -56,16 +56,16 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			CSVConversionConfig conversionConfig) {
 		this.progress = progress;
 		this.conversionConfig = conversionConfig;
-		this.factory = conversionConfig.factory;
+		this.factory = conversionConfig.getFactory();
 		this.conversionErrors = new StringBuilder();
 	}
 
 	public void startLog(CSVFile inputFile) {
 		log = factory.createLog();
-		if (conversionConfig.eventNameColumns != null) {
+		if (conversionConfig.getEventNameColumns() != null) {
 			log.getExtensions().add(XConceptExtension.instance());
 		}
-		if (conversionConfig.completionTimeColumn != null || conversionConfig.startTimeColumn != null) {
+		if (conversionConfig.getCompletionTimeColumn() != null || conversionConfig.getStartTimeColumn() != null) {
 			log.getExtensions().add(XTimeExtension.instance());
 			log.getExtensions().add(XLifecycleExtension.instance());
 		}
@@ -82,7 +82,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	}
 
 	public void endTrace(String caseId) {
-		if (errorDetected && conversionConfig.errorHandlingMode == CSVErrorHandlingMode.OMIT_TRACE_ON_ERROR) {
+		if (errorDetected && conversionConfig.getErrorHandlingMode() == CSVErrorHandlingMode.OMIT_TRACE_ON_ERROR) {
 			// Do not include the whole trace
 			return;
 		}
@@ -100,7 +100,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	}
 
 	public void startEvent(String eventClass, Date completionTime, Date startTime) {
-		if (conversionConfig.errorHandlingMode == CSVErrorHandlingMode.OMIT_EVENT_ON_ERROR) {
+		if (conversionConfig.getErrorHandlingMode() == CSVErrorHandlingMode.OMIT_EVENT_ON_ERROR) {
 			// Include the other events in that trace
 			errorDetected = false;
 		}
@@ -174,7 +174,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	}
 
 	public void endEvent() {
-		if (errorDetected && conversionConfig.errorHandlingMode == CSVErrorHandlingMode.OMIT_EVENT_ON_ERROR) {
+		if (errorDetected && conversionConfig.getErrorHandlingMode() == CSVErrorHandlingMode.OMIT_EVENT_ON_ERROR) {
 			// Do not include the event
 			return;
 		}
@@ -216,7 +216,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	}
 
 	public void errorDetected(int line, Object content, Exception e) throws CSVConversionException {
-		CSVErrorHandlingMode errorMode = conversionConfig.errorHandlingMode;
+		CSVErrorHandlingMode errorMode = conversionConfig.getErrorHandlingMode();
 		errorDetected = true;
 		switch (errorMode) {
 			case BEST_EFFORT :

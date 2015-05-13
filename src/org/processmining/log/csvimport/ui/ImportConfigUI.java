@@ -1,8 +1,11 @@
 package org.processmining.log.csvimport.ui;
 
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -17,6 +20,7 @@ import javax.swing.SwingWorker;
 import org.mozilla.universalchardet.CharsetListener;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
+import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csvimport.CSVQuoteCharacter;
 import org.processmining.log.csvimport.CSVSeperator;
@@ -33,6 +37,10 @@ import com.fluxicon.slickerbox.factory.SlickerFactory;
  *
  */
 public final class ImportConfigUI extends JPanel {
+
+	public interface SeparatorListener {
+		public void separatorDetected(CSVSeperator separator);
+	}
 
 	private static final long serialVersionUID = 1L;
 
@@ -57,29 +65,30 @@ public final class ImportConfigUI extends JPanel {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
 		JLabel header = new JLabel("Please choose parameters regarding the format of the CSV file and OpenXES.");
+		header.setFont(header.getFont().deriveFont(Font.BOLD, 18));
 		header.setAlignmentY(LEFT_ALIGNMENT);
 		add(header);
 
 		add(Box.createVerticalStrut(20));
 
 		charsetCbx = new ProMComboBox<>(Charset.availableCharsets().keySet());
-		charsetCbx.setSelectedItem(importConfig.charset);
+		charsetCbx.setSelectedItem(importConfig.getCharset());
 		charsetCbx.setPreferredSize(null);
 		charsetCbx.setMinimumSize(null);
-		JLabel charsetLabel = SlickerFactory.instance().createLabel("Charset of the CSV");
+		JLabel charsetLabel = createLabel("Charset", "");
 		charsetLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(charsetLabel);
 		add(charsetCbx);
 		charsetCbx.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
-				importConfig.charset = charsetCbx.getSelectedItem().toString();
+				importConfig.setCharset(charsetCbx.getSelectedItem().toString());
 				refreshPreview();
 			}
 		});
 		charsetCbx.setAlignmentX(LEFT_ALIGNMENT);
 
-		autoDetectCharset(new CharsetListener() {
+		autoDetectCharset(csv, new CharsetListener() {
 
 			public void report(String charset) {
 				if (charset != null) {
@@ -91,31 +100,37 @@ public final class ImportConfigUI extends JPanel {
 		separatorField = new ProMComboBox<>(CSVSeperator.values());
 		separatorField.setPreferredSize(null);
 		separatorField.setMinimumSize(null);
-		separatorField.setSelectedItem(importConfig.separator);
-		JLabel seperationLabel = SlickerFactory.instance().createLabel("Separator Character of the CSV");
+		separatorField.setSelectedItem(importConfig.getSeparator());
+		JLabel seperationLabel = createLabel("Separator Character", "");
 		seperationLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(seperationLabel);
 		add(separatorField);
 		separatorField.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
-				importConfig.separator = ((CSVSeperator) separatorField.getSelectedItem());
+				importConfig.setSeparator(((CSVSeperator) separatorField.getSelectedItem()));
 				refreshPreview();
 			}
 		});
 		separatorField.setAlignmentX(LEFT_ALIGNMENT);
+		
+		try (BufferedReader reader = new BufferedReader(new FileReader(csv.getFile().toFile()))) {
+			separatorField.setSelectedItem(autoDetectSeparator(reader.readLine()));
+		} catch (IOException e1) {
+			ProMUIHelper.showErrorMessage(this, e1.toString(), "Error reading CSV while determining separator character");
+		}
 
 		quoteField = new ProMComboBox<>(CSVQuoteCharacter.values());
 		quoteField.setPreferredSize(null);
 		quoteField.setMinimumSize(null);
-		JLabel quoteLabel = SlickerFactory.instance().createLabel("Quote Character of the CSV");
+		JLabel quoteLabel = createLabel("Quote Character", "");
 		quoteLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(quoteLabel);
 		add(quoteField);
 		quoteField.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
-				importConfig.quoteChar = (CSVQuoteCharacter) quoteField.getSelectedItem();
+				importConfig.setQuoteChar((CSVQuoteCharacter) quoteField.getSelectedItem());
 				refreshPreview();
 			}
 		});	
@@ -145,8 +160,16 @@ public final class ImportConfigUI extends JPanel {
 	public void showPreviewFrame() {
 		this.previewFrame.showFrame(getRootPane());
 	}
+	
+	private static JLabel createLabel(String caption, String description) {
+		JLabel eventLabel = SlickerFactory.instance().createLabel(
+				"<HTML><B>" + caption + "</B><BR><I>" + description + "</I></HTML>");
+		eventLabel.setAlignmentX(LEFT_ALIGNMENT);
+		eventLabel.setFont(eventLabel.getFont().deriveFont(Font.PLAIN));
+		return eventLabel;
+	}
 
-	private void autoDetectCharset(final CharsetListener listener) {
+	private void autoDetectCharset(final CSVFile file, final CharsetListener listener) {
 
 		final UniversalDetector detector = new UniversalDetector(null);
 
@@ -154,7 +177,7 @@ public final class ImportConfigUI extends JPanel {
 
 			protected Void doInBackground() throws Exception {
 
-				try (FileInputStream fis = new FileInputStream(csv.getFile().toFile())) {
+				try (FileInputStream fis = new FileInputStream(file.getFile().toFile())) {
 					byte[] buf = new byte[4096];
 					int nread;
 					while ((nread = fis.read(buf)) > 0 && !detector.isDone()) {
@@ -181,6 +204,16 @@ public final class ImportConfigUI extends JPanel {
 					JOptionPane.ERROR_MESSAGE);
 		}
 
+	}
+	
+	private CSVSeperator autoDetectSeparator(final String headerRow) {
+		if (headerRow.contains("\t")) {
+			return CSVSeperator.TAB;
+		} else if (headerRow.contains(";")) {
+			return CSVSeperator.SEMICOLON;
+		} else {
+			return CSVSeperator.COMMA;	
+		}		
 	}
 
 	/* (non-Javadoc)
