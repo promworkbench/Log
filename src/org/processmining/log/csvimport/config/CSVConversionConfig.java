@@ -1,5 +1,6 @@
 package org.processmining.log.csvimport.config;
 
+import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -19,8 +20,6 @@ import org.deckfour.xes.factory.XFactoryRegistry;
  */
 public final class CSVConversionConfig {
 	
-	private static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
-	
 	public enum CSVErrorHandlingMode {
 		ABORT_ON_ERROR, OMIT_TRACE_ON_ERROR, OMIT_EVENT_ON_ERROR, BEST_EFFORT
 	}
@@ -35,8 +34,13 @@ public final class CSVConversionConfig {
 	
 	public static class CSVMapping {
 		
+		public static final String DEFAULT_DATE_PATTERN = "";
+		public static final String DEFAULT_DISCRETE_PATTERN = "";
+		public static final String DEFAULT_CONTINUOUS_PATTERN = "";
+		public static final String DEFAULT_LITERAL_PATTERN = "";
+		
 		private Datatype dataType = Datatype.LITERAL;
-		private Format dataFormat;
+		private String dataPattern = "";
 
 		public Datatype getDataType() {
 			return dataType;
@@ -46,12 +50,48 @@ public final class CSVConversionConfig {
 			this.dataType = dataType;
 		}
 
+		public String getPattern() {
+			return dataPattern;
+		}
+		
 		public Format getFormat() {
-			return dataFormat;
+			switch (getDataType()) {
+				case BOOLEAN :
+					return null;
+				case CONTINUOUS :
+					if (dataPattern.isEmpty()) {
+						return null;
+					} else {
+						return new DecimalFormat(dataPattern);	
+					}
+				case DISCRETE :
+					if (dataPattern.isEmpty()) {
+						return null;
+					} else {
+						DecimalFormat integerFormat = new DecimalFormat(dataPattern);
+						integerFormat.setMaximumFractionDigits(0);
+						integerFormat.setDecimalSeparatorAlwaysShown(false);
+						integerFormat.setParseIntegerOnly(true);
+						return integerFormat;	
+					}
+				case LITERAL :
+					if (dataPattern.isEmpty()) {
+						return null;
+					} else {
+						return new MessageFormat(dataPattern);
+					}
+				case TIME :
+					if (dataPattern.isEmpty()) {
+						return null;
+					} else {
+						return new SimpleDateFormat(dataPattern);	
+					}					
+			}
+			throw new RuntimeException("Unkown data type "+getDataType());
 		}
 
-		public void setFormat(Format dataFormat) {
-			this.dataFormat = dataFormat;
+		public void setPattern(String dataPattern) {
+			this.dataPattern = dataPattern;
 		}
 		
 	}
@@ -80,9 +120,7 @@ public final class CSVConversionConfig {
 
 	public CSVConversionConfig(String[] headers) {
 		for (String columnHeader: headers) {
-			CSVMapping mapping = new CSVMapping();
-			mapping.setFormat(new MessageFormat("{0}"));
-			conversionMap.put(columnHeader, mapping);			
+			conversionMap.put(columnHeader, new CSVMapping());			
 		}
 	}
 
@@ -116,8 +154,8 @@ public final class CSVConversionConfig {
 
 	public void setCompletionTimeColumn(String completionTimeColumn) {
 		if (completionTimeColumn != null && !completionTimeColumn.isEmpty()) {
-			getConversionMap().get(completionTimeColumn).dataType = Datatype.TIME;
-			getConversionMap().get(completionTimeColumn).dataFormat = new SimpleDateFormat(DEFAULT_FORMAT);
+			getConversionMap().get(completionTimeColumn).setDataType(Datatype.TIME);
+			getConversionMap().get(completionTimeColumn).setPattern(CSVMapping.DEFAULT_DATE_PATTERN);
 		}
 		this.completionTimeColumn = completionTimeColumn;
 	}
@@ -128,8 +166,8 @@ public final class CSVConversionConfig {
 
 	public void setStartTimeColumn(String startTimeColumn) {
 		if (startTimeColumn != null && !startTimeColumn.isEmpty()) {
-			getConversionMap().get(startTimeColumn).dataType = Datatype.TIME;
-			getConversionMap().get(startTimeColumn).dataFormat = new SimpleDateFormat(DEFAULT_FORMAT);
+			getConversionMap().get(startTimeColumn).setDataType(Datatype.TIME);
+			getConversionMap().get(startTimeColumn).setPattern(CSVMapping.DEFAULT_DATE_PATTERN);
 		}
 		this.startTimeColumn = startTimeColumn;
 	}

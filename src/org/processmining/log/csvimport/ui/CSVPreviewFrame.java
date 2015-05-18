@@ -5,15 +5,12 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.text.DecimalFormat;
-import java.text.Format;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.AbstractCellEditor;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -64,8 +61,10 @@ public final class CSVPreviewFrame extends JFrame {
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			if (value instanceof Datatype) {
 				editor = new DefaultCellEditor(new JComboBox<>(new DefaultComboBoxModel<>(Datatype.values())));
-			} else if (value instanceof Format) {
+			} else if (value instanceof String) {
 				editor = new DefaultCellEditor(new JTextField());
+			} else {
+				throw new RuntimeException("Unkown value type " + value.getClass().getSimpleName());
 			}
 			return editor.getTableCellEditorComponent(table, value, isSelected, row, column);
 		}
@@ -111,31 +110,19 @@ public final class CSVPreviewFrame extends JFrame {
 			CSVMapping csvMapping = conversionConfig.getConversionMap().get(columnHeader);
 			switch (rowIndex) {
 				case 0 :
-					csvMapping.setDataType((Datatype) aValue);
+					Datatype newType = (Datatype) aValue;
+					if (csvMapping.getDataType() != newType) {
+						csvMapping.setPattern("");
+						fireTableCellUpdated(1, columnIndex);
+					}
+					csvMapping.setDataType(newType);
 					break;
 				case 1 :
-					switch (csvMapping.getDataType()) {
-						case BOOLEAN :
-							csvMapping.setFormat(new MessageFormat((String) aValue));
-							break;
-						case CONTINUOUS :
-							csvMapping.setFormat(new DecimalFormat((String) aValue));
-							break;
-						case DISCRETE :
-							DecimalFormat integerFormat = new DecimalFormat((String) aValue);
-							integerFormat.setMaximumFractionDigits(0);
-							integerFormat.setDecimalSeparatorAlwaysShown(false);
-							integerFormat.setParseIntegerOnly(true);
-							csvMapping.setFormat(integerFormat);
-							break;
-						case LITERAL :
-							csvMapping.setFormat(new MessageFormat((String) aValue));
-							break;
-						case TIME :
-							csvMapping.setFormat(new SimpleDateFormat((String) aValue));
-							break;
-					}
+					csvMapping.setPattern((String) aValue);
 					break;
+				default :
+					throw new IllegalStateException("Could not find value at row " + rowIndex + " column "
+							+ columnIndex);
 			}
 			conversionConfig.getConversionMap().put(columnHeader, csvMapping);
 		}
@@ -147,18 +134,7 @@ public final class CSVPreviewFrame extends JFrame {
 				case 0 :
 					return csvMapping.getDataType();
 				case 1 :
-					switch (csvMapping.getDataType()) {
-						case BOOLEAN :
-							return ((MessageFormat) csvMapping.getFormat()).toPattern();
-						case CONTINUOUS :
-							return ((DecimalFormat) csvMapping.getFormat()).toPattern();
-						case DISCRETE :
-							return ((DecimalFormat) csvMapping.getFormat()).toPattern();
-						case LITERAL :
-							return ((MessageFormat) csvMapping.getFormat()).toPattern();
-						case TIME :
-							return ((SimpleDateFormat) csvMapping.getFormat()).toPattern();
-					}
+					return csvMapping.getPattern();
 			}
 			throw new IllegalStateException("Could not find value at row " + rowIndex + " column " + columnIndex);
 		}
@@ -201,8 +177,7 @@ public final class CSVPreviewFrame extends JFrame {
 	public CSVPreviewFrame(String[] header, CSVConversionConfig conversionConfig) {
 		super();
 		setTitle("CSV Import: Preview of the Import");
-		setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
-		setPreferredSize(new Dimension(600, 200));
+		getContentPane().setLayout(new GridBagLayout());
 
 		previewTableModel = new BatchUpdateDefaultTableModel(header, 0);
 		previewTable = new ProMTableWithoutPanel(previewTableModel);
@@ -228,21 +203,18 @@ public final class CSVPreviewFrame extends JFrame {
 		previewTable.getTableHeader().setReorderingAllowed(false);
 
 		mainScrollPane = new ProMScrollPane(previewTable);
-		getMainScrollPane().setPreferredSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
 
 		if (conversionConfig != null) {
 			TableModel dataModel = new DataTypeTableModel(conversionConfig, header);
-			datatypeTable = new JTable(dataModel);
+			datatypeTable = new JTable(dataModel);			
 			datatypeTable.setTableHeader(null);
 			datatypeTable.setDefaultEditor(Object.class, new MappingCellEditor());
-
-			datatypeTable.setDefaultEditor(Format.class, new DefaultCellEditor(new JTextField()));
 			datatypeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 			datatypeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			JScrollPane dataTypeScrollpane = new JScrollPane(datatypeTable);
 			dataTypeScrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-			add(dataTypeScrollpane);
-
+			getMainScrollPane().setHorizontalScrollBar(dataTypeScrollpane.getHorizontalScrollBar());
+			
 			previewTable.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
 
 				public void columnSelectionChanged(ListSelectionEvent e) {
@@ -271,11 +243,22 @@ public final class CSVPreviewFrame extends JFrame {
 				}
 
 			});
-
-			getMainScrollPane().setHorizontalScrollBar(dataTypeScrollpane.getHorizontalScrollBar());
+			
+			GridBagConstraints c = new GridBagConstraints();
+			c.fill = GridBagConstraints.BOTH;
+			c.ipady = 22;
+			c.weightx = 1.0;
+			c.weighty = 0.0;
+			c.gridx = 0;			
+			getContentPane().add(dataTypeScrollpane, c);
 		}
 
-		add(getMainScrollPane());
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.weightx = 1.0;
+		c.weighty = 1.0;
+		c.gridx = 0;
+		getContentPane().add(getMainScrollPane(), c);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		pack();
 	}

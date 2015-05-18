@@ -38,6 +38,7 @@ import org.processmining.log.csvimport.ui.ImportConfigUI;
 
 import au.com.bytecode.opencsv.CSVReader;
 
+import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 import com.ning.compress.lzf.LZFInputStream;
@@ -86,7 +87,7 @@ public final class CSVConversion {
 
 		private final int completionTimeIndex;
 		private final CSVMapping completionTimeMapping;
-		
+
 		private final CSVErrorHandlingMode errorHandlingMode;
 
 		public ImportOrdering(int[] indices, Map<Integer, CSVMapping> mappingMap, int completionTimeIndex,
@@ -325,9 +326,11 @@ public final class CSVConversion {
 								conversionConfig.getCompositeAttributeSeparator());
 
 						// Read timestamps
-						final Date completionTime = completionTimeColumnIndex != -1 ? parseDate((DateFormat) mappingMap.get(completionTimeColumnIndex).getFormat(),
-								nextLine[completionTimeColumnIndex]) : null;
-						final Date startTime = startTimeColumnIndex != -1 ? parseDate((DateFormat) mappingMap.get(startTimeColumnIndex).getFormat(),
+						final Date completionTime = completionTimeColumnIndex != -1 ? parseDate((DateFormat) mappingMap
+								.get(completionTimeColumnIndex).getFormat(), nextLine[completionTimeColumnIndex])
+								: null;
+						final Date startTime = startTimeColumnIndex != -1 ? parseDate(
+								(DateFormat) mappingMap.get(startTimeColumnIndex).getFormat(),
 								nextLine[startTimeColumnIndex]) : null;
 
 						conversionHandler.startEvent(eventClass, completionTime, startTime);
@@ -345,7 +348,7 @@ public final class CSVConversion {
 							if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.EXCLUDE && (conversionConfig
 									.getTreatAsEmptyValues().contains(value) || value.isEmpty()))) {
 								parseAttributes(progress, conversionConfig, conversionHandler, mappingMap.get(i),
-										lineIndex, i, name, value);
+										lineIndex, i, name, nextLine);
 							}
 						}
 
@@ -384,8 +387,9 @@ public final class CSVConversion {
 	}
 
 	private <R> void parseAttributes(ProgressListener progress, CSVConversionConfig conversionConfig,
-			CSVConversionHandler<R> conversionHandler, CSVMapping csvMapping, int lineIndex, int i, String name,
-			String value) throws ParseException, CSVConversionException {
+			CSVConversionHandler<R> conversionHandler, CSVMapping csvMapping, int lineIndex, int columnIndex,
+			String name, String[] line) throws ParseException, CSVConversionException {
+		String value = line[columnIndex];
 		if (csvMapping.getDataType() == null) {
 			conversionHandler.startAttribute(name, value);
 		} else {
@@ -403,17 +407,29 @@ public final class CSVConversion {
 						conversionHandler.startAttribute(name, boolVal);
 						break;
 					case CONTINUOUS :
-						conversionHandler.startAttribute(name, (Double) csvMapping.getFormat().parseObject(value));
+						if (csvMapping.getFormat() != null) {
+							conversionHandler.startAttribute(name, (Double) csvMapping.getFormat().parseObject(value));
+						} else {
+							conversionHandler.startAttribute(name, Double.parseDouble(value));
+						}
 						break;
 					case DISCRETE :
-						conversionHandler.startAttribute(name, (Integer) csvMapping.getFormat().parseObject(value));
+						if (csvMapping.getFormat() != null) {
+							conversionHandler.startAttribute(name, (Integer) csvMapping.getFormat().parseObject(value));
+						} else {
+							conversionHandler.startAttribute(name, Long.parseLong(value));
+						}
 						break;
 					case TIME :
 						conversionHandler.startAttribute(name, parseDate((DateFormat) csvMapping.getFormat(), value));
 						break;
 					case LITERAL :
 					default :
-						conversionHandler.startAttribute(name, ((MessageFormat)csvMapping.getFormat()).format(new Object[] { value }));
+						if (csvMapping.getFormat() != null) {
+							value = ((MessageFormat) csvMapping.getFormat()).format(ObjectArrays.concat(value, line),
+									new StringBuffer(), null).toString();
+						}
+						conversionHandler.startAttribute(name, value);
 						break;
 				}
 			} catch (NumberFormatException e) {
@@ -428,7 +444,8 @@ public final class CSVConversion {
 	 * @param columnIndex
 	 * @param line
 	 * @param compositeSeparator
-	 * @return the composite attributes concatenated or an empty String in case no columns are selected
+	 * @return the composite attributes concatenated or an empty String in case
+	 *         no columns are selected
 	 */
 	private static String readCompositeAttribute(int[] columnIndex, String[] line, String compositeSeparator) {
 		if (columnIndex.length == 0) {
@@ -448,21 +465,44 @@ public final class CSVConversion {
 
 	private static Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*");
 
-	private static Date parseDate(DateFormat customDateFormat, String s) throws ParseException {
+	private static Date parseDate(DateFormat customDateFormat, String value) throws ParseException {
+
 		if (customDateFormat != null) {
-			return customDateFormat.parse(s);
+			ParsePosition pos = new ParsePosition(0);
+			Date date = customDateFormat.parse(value, pos);
+			if (date != null) {
+				return date;
+			} else {
+				String fixedValue = INVALID_MS_PATTERN.matcher(value).replaceFirst("$1");
+				pos.setIndex(0);
+				date = customDateFormat.parse(fixedValue, pos);
+				if (date != null) {
+					return date;
+				} else {
+					throw new ParseException("Could not parse " + value, pos.getErrorIndex());			
+				}
+			}
 		}
-		// Milliseconds fix
-		String s2 = INVALID_MS_PATTERN.matcher(s).replaceFirst("$1");
 		ParsePosition pos = new ParsePosition(0);
 		for (DateFormat formatter : STANDARD_DATE_FORMATTERS) {
 			pos.setIndex(0);
-			Date date = formatter.parse(s2, pos);
+			Date date = formatter.parse(value, pos);
 			if (date != null) {
 				return date;
 			}
 		}
-		throw new ParseException("Could not parse " + s, pos.getErrorIndex());
+		
+		// Milliseconds fix
+		String fixedValue = INVALID_MS_PATTERN.matcher(value).replaceFirst("$1");
+		for (DateFormat formatter : STANDARD_DATE_FORMATTERS) {
+			pos.setIndex(0);
+			Date date = formatter.parse(fixedValue, pos);
+			if (date != null) {
+				return date;
+			}
+		}		
+		
+		throw new ParseException("Could not parse " + value, pos.getErrorIndex());		
 	}
 
 }

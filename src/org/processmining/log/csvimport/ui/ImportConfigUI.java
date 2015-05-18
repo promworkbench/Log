@@ -56,6 +56,8 @@ public final class ImportConfigUI extends JPanel {
 
 	private final CSVPreviewFrame previewFrame;
 
+	private SwingWorker<Void, Object[]> worker;
+
 	public ImportConfigUI(final CSVFile csv) {
 		super();
 		this.csv = csv;
@@ -239,6 +241,10 @@ public final class ImportConfigUI extends JPanel {
 
 	private void refreshPreview() {
 		
+		if (worker != null) {
+			worker.cancel(true);
+		}
+		
 		previewFrame.clear();
 
 		// Update Header
@@ -250,8 +256,7 @@ public final class ImportConfigUI extends JPanel {
 			return;
 		}
 
-		// Update Content
-		SwingWorker<Void, Object[]> worker = new SwingWorker<Void, Object[]>() {
+		worker = new SwingWorker<Void, Object[]>() {
 
 			protected Void doInBackground() throws Exception {
 
