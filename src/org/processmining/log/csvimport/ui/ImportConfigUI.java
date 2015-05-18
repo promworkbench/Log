@@ -101,6 +101,7 @@ public final class ImportConfigUI extends JPanel {
 		separatorField.setPreferredSize(null);
 		separatorField.setMinimumSize(null);
 		separatorField.setSelectedItem(importConfig.getSeparator());
+		separatorField.setAlignmentX(LEFT_ALIGNMENT);
 		JLabel seperationLabel = createLabel("Separator Character", "");
 		seperationLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(seperationLabel);
@@ -111,8 +112,7 @@ public final class ImportConfigUI extends JPanel {
 				importConfig.setSeparator(((CSVSeperator) separatorField.getSelectedItem()));
 				refreshPreview();
 			}
-		});
-		separatorField.setAlignmentX(LEFT_ALIGNMENT);
+		});		
 		
 		try (BufferedReader reader = new BufferedReader(new FileReader(csv.getFile().toFile()))) {
 			separatorField.setSelectedItem(autoDetectSeparator(reader.readLine()));
@@ -123,6 +123,7 @@ public final class ImportConfigUI extends JPanel {
 		quoteField = new ProMComboBox<>(CSVQuoteCharacter.values());
 		quoteField.setPreferredSize(null);
 		quoteField.setMinimumSize(null);
+		quoteField.setAlignmentX(LEFT_ALIGNMENT);
 		JLabel quoteLabel = createLabel("Quote Character", "");
 		quoteLabel.setAlignmentX(LEFT_ALIGNMENT);
 		add(quoteLabel);
@@ -133,8 +134,8 @@ public final class ImportConfigUI extends JPanel {
 				importConfig.setQuoteChar((CSVQuoteCharacter) quoteField.getSelectedItem());
 				refreshPreview();
 			}
-		});	
-		quoteField.setAlignmentX(LEFT_ALIGNMENT);
+		});			
+		quoteField.setSelectedItem(importConfig.getQuoteChar());
 		
 		/*
 		escapeField = new ProMComboBox<>(CSVEscapeCharacter.values());
@@ -151,7 +152,7 @@ public final class ImportConfigUI extends JPanel {
 				refreshPreview();
 			}
 		});	
-		quoteField.setAlignmentX(LEFT_ALIGNMENT);
+		escapeField.setAlignmentX(LEFT_ALIGNMENT);
 		 */
 		
 		refreshPreview();

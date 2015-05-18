@@ -16,7 +16,7 @@ public final class CSVImportConfig {
 	
 	private String charset = Charset.defaultCharset().name();
 	private CSVSeperator separator = CSVSeperator.COMMA;
-	private CSVQuoteCharacter quoteChar = CSVQuoteCharacter.QUOTE;
+	private CSVQuoteCharacter quoteChar = CSVQuoteCharacter.DOUBLE_QUOTE;
 	private CSVEscapeCharacter escapeChar = CSVEscapeCharacter.QUOTE;
 
 	public String getCharset() {

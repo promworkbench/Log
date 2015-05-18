@@ -1,8 +1,11 @@
 package org.processmining.log.csvimport;
 
+
 public enum CSVQuoteCharacter {
 	
-	QUOTE("QUOTE (\")", '"');
+	SINGLE_QUOTE("QUOTE (')", '\''),
+	DOUBLE_QUOTE("DOUBLE QUOTE (\")", '"'), 
+	NONE("NONE", '\0');
 
 	private final String description;
 	private final char quoteChar;

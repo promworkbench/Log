@@ -359,12 +359,7 @@ public final class CSVConversion {
 				}
 
 				// Close last trace
-				if (currentCaseId != null) {
-					conversionHandler.endTrace(currentCaseId);
-				} else {
-					throw new CSVConversionException(
-							"Error converting the CSV file to XES. Could not read a single trace, either the input file is empty or there has been an issue during sorting!");
-				}
+				conversionHandler.endTrace(currentCaseId);
 
 			} catch (IOException e) {
 				throw new CSVConversionException("Error converting the CSV file to XES", e);
@@ -429,9 +424,15 @@ public final class CSVConversion {
 		conversionHandler.endAttribute();
 	}
 
+	/**
+	 * @param columnIndex
+	 * @param line
+	 * @param compositeSeparator
+	 * @return the composite attributes concatenated or an empty String in case no columns are selected
+	 */
 	private static String readCompositeAttribute(int[] columnIndex, String[] line, String compositeSeparator) {
 		if (columnIndex.length == 0) {
-			return null;
+			return "";
 		}
 		int size = 0;
 		for (int index : columnIndex) {
