@@ -141,25 +141,67 @@ public class XLogBuilder {
 			}
 		}
 	}
+	
+	/**
+	 * Add the given attribute
+	 * 
+	 * @param attribute
+	 * @return {@link XLogBuilder}
+	 */
+	public XLogBuilder addAttribute(XAttribute attribute) {
+		addAttributeInternal(attribute.getKey(), attribute);
+		return this;
+	}
+	
+	/**
+	 * @param name
+	 * @param value
+	 * @return
+	 */
+	public XLogBuilder addAttribute(String name, boolean value) {
+		XAttribute attribute = factory.createAttributeBoolean(name, value, null);
+		addAttributeInternal(name, attribute);
+		return this;
+	}
 
+	/**
+	 * @param name
+	 * @param value
+	 * @return the {@link XLogBuilder} itself
+	 */
 	public XLogBuilder addAttribute(String name, long value) {
 		XAttribute attribute = factory.createAttributeDiscrete(name, value, null);
 		addAttributeInternal(name, attribute);
 		return this;
 	}
 
+	/**
+	 * @param name
+	 * @param value
+	 * @return the {@link XLogBuilder} itself
+	 */
 	public XLogBuilder addAttribute(String name, String value) {
 		XAttribute attribute = factory.createAttributeLiteral(name, value, null);
 		addAttributeInternal(name, attribute);
 		return this;
 	}
 
+	/**
+	 * @param name
+	 * @param value
+	 * @return the {@link XLogBuilder} itself
+	 */
 	public XLogBuilder addAttribute(String name, Date value) {
 		XAttribute attribute = factory.createAttributeTimestamp(name, value, null);
 		addAttributeInternal(name, attribute);
 		return this;
 	}
 
+	/**
+	 * @param name
+	 * @param value
+	 * @return the {@link XLogBuilder} itself
+	 */
 	public XLogBuilder addAttribute(String name, double value) {
 		XAttribute attribute = factory.createAttributeContinuous(name, value, null);
 		addAttributeInternal(name, attribute);
@@ -180,6 +222,11 @@ public class XLogBuilder {
 		}
 	}
 
+	/**
+	 * Builds and returns the XLog. This is only to be used once! 
+	 * 
+	 * @return the final XLog
+	 */ 
 	public XLog build() {
 		if (currentEvent != null) {
 			addCurrentEventToTrace();

@@ -230,7 +230,7 @@ public class XUtils {
 	}
 
 	/**
-	 * Creates a copy of the {@link XAttribute} with the same value, but a
+	 * Creates a deep clone of the {@link XAttribute} with the same value, but a
 	 * changed key.
 	 * 
 	 * @param oldAttribute
@@ -272,6 +272,46 @@ public class XUtils {
 		} else {
 			throw new IllegalArgumentException("Unexpected attribute type!");
 		}
+	}
+
+	/**
+	 * Creates a deep clone of the supplied event log without classifiers
+	 * 
+	 * @param log
+	 * @return a clone of the supplied log
+	 */
+	public static XLog cloneLogWithoutClassifier(XLog log) {
+		XLog clone = (XLog) log.clone();
+		clone.getClassifiers().clear();
+		return clone;
+	}
+
+	/**
+	 * Creates a deep clone of the supplied event log without globals
+	 * 
+	 * @param log
+	 * @return a clone of the supplied log
+	 */
+	public static XLog cloneLogWithoutGlobals(XLog log) {
+		XLog clone = (XLog) log.clone();
+		clone.getGlobalTraceAttributes().clear();
+		clone.getGlobalEventAttributes().clear();
+		return clone;
+	}
+
+	/**
+	 * Creates a deep clone of the supplied event log without globals and
+	 * without classifiers
+	 * 
+	 * @param log
+	 * @return a clone of the supplied log
+	 */
+	public static XLog cloneLogWithoutGlobalsAndClassifiers(XLog log) {
+		XLog clone = (XLog) log.clone();
+		clone.getClassifiers().clear();
+		clone.getGlobalTraceAttributes().clear();
+		clone.getGlobalEventAttributes().clear();
+		return clone;
 	}
 
 	/**
@@ -338,6 +378,12 @@ public class XUtils {
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param attributable
+	 * @param attributes
+	 */
 	public static void putAttributes(XAttributable attributable, Iterable<XAttribute> attributes) {
 		for (XAttribute a : attributes) {
 			attributable.getAttributes().put(a.getKey(), a);
