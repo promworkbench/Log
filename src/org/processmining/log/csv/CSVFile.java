@@ -46,6 +46,6 @@ public interface CSVFile {
 	 * @return
 	 * @throws IOException
 	 */
-	CSVReader createReader(CSVImportConfig config) throws IOException;
+	AbstractCSVReader createReader(CSVImportConfig config) throws IOException;
 
 }

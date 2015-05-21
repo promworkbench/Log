@@ -14,13 +14,13 @@ import au.com.bytecode.opencsv.CSVReader;
  * @author F. Mannhardt
  *
  */
-public final class CSVFileReference implements CSVFile {
+public final class CSVFileReferenceUnivocity implements CSVFile {
 
 	private final Path file;
 	private final String filename;
 	private final long fileSizeInBytes;
 
-	public CSVFileReference(Path file, String filename, long fileSizeInBytes) {
+	public CSVFileReferenceUnivocity(Path file, String filename, long fileSizeInBytes) {
 		this.file = file;
 		this.filename = filename;
 		this.fileSizeInBytes = fileSizeInBytes;

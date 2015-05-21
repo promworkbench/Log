@@ -26,13 +26,12 @@ import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.ProMListSortableWithComboBox;
+import org.processmining.log.csv.AbstractCSVReader;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVEmptyCellHandlingMode;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVErrorHandlingMode;
 import org.processmining.log.csvimport.config.CSVImportConfig;
-
-import au.com.bytecode.opencsv.CSVReader;
 
 import com.fluxicon.slickerbox.factory.SlickerFactory;
 import com.google.common.base.Function;
@@ -150,7 +149,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 	private final ProMComboBox<CSVEmptyCellHandlingMode> emptyCellHandlingModeCbx;
 	private final ProMComboBox<CSVErrorHandlingMode> errorHandlingModeCbx;
 
-	private final CSVReader reader;
+	private final AbstractCSVReader reader;
 	private final CSVPreviewFrame previewFrame;
 	private int maxLoad = 5000;
 		

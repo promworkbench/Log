@@ -21,12 +21,11 @@ import org.mozilla.universalchardet.CharsetListener;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
+import org.processmining.log.csv.AbstractCSVReader;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csvimport.CSVQuoteCharacter;
 import org.processmining.log.csvimport.CSVSeperator;
 import org.processmining.log.csvimport.config.CSVImportConfig;
-
-import au.com.bytecode.opencsv.CSVReader;
 
 import com.fluxicon.slickerbox.factory.SlickerFactory;
 
@@ -266,7 +265,7 @@ public final class ImportConfigUI extends JPanel {
 
 			protected Void doInBackground() throws Exception {
 
-				try (CSVReader reader = csv.createReader(importConfig)) {
+				try (AbstractCSVReader reader = csv.createReader(importConfig)) {
 					// Skip header
 					reader.readNext();
 					String[] nextLine;
