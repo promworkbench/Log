@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
@@ -44,11 +45,38 @@ public final class CSVConversionPlugin {
 			"CSV", "XES", "Conversion" }, help = "Converts the CSV file to a XES XLog object.")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt", email = "f.mannhardt@tue.nl", website = "http://fmannhardt.de")
 	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csv) throws IOException, UserCancelledException {
-		CSVImportConfig importConfig = CSVConversion.queryImportConfig(context, csv);
-		CSVConversionConfig conversionConfig = CSVConversion.queryConversionConfig(context, csv, importConfig);
+
+		InteractionResult result = InteractionResult.CONTINUE;
+		
+		CSVImportConfig importConfig = new CSVImportConfig();
+		CSVConversionConfig csvConversionConfig = null;
+		
+		int i = 0;
+		while (result != InteractionResult.FINISHED) {
+			switch (i) {
+				case 0:
+					result = CSVConversion.queryImportConfig(context, csv, importConfig);
+					csvConversionConfig = new CSVConversionConfig(csv.readHeader(importConfig));
+					break;
+				case 1:
+					result = CSVConversion.queryConversionConfig(context, csv, importConfig, csvConversionConfig);
+					break;
+				case 2:
+					result = CSVConversion.queryExpertConfig(context, csv, importConfig, csvConversionConfig);
+					break;
+			}
+			if (result == InteractionResult.NEXT || result == InteractionResult.CONTINUE) {
+				i++;
+			} else if (result == InteractionResult.PREV) {
+				i--;
+			} else if (result == InteractionResult.CANCEL) {
+				return null;
+			}
+		}
+		
 		CSVConversion csvConversion = new CSVConversion();
 		try {
-			return doConvertCSVToXes(context, csv, importConfig, conversionConfig, csvConversion);
+			return doConvertCSVToXes(context, csv, importConfig, csvConversionConfig, csvConversion);
 		} catch (CSVConversionException e) {
 			String errorMessage = Joiner.on("\n caused by \n").join(Throwables.getCausalChain(e));
 			ProMUIHelper.showErrorMessage(context, errorMessage, "Conversion Failed");

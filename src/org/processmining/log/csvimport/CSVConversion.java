@@ -20,7 +20,6 @@ import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.plugin.Progress;
-import org.processmining.framework.util.ui.widgets.helper.UserCancelledException;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csv.CSVFileReference;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
@@ -34,6 +33,7 @@ import org.processmining.log.csvimport.exception.CSVSortException;
 import org.processmining.log.csvimport.handler.CSVConversionHandler;
 import org.processmining.log.csvimport.handler.XESConversionHandlerImpl;
 import org.processmining.log.csvimport.ui.ConversionConfigUI;
+import org.processmining.log.csvimport.ui.ExpertConfigUI;
 import org.processmining.log.csvimport.ui.ImportConfigUI;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -165,26 +165,22 @@ public final class CSVConversion {
 				progressListener, importConfig, conversionConfig));
 	}
 
-	public static CSVImportConfig queryImportConfig(UIPluginContext context, CSVFile csv) throws UserCancelledException {
-		ImportConfigUI importConfigUI = new ImportConfigUI(csv);
-		InteractionResult result = context.showConfiguration("Configure Import of CSV", importConfigUI);
-		if (result == InteractionResult.CONTINUE || result == InteractionResult.FINISHED) {
-			return importConfigUI.getImportConfig();
-		} else {
-			throw new UserCancelledException();
-		}
+	public static InteractionResult queryExpertConfig(UIPluginContext context, CSVFile csv, CSVImportConfig importConfig,
+			CSVConversionConfig converionConfig) {
+		ExpertConfigUI expertConfigUI = new ExpertConfigUI(csv, importConfig, converionConfig);
+		return context.showWizard("Configure Import of CSV", false, true, expertConfigUI);
 	}
 
-	public static CSVConversionConfig queryConversionConfig(UIPluginContext context, CSVFile csv,
-			CSVImportConfig importConfig) throws UserCancelledException, IOException {
-		try (ConversionConfigUI conversionConfigUI = new ConversionConfigUI(csv, importConfig)) {
-			InteractionResult result = context.showConfiguration("Configure Conversion from CSV to XES",
+	public static InteractionResult queryImportConfig(UIPluginContext context, CSVFile csv, CSVImportConfig importConfig) {
+		ImportConfigUI importConfigUI = new ImportConfigUI(csv, importConfig);
+		return context.showWizard("Configure Import of CSV", true, false, importConfigUI);
+	}
+
+	public static InteractionResult queryConversionConfig(UIPluginContext context, CSVFile csv,
+			CSVImportConfig importConfig, CSVConversionConfig conversionConfig) throws IOException {
+		try (ConversionConfigUI conversionConfigUI = new ConversionConfigUI(csv, importConfig, conversionConfig)) {
+			return context.showConfiguration("Configure Conversion from CSV to XES",
 					conversionConfigUI);
-			if (result == InteractionResult.CONTINUE || result == InteractionResult.FINISHED) {
-				return conversionConfigUI.getConversionConfig();
-			} else {
-				throw new UserCancelledException();
-			}
 		}
 	}
 

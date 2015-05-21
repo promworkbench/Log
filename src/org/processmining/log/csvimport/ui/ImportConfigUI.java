@@ -14,7 +14,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 
 import org.mozilla.universalchardet.CharsetListener;
@@ -27,15 +26,17 @@ import org.processmining.log.csvimport.CSVQuoteCharacter;
 import org.processmining.log.csvimport.CSVSeperator;
 import org.processmining.log.csvimport.config.CSVImportConfig;
 
-import com.fluxicon.slickerbox.factory.SlickerFactory;
-
 /**
  * UI for the import configuration (charset, separator, ..) 
  * 
  * @author F. Mannhardt
  *
  */
-public final class ImportConfigUI extends JPanel {
+public final class ImportConfigUI extends CSVConfigurationPanel {
+
+	public interface QuoteListener {
+		void quoteDetected(CSVQuoteCharacter quote);
+	}
 
 	public interface SeparatorListener {
 		public void separatorDetected(CSVSeperator separator);
@@ -43,7 +44,7 @@ public final class ImportConfigUI extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final int MAX_PREVIEW = 5000;
+	private static final int MAX_PREVIEW = 1000;
 
 	private final CSVFile csv;
 	private final CSVImportConfig importConfig;
@@ -57,10 +58,10 @@ public final class ImportConfigUI extends JPanel {
 
 	private SwingWorker<Void, Object[]> worker;
 
-	public ImportConfigUI(final CSVFile csv) {
+	public ImportConfigUI(final CSVFile csv, final CSVImportConfig importConfig) {
 		super();
+		this.importConfig = importConfig;
 		this.csv = csv;
-		this.importConfig = new CSVImportConfig();
 		this.previewFrame = new CSVPreviewFrame();
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -114,7 +115,6 @@ public final class ImportConfigUI extends JPanel {
 				refreshPreview();
 			}
 		});		
-		
 		autoDetectSeparator(csv, new SeparatorListener() {
 			
 			public void separatorDetected(CSVSeperator separator) {
@@ -138,6 +138,14 @@ public final class ImportConfigUI extends JPanel {
 			}
 		});			
 		quoteField.setSelectedItem(importConfig.getQuoteChar());
+		autoDetectQuote(csv, new QuoteListener() {
+			
+			public void quoteDetected(CSVQuoteCharacter quote) {
+				quoteField.setSelectedItem(quote);
+			}
+			
+		});
+
 		
 		/*
 		escapeField = new ProMComboBox<>(CSVEscapeCharacter.values());
@@ -160,16 +168,12 @@ public final class ImportConfigUI extends JPanel {
 		refreshPreview();
 	}
 
+	private void autoDetectQuote(CSVFile csv2, QuoteListener quoteListener) {
+		
+	}
+
 	public void showPreviewFrame() {
 		this.previewFrame.showFrame(getRootPane());
-	}
-	
-	private static JLabel createLabel(String caption, String description) {
-		JLabel eventLabel = SlickerFactory.instance().createLabel(
-				"<HTML><B>" + caption + "</B><BR><I>" + description + "</I></HTML>");
-		eventLabel.setAlignmentX(LEFT_ALIGNMENT);
-		eventLabel.setFont(eventLabel.getFont().deriveFont(Font.PLAIN));
-		return eventLabel;
 	}
 
 	private void autoDetectCharset(final CSVFile file, final CharsetListener listener) {
