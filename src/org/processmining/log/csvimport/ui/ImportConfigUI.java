@@ -116,11 +116,12 @@ public final class ImportConfigUI extends JPanel {
 			}
 		});		
 		
-		try (BufferedReader reader = new BufferedReader(new FileReader(csv.getFile().toFile()))) {
-			separatorField.setSelectedItem(autoDetectSeparator(reader.readLine()));
-		} catch (IOException e1) {
-			ProMUIHelper.showErrorMessage(this, e1.toString(), "Error reading CSV while determining separator character");
-		}
+		autoDetectSeparator(csv, new SeparatorListener() {
+			
+			public void separatorDetected(CSVSeperator separator) {
+				separatorField.setSelectedItem(separator);
+			}
+		});
 
 		quoteField = new ProMComboBox<>(CSVQuoteCharacter.values());
 		quoteField.setPreferredSize(null);
@@ -209,14 +210,19 @@ public final class ImportConfigUI extends JPanel {
 
 	}
 	
-	private CSVSeperator autoDetectSeparator(final String headerRow) {
-		if (headerRow.contains("\t")) {
-			return CSVSeperator.TAB;
-		} else if (headerRow.contains(";")) {
-			return CSVSeperator.SEMICOLON;
-		} else {
-			return CSVSeperator.COMMA;	
-		}		
+	private void autoDetectSeparator(final CSVFile csvFile, final SeparatorListener listener) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(csvFile.getFile().toFile()))) {
+			String header = reader.readLine();
+			if (header.contains("\t")) {
+				listener.separatorDetected(CSVSeperator.TAB);
+			} else if (header.contains(";")) {
+				listener.separatorDetected(CSVSeperator.SEMICOLON);
+			} else {
+				listener.separatorDetected(CSVSeperator.COMMA);	
+			}		
+		} catch (IOException e1) {
+			ProMUIHelper.showErrorMessage(this, e1.toString(), "Error reading CSV while determining separator character");
+		}
 	}
 
 	/* (non-Javadoc)
