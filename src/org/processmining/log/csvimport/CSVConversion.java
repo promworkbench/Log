@@ -53,6 +53,7 @@ public final class CSVConversion {
 
 	public interface ProgressListener {
 		Progress getProgress();
+
 		void log(String message);
 	}
 
@@ -324,7 +325,7 @@ public final class CSVConversion {
 						final String eventClass = readCompositeAttribute(eventNameColumnIndex, nextLine,
 								conversionConfig.getCompositeAttributeSeparator());
 
-						// Read timestamps
+						// Read time stamps
 						final Date completionTime = completionTimeColumnIndex != -1 ? parseDate((DateFormat) mappingMap
 								.get(completionTimeColumnIndex).getFormat(), nextLine[completionTimeColumnIndex])
 								: null;
@@ -387,7 +388,7 @@ public final class CSVConversion {
 
 	private <R> void parseAttributes(ProgressListener progress, CSVConversionConfig conversionConfig,
 			CSVConversionHandler<R> conversionHandler, CSVMapping csvMapping, int lineIndex, int columnIndex,
-			String name, String[] line) throws ParseException, CSVConversionException {
+			String name, String[] line) throws CSVConversionException {
 		String value = line[columnIndex];
 		if (csvMapping.getDataType() == null) {
 			conversionHandler.startAttribute(name, value);
@@ -434,12 +435,17 @@ public final class CSVConversion {
 			} catch (NumberFormatException e) {
 				conversionHandler.errorDetected(lineIndex, value, e);
 				conversionHandler.startAttribute(name, value);
+			} catch (ParseException e) {
+				conversionHandler.errorDetected(lineIndex, value, e);
+				conversionHandler.startAttribute(name, value);
 			}
 		}
 		conversionHandler.endAttribute();
 	}
 
 	/**
+	 * Concatenates multiple composite attributes to a String representation.
+	 * 
 	 * @param columnIndex
 	 * @param line
 	 * @param compositeSeparator
@@ -478,7 +484,7 @@ public final class CSVConversion {
 				if (date != null) {
 					return date;
 				} else {
-					throw new ParseException("Could not parse " + value, pos.getErrorIndex());			
+					throw new ParseException("Could not parse " + value, pos.getErrorIndex());
 				}
 			}
 		}
@@ -490,7 +496,7 @@ public final class CSVConversion {
 				return date;
 			}
 		}
-		
+
 		// Milliseconds fix
 		String fixedValue = INVALID_MS_PATTERN.matcher(value).replaceFirst("$1");
 		for (DateFormat formatter : STANDARD_DATE_FORMATTERS) {
@@ -499,9 +505,9 @@ public final class CSVConversion {
 			if (date != null) {
 				return date;
 			}
-		}		
-		
-		throw new ParseException("Could not parse " + value, pos.getErrorIndex());		
+		}
+
+		throw new ParseException("Could not parse " + value, pos.getErrorIndex());
 	}
 
 }

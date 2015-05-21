@@ -257,7 +257,7 @@ public final class CSVPreviewFrame extends JFrame {
 			
 			GridBagConstraints c = new GridBagConstraints();
 			c.fill = GridBagConstraints.HORIZONTAL;
-			c.ipady = 22;
+			c.ipady = 42;
 			c.weightx = 1.0;
 			c.weighty = 0.0;
 			c.gridx = 0;			

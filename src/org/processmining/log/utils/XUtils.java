@@ -355,13 +355,13 @@ public class XUtils {
 	}
 
 	/**
-	 * Creates an appropriate {@link XAttribute}, decided on the type of the
+	 * Creates an appropriate {@link XAttribute}, deciding by the type of the
 	 * parameter atttributeValue.
 	 * 
 	 * @param attributeName
 	 * @param attributeValue
 	 * @param extension
-	 * @return
+	 * @return a {@link XAttribute} with correct type
 	 */
 	public static XAttribute createAttribute(String attributeName, Object attributeValue, XExtension extension) {
 		XFactory f = XFactoryRegistry.instance().currentDefault();
