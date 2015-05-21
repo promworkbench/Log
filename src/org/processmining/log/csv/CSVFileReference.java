@@ -80,10 +80,16 @@ public final class CSVFileReference implements CSVFile {
 		final CSVReader csvReader = CSVUtils.createCSVReader(CSVUtils.getCSVInputStream(this), importConfig);
 		return new AbstractCSVReader() {
 
+			/* (non-Javadoc)
+			 * @see org.processmining.log.csv.AbstractCSVReader#readNext()
+			 */
 			public String[] readNext() throws IOException {
 				return csvReader.readNext();
 			}
 
+			/* (non-Javadoc)
+			 * @see org.processmining.log.csv.AbstractCSVReader#close()
+			 */
 			public void close() throws IOException {
 				csvReader.close();
 			}
