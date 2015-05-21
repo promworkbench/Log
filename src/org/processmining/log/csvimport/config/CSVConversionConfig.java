@@ -9,6 +9,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.deckfour.xes.extension.XExtension;
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.extension.std.XCostExtension;
+import org.deckfour.xes.extension.std.XLifecycleExtension;
+import org.deckfour.xes.extension.std.XOrganizationalExtension;
+import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
 
@@ -19,26 +25,55 @@ import org.deckfour.xes.factory.XFactoryRegistry;
  *
  */
 public final class CSVConversionConfig {
-	
+
 	public enum CSVErrorHandlingMode {
-		ABORT_ON_ERROR, OMIT_TRACE_ON_ERROR, OMIT_EVENT_ON_ERROR, BEST_EFFORT
+		ABORT_ON_ERROR("Stop on Error"), OMIT_TRACE_ON_ERROR("Omit Trace on Error"), OMIT_EVENT_ON_ERROR(
+				"Omit Event on Error"), BEST_EFFORT("Omit Attribute on Error");
+
+		private String desc;
+
+		CSVErrorHandlingMode(String desc) {
+			this.desc = desc;
+		}
+
+		@Override
+		public String toString() {
+			return desc;
+		}
 	}
-	
+
 	public enum CSVEmptyCellHandlingMode {
-		INCLUDE, EXCLUDE 
+		INCLUDE("Include empty cells"), EXCLUDE("Exclue empty cells");
+
+		private String desc;
+
+		CSVEmptyCellHandlingMode(String desc) {
+			this.desc = desc;
+		}
+
+		@Override
+		public String toString() {
+			return desc;
+		}
+		
 	}
-	
+
 	public enum Datatype {
 		LITERAL, DISCRETE, CONTINUOUS, TIME, BOOLEAN
 	}
-	
+
 	public static class CSVMapping {
-		
+
 		public static final String DEFAULT_DATE_PATTERN = "";
 		public static final String DEFAULT_DISCRETE_PATTERN = "";
 		public static final String DEFAULT_CONTINUOUS_PATTERN = "";
 		public static final String DEFAULT_LITERAL_PATTERN = "";
-		
+
+		public static final XExtension[] AVAILABLE_EXTENSIONS = new XExtension[] { XConceptExtension.instance(),
+				XTimeExtension.instance(), XLifecycleExtension.instance(), XCostExtension.instance(),
+				XOrganizationalExtension.instance() };
+
+		private Set<XExtension> extensions = new HashSet<>();
 		private Datatype dataType = Datatype.LITERAL;
 		private String dataPattern = "";
 
@@ -53,7 +88,7 @@ public final class CSVConversionConfig {
 		public String getPattern() {
 			return dataPattern;
 		}
-		
+
 		public Format getFormat() {
 			switch (getDataType()) {
 				case BOOLEAN :
@@ -62,7 +97,7 @@ public final class CSVConversionConfig {
 					if (dataPattern.isEmpty()) {
 						return null;
 					} else {
-						return new DecimalFormat(dataPattern);	
+						return new DecimalFormat(dataPattern);
 					}
 				case DISCRETE :
 					if (dataPattern.isEmpty()) {
@@ -72,7 +107,7 @@ public final class CSVConversionConfig {
 						integerFormat.setMaximumFractionDigits(0);
 						integerFormat.setDecimalSeparatorAlwaysShown(false);
 						integerFormat.setParseIntegerOnly(true);
-						return integerFormat;	
+						return integerFormat;
 					}
 				case LITERAL :
 					if (dataPattern.isEmpty()) {
@@ -84,16 +119,20 @@ public final class CSVConversionConfig {
 					if (dataPattern.isEmpty()) {
 						return null;
 					} else {
-						return new SimpleDateFormat(dataPattern);	
-					}					
+						return new SimpleDateFormat(dataPattern);
+					}
 			}
-			throw new RuntimeException("Unkown data type "+getDataType());
+			throw new RuntimeException("Unkown data type " + getDataType());
 		}
 
 		public void setPattern(String dataPattern) {
 			this.dataPattern = dataPattern;
 		}
-		
+
+		public Set<XExtension> getExtensions() {
+			return extensions;
+		}
+
 	}
 
 	// XFactory to use for conversion if XESConversionHandler is used
@@ -104,24 +143,29 @@ public final class CSVConversionConfig {
 	private String[] eventNameColumns;
 	private String completionTimeColumn;
 	private String startTimeColumn;
-	
+
 	// How to concatenate attributes built from multiple columns
 	private String compositeAttributeSeparator = "|";
-	
+
 	// Data-type mapping
 	private Map<String, CSVMapping> conversionMap = new HashMap<>();
-	
+
 	// Various "expert" configuration options	
 	private CSVErrorHandlingMode errorHandlingMode = CSVErrorHandlingMode.OMIT_TRACE_ON_ERROR;
 	private CSVEmptyCellHandlingMode emptyCellHandlingMode = CSVEmptyCellHandlingMode.EXCLUDE;
-	private Set<String> treatAsEmptyValues = new HashSet<>(); 
-	
-	private boolean shouldGuessDataTypes = true;	
+	private Set<String> treatAsEmptyValues = new HashSet<>();
+
+	private boolean shouldGuessDataTypes = true;
 
 	public CSVConversionConfig(String[] headers) {
-		for (String columnHeader: headers) {
-			conversionMap.put(columnHeader, new CSVMapping());			
+		for (String columnHeader : headers) {
+			conversionMap.put(columnHeader, new CSVMapping());
 		}
+		//TODO make configurable
+		treatAsEmptyValues.add("");
+		treatAsEmptyValues.add("NULL");
+		treatAsEmptyValues.add("null");
+		treatAsEmptyValues.add("NOT_SET");
 	}
 
 	public XFactory getFactory() {

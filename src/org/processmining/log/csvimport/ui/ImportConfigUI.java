@@ -66,7 +66,7 @@ public final class ImportConfigUI extends JPanel {
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		JLabel header = new JLabel("Please choose parameters regarding the format of the CSV file and OpenXES.");
+		JLabel header = new JLabel("Please choose parameters regarding the format of the CSV file:");
 		header.setFont(header.getFont().deriveFont(Font.BOLD, 18));
 		header.setAlignmentY(LEFT_ALIGNMENT);
 		add(header);

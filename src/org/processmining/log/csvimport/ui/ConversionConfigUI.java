@@ -35,6 +35,8 @@ import org.processmining.log.csvimport.config.CSVImportConfig;
 import au.com.bytecode.opencsv.CSVReader;
 
 import com.fluxicon.slickerbox.factory.SlickerFactory;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 /**
@@ -46,6 +48,51 @@ import com.google.common.collect.Lists;
 public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 
 	private static final int COLUMN_WIDTH = 360;
+	
+	private static final class XFactoryUI {
+		
+		private final XFactory factory;
+
+		public XFactoryUI(XFactory factory) {
+			super();
+			this.factory = factory;
+		}
+
+		public XFactory getFactory() {
+			return factory;
+		}
+		
+		@Override
+		public String toString() {
+			return factory.getName();
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((factory == null) ? 0 : factory.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (!(obj instanceof XFactoryUI))
+				return false;
+			XFactoryUI other = (XFactoryUI) obj;
+			if (factory == null) {
+				if (other.factory != null)
+					return false;
+			} else if (!factory.equals(other.factory))
+				return false;
+			return true;
+		}
+
+	}
 
 	private final class ChangeListenerImpl implements ActionListener {
 
@@ -92,7 +139,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 	private final String[] headers;
 	private final String[] headersInclEmpty;
 
-	private final ProMComboBox<XFactory> xFactoryChoice;
+	private final ProMComboBox<XFactoryUI> xFactoryChoice;
 
 	private final ProMListSortableWithComboBox<String> caseComboBox;
 	private final ProMListSortableWithComboBox<String> eventComboBox;
@@ -106,6 +153,7 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 	private final CSVReader reader;
 	private final CSVPreviewFrame previewFrame;
 	private int maxLoad = 5000;
+		
 
 	public ConversionConfigUI(final CSVFile csv, final CSVImportConfig importConfig) throws IOException {		
 		GroupLayout layout = new GroupLayout(this);
@@ -170,15 +218,21 @@ public final class ConversionConfigUI extends JPanel implements AutoCloseable {
 				"Expert Conversion Options (Defaults are a good guess)");
 		conversionOptionsLabel.setFont(conversionOptionsLabel.getFont().deriveFont(Font.BOLD, 20));
 		
-		xFactoryChoice = new ProMComboBox<>(getAvailableXFactories());
-		xFactoryChoice.setSelectedItem(conversionConfig.getFactory());
+		xFactoryChoice = new ProMComboBox<>(Iterables.transform(getAvailableXFactories(), new Function<XFactory, XFactoryUI>() {
+
+			public XFactoryUI apply(XFactory factory) {
+				return new XFactoryUI(factory);
+			}
+			
+		}));
+		xFactoryChoice.setSelectedItem(new XFactoryUI(conversionConfig.getFactory()));
 		JLabel xFactoryLabel = createLabel("XFactory",
 				"Implementation that is be used to create the Log.");
 		
 		xFactoryChoice.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
-				conversionConfig.setFactory((XFactory) xFactoryChoice.getSelectedItem());
+				conversionConfig.setFactory(((XFactoryUI) xFactoryChoice.getSelectedItem()).getFactory());
 			}
 		});
 

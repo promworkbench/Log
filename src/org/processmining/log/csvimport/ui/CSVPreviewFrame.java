@@ -31,6 +31,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
+import org.deckfour.xes.extension.XExtension;
 import org.processmining.framework.util.ui.widgets.ProMScrollPane;
 import org.processmining.framework.util.ui.widgets.ProMTableWithoutPanel;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
@@ -44,7 +45,7 @@ import org.processmining.log.csvimport.config.CSVConversionConfig.Datatype;
  *
  */
 public final class CSVPreviewFrame extends JFrame {
-
+	
 	private final class MappingCellEditor extends AbstractCellEditor implements TableCellEditor {
 
 		private static final long serialVersionUID = -8465152263165430372L;
@@ -63,6 +64,8 @@ public final class CSVPreviewFrame extends JFrame {
 				editor = new DefaultCellEditor(new JComboBox<>(new DefaultComboBoxModel<>(Datatype.values())));
 			} else if (value instanceof String) {
 				editor = new DefaultCellEditor(new JTextField());
+			} else if (value instanceof XExtension || value == null) {
+				editor = new DefaultCellEditor(new JComboBox<>(CSVMapping.AVAILABLE_EXTENSIONS));
 			} else {
 				throw new RuntimeException("Unkown value type " + value.getClass().getSimpleName());
 			}
@@ -102,7 +105,7 @@ public final class CSVPreviewFrame extends JFrame {
 		}
 
 		public int getRowCount() {
-			return 2;
+			return 3;
 		}
 
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
@@ -120,6 +123,12 @@ public final class CSVPreviewFrame extends JFrame {
 				case 1 :
 					csvMapping.setPattern((String) aValue);
 					break;
+				case 2:
+					csvMapping.getExtensions().clear();
+					if (aValue != null) {
+						csvMapping.getExtensions().add((XExtension) aValue);
+					}										
+					break;
 				default :
 					throw new IllegalStateException("Could not find value at row " + rowIndex + " column "
 							+ columnIndex);
@@ -135,6 +144,8 @@ public final class CSVPreviewFrame extends JFrame {
 					return csvMapping.getDataType();
 				case 1 :
 					return csvMapping.getPattern();
+				case 2:
+					return csvMapping.getExtensions().isEmpty() ? null : csvMapping.getExtensions().iterator().next();
 			}
 			throw new IllegalStateException("Could not find value at row " + rowIndex + " column " + columnIndex);
 		}
@@ -245,7 +256,7 @@ public final class CSVPreviewFrame extends JFrame {
 			});
 			
 			GridBagConstraints c = new GridBagConstraints();
-			c.fill = GridBagConstraints.BOTH;
+			c.fill = GridBagConstraints.HORIZONTAL;
 			c.ipady = 22;
 			c.weightx = 1.0;
 			c.weighty = 0.0;

@@ -53,7 +53,6 @@ public final class CSVConversion {
 
 	public interface ProgressListener {
 		Progress getProgress();
-
 		void log(String message);
 	}
 
