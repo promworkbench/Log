@@ -265,7 +265,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	}
 
 	private static boolean specialColumn(String columnName) {
-		return XConceptExtension.KEY_NAME.equals(columnName) || XTimeExtension.KEY_TIMESTAMP.equals(columnName)
+		return columnName==null || XConceptExtension.KEY_NAME.equals(columnName) || XTimeExtension.KEY_TIMESTAMP.equals(columnName)
 				|| XConceptExtension.KEY_INSTANCE.equals(columnName);
 	}
 

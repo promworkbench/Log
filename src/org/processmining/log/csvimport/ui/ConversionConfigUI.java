@@ -296,7 +296,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 	private int findColumnIndex(String[] header, String caseColumn) {
 		int i = 0;
 		for (String column : header) {
-			if (column.equals(caseColumn)) {
+			if (column!=null&&column.equals(caseColumn)) {
 				return i;
 			}
 			i++;

@@ -4,14 +4,15 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.processmining.log.csvimport.CSVUtils;
+import org.processmining.log.csvimport.CSVUtilsUnivocity;
 import org.processmining.log.csvimport.config.CSVImportConfig;
 
-import au.com.bytecode.opencsv.CSVReader;
+import com.univocity.parsers.csv.CsvParser;
 
 /**
  * {@link CSVFile} implementation that holds a reference to a CSV file on disk.
  *
- * @author F. Mannhardt
+ * @author N. Tax
  *
  */
 public final class CSVFileReferenceUnivocity implements CSVFile {
@@ -65,7 +66,8 @@ public final class CSVFileReferenceUnivocity implements CSVFile {
 	 */
 	@Override
 	public String[] readHeader(CSVImportConfig importConfig) throws IOException {
-		return createReader(importConfig).readNext();
+		String[] s = createReader(importConfig).readNext();
+		return s;
 	}
 
 	/*
@@ -77,15 +79,15 @@ public final class CSVFileReferenceUnivocity implements CSVFile {
 	 */
 	@Override
 	public AbstractCSVReader createReader(CSVImportConfig importConfig) throws IOException {
-		final CSVReader csvReader = CSVUtils.createCSVReader(CSVUtils.getCSVInputStream(this), importConfig);
+		final CsvParser csvReader = CSVUtilsUnivocity.createCSVReader(CSVUtils.getCSVInputStream(this), importConfig);
 		return new AbstractCSVReader() {
-
+			
 			public String[] readNext() throws IOException {
-				return csvReader.readNext();
+				return csvReader.parseNext();
 			}
 
 			public void close() throws IOException {
-				csvReader.close();
+				csvReader.stopParsing();
 			}
 			
 		};
