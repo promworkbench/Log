@@ -14,6 +14,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
@@ -111,6 +112,14 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 		JLabel standardAttributesLabel = SlickerFactory.instance().createLabel("Mapping to Standard XES Attributes");
 		standardAttributesLabel.setFont(standardAttributesLabel.getFont().deriveFont(Font.BOLD, 18));
+		
+		JButton showPreviewButton = new JButton("Show Preview");
+		showPreviewButton.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				showPreviewFrame();				
+			}
+		});
 
 		caseComboBox = new ProMListSortableWithComboBox<>(new DefaultComboBoxModel<>(headers));
 		JLabel caseLabel = createLabel("Case Column (Optional)", "Groups events into traces, and is mapped to 'concept:name' of the trace. Select one or more columns by choosing from the box below, re-order by drag & drop and remove with the 'DELETE' key.");
@@ -156,7 +165,9 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 		
 		SequentialGroup verticalGroup = layout.createSequentialGroup();
-		verticalGroup.addComponent(standardAttributesLabel);
+		verticalGroup.addGroup(layout.createSequentialGroup())
+				.addComponent(standardAttributesLabel)
+				.addComponent(showPreviewButton);
 		verticalGroup.addGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup().addComponent(caseLabel).addComponent(caseComboBox))
 				.addGroup(layout.createSequentialGroup().addComponent(eventLabel).addComponent(eventComboBox)));
@@ -165,7 +176,9 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 				.addGroup(layout.createSequentialGroup().addComponent(startTimeLabel).addComponent(startTimeColumnCbx)));
 		
 		ParallelGroup horizontalGroup = layout.createParallelGroup();
-		horizontalGroup.addComponent(standardAttributesLabel);
+		horizontalGroup.addGroup(layout.createParallelGroup())
+				.addComponent(standardAttributesLabel)
+				.addComponent(showPreviewButton);
 		horizontalGroup.addGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup().addComponent(caseLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH).addComponent(caseComboBox, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH))
 				.addGroup(layout.createParallelGroup().addComponent(eventLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH).addComponent(eventComboBox, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));

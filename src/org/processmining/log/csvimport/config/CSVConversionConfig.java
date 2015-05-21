@@ -76,6 +76,7 @@ public final class CSVConversionConfig {
 		private Set<XExtension> extensions = new HashSet<>();
 		private Datatype dataType = Datatype.LITERAL;
 		private String dataPattern = "";
+		private String logAttributeName = "";
 
 		public Datatype getDataType() {
 			return dataType;
@@ -131,6 +132,14 @@ public final class CSVConversionConfig {
 
 		public Set<XExtension> getExtensions() {
 			return extensions;
+		}
+
+		public String getLogAttributeName() {
+			return logAttributeName;
+		}
+
+		public void setLogAttributeName(String logAttributeName) {
+			this.logAttributeName = logAttributeName;
 		}
 
 	}

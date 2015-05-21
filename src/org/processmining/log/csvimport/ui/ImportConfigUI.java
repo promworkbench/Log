@@ -8,7 +8,9 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -27,7 +29,7 @@ import org.processmining.log.csvimport.CSVSeperator;
 import org.processmining.log.csvimport.config.CSVImportConfig;
 
 /**
- * UI for the import configuration (charset, separator, ..) 
+ * UI for the import configuration (charset, separator, ..)
  * 
  * @author F. Mannhardt
  *
@@ -94,7 +96,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 
 			public void report(String charset) {
 				if (charset != null) {
-					charsetCbx.setSelectedItem(charset);	
+					charsetCbx.setSelectedItem(charset);
 				}
 			}
 		});
@@ -114,9 +116,9 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 				importConfig.setSeparator(((CSVSeperator) separatorField.getSelectedItem()));
 				refreshPreview();
 			}
-		});		
+		});
 		autoDetectSeparator(csv, new SeparatorListener() {
-			
+
 			public void separatorDetected(CSVSeperator separator) {
 				separatorField.setSelectedItem(separator);
 			}
@@ -136,40 +138,35 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 				importConfig.setQuoteChar((CSVQuoteCharacter) quoteField.getSelectedItem());
 				refreshPreview();
 			}
-		});			
+		});
 		quoteField.setSelectedItem(importConfig.getQuoteChar());
 		autoDetectQuote(csv, new QuoteListener() {
-			
+
 			public void quoteDetected(CSVQuoteCharacter quote) {
 				quoteField.setSelectedItem(quote);
 			}
-			
+
 		});
 
-		
 		/*
-		escapeField = new ProMComboBox<>(CSVEscapeCharacter.values());
-		escapeField.setPreferredSize(null);
-		escapeField.setMinimumSize(null);
-		JLabel escapeLabel = SlickerFactory.instance().createLabel("Escape Character of the CSV");
-		escapeLabel.setAlignmentX(LEFT_ALIGNMENT);
-		add(escapeLabel);
-		add(escapeField);
-		escapeField.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e) {
-				importConfig.escapeChar = (CSVEscapeCharacter) escapeField.getSelectedItem();
-				refreshPreview();
-			}
-		});	
-		escapeField.setAlignmentX(LEFT_ALIGNMENT);
+		 * escapeField = new ProMComboBox<>(CSVEscapeCharacter.values());
+		 * escapeField.setPreferredSize(null); escapeField.setMinimumSize(null);
+		 * JLabel escapeLabel =
+		 * SlickerFactory.instance().createLabel("Escape Character of the CSV");
+		 * escapeLabel.setAlignmentX(LEFT_ALIGNMENT); add(escapeLabel);
+		 * add(escapeField); escapeField.addActionListener(new ActionListener()
+		 * {
+		 * 
+		 * public void actionPerformed(ActionEvent e) { importConfig.escapeChar
+		 * = (CSVEscapeCharacter) escapeField.getSelectedItem();
+		 * refreshPreview(); } }); escapeField.setAlignmentX(LEFT_ALIGNMENT);
 		 */
-		
+
 		refreshPreview();
 	}
 
 	private void autoDetectQuote(CSVFile csv2, QuoteListener quoteListener) {
-		
+
 	}
 
 	public void showPreviewFrame() {
@@ -212,23 +209,54 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		}
 
 	}
-	
+
 	private void autoDetectSeparator(final CSVFile csvFile, final SeparatorListener listener) {
 		try (BufferedReader reader = new BufferedReader(new FileReader(csvFile.getFile().toFile()))) {
-			String header = reader.readLine();
-			if (header.contains("\t")) {
-				listener.separatorDetected(CSVSeperator.TAB);
-			} else if (header.contains(";")) {
-				listener.separatorDetected(CSVSeperator.SEMICOLON);
-			} else {
-				listener.separatorDetected(CSVSeperator.COMMA);	
-			}		
+			Map<CSVSeperator, Integer> counter = new HashMap<>();
+			for (int i = 0; i < 10; i++) {
+				String line = reader.readLine();
+				if (line == null) {
+					break;
+				}
+				updateCounter(counter, CSVSeperator.COMMA, ",", line);
+				updateCounter(counter, CSVSeperator.TAB, "\t", line);
+				updateCounter(counter, CSVSeperator.SEMICOLON, ";", line);
+			}
+			// now check which are still fine
+			for (CSVSeperator seperator : counter.keySet()) {
+				if (counter.get(seperator) > 1) {
+					listener.separatorDetected(seperator);
+				}
+			}
+			reader.close();
+			//ProMUIHelper.showErrorMessage(this, "", "Error in determining separator character");
 		} catch (IOException e1) {
-			ProMUIHelper.showErrorMessage(this, e1.toString(), "Error reading CSV while determining separator character");
+			ProMUIHelper.showErrorMessage(this, e1.toString(),
+					"Error reading CSV while determining separator character");
 		}
 	}
 
-	/* (non-Javadoc)
+	private void updateCounter(Map<CSVSeperator, Integer> counter, CSVSeperator separator, String token, String line) {
+		String internalLine = line;
+		while (internalLine.contains("\"")) {
+			int startIndex = internalLine.indexOf("\"");
+			int endIndex = internalLine.substring(startIndex + 1, internalLine.length()).indexOf("\"");
+			// now remove the in between part of the string
+			internalLine = internalLine.substring(0, startIndex) + "placeholder"
+					+ internalLine.substring(startIndex + 1 + endIndex + 1, internalLine.length());
+		}
+		if (counter.get(separator) == null) {
+			counter.put(separator, internalLine.split(token).length);
+		} else {
+			if (!counter.get(separator).equals(internalLine.split(token).length)) {
+				counter.put(separator, -1);
+			}
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see javax.swing.JComponent#addNotify()
 	 */
 	@Override
@@ -249,11 +277,11 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 	}
 
 	private void refreshPreview() {
-		
+
 		if (worker != null) {
 			worker.cancel(true);
 		}
-		
+
 		previewFrame.clear();
 
 		// Update Header

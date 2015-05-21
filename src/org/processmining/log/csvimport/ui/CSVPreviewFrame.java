@@ -5,17 +5,19 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.AbstractCellEditor;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -105,7 +107,7 @@ public final class CSVPreviewFrame extends JFrame {
 		}
 
 		public int getRowCount() {
-			return 3;
+			return 4;
 		}
 
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
@@ -129,6 +131,8 @@ public final class CSVPreviewFrame extends JFrame {
 						csvMapping.getExtensions().add((XExtension) aValue);
 					}										
 					break;
+				case 3:
+					throw new IllegalStateException("Should not be able to edit this column!");
 				default :
 					throw new IllegalStateException("Could not find value at row " + rowIndex + " column "
 							+ columnIndex);
@@ -146,6 +150,8 @@ public final class CSVPreviewFrame extends JFrame {
 					return csvMapping.getPattern();
 				case 2:
 					return csvMapping.getExtensions().isEmpty() ? null : csvMapping.getExtensions().iterator().next();
+				case 3:
+					return csvMapping.getLogAttributeName();
 			}
 			throw new IllegalStateException("Could not find value at row " + rowIndex + " column " + columnIndex);
 		}
@@ -163,7 +169,7 @@ public final class CSVPreviewFrame extends JFrame {
 		}
 
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			return true;
+			return rowIndex != 3 ? true : false;
 		}
 
 	}
@@ -188,7 +194,7 @@ public final class CSVPreviewFrame extends JFrame {
 	public CSVPreviewFrame(String[] header, CSVConversionConfig conversionConfig) {
 		super();
 		setTitle("CSV Import: Preview of the Import");
-		getContentPane().setLayout(new GridBagLayout());
+		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 
 		previewTableModel = new BatchUpdateDefaultTableModel(header, 0);
 		previewTable = new ProMTableWithoutPanel(previewTableModel);
@@ -214,6 +220,13 @@ public final class CSVPreviewFrame extends JFrame {
 		previewTable.getTableHeader().setReorderingAllowed(false);
 
 		mainScrollPane = new ProMScrollPane(previewTable);
+		mainScrollPane.setAlignmentY(CENTER_ALIGNMENT);
+		
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new  BoxLayout(mainPanel, BoxLayout.X_AXIS));
+		
+		JPanel rightPanel = new JPanel();
+		rightPanel.setLayout(new  BoxLayout(rightPanel, BoxLayout.Y_AXIS));
 
 		if (conversionConfig != null) {
 			TableModel dataModel = new DataTypeTableModel(conversionConfig, header);
@@ -221,8 +234,9 @@ public final class CSVPreviewFrame extends JFrame {
 			datatypeTable.setTableHeader(null);
 			datatypeTable.setDefaultEditor(Object.class, new MappingCellEditor());
 			datatypeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-			datatypeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			datatypeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);			
 			JScrollPane dataTypeScrollpane = new JScrollPane(datatypeTable);
+			dataTypeScrollpane.setAlignmentY(TOP_ALIGNMENT);
 			dataTypeScrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 			getMainScrollPane().setHorizontalScrollBar(dataTypeScrollpane.getHorizontalScrollBar());
 			
@@ -255,21 +269,22 @@ public final class CSVPreviewFrame extends JFrame {
 
 			});
 			
-			GridBagConstraints c = new GridBagConstraints();
-			c.fill = GridBagConstraints.HORIZONTAL;
-			c.ipady = 42;
-			c.weightx = 1.0;
-			c.weighty = 0.0;
-			c.gridx = 0;			
-			getContentPane().add(dataTypeScrollpane, c);
+			JPanel leftPanel = new JPanel();
+			leftPanel.setLayout(new  BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+			leftPanel.add(new JLabel("Data Type"));			
+			leftPanel.add(new JLabel("Format Pattern"));
+			leftPanel.add(new JLabel("Extension"));
+			leftPanel.add(new JLabel("Log Attribute"));
+			leftPanel.add(Box.createVerticalGlue());
+			mainPanel.add(leftPanel);
+			
+			rightPanel.add(dataTypeScrollpane);
 		}
 
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.BOTH;
-		c.weightx = 1.0;
-		c.weighty = 1.0;
-		c.gridx = 0;
-		getContentPane().add(getMainScrollPane(), c);
+		rightPanel.add(mainScrollPane);
+		mainPanel.add(rightPanel);
+		getContentPane().add(mainPanel);
+
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		pack();
 	}
@@ -332,3 +347,4 @@ public final class CSVPreviewFrame extends JFrame {
 	}
 
 }
+

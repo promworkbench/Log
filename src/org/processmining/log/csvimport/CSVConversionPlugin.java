@@ -24,6 +24,9 @@ import org.processmining.log.csvimport.config.CSVConversionConfig.Datatype;
 import org.processmining.log.csvimport.config.CSVImportConfig;
 import org.processmining.log.csvimport.exception.CSVConversionConfigException;
 import org.processmining.log.csvimport.exception.CSVConversionException;
+import org.processmining.log.csvimport.ui.ConversionConfigUI;
+import org.processmining.log.csvimport.ui.ExpertConfigUI;
+import org.processmining.log.csvimport.ui.ImportConfigUI;
 import org.processmining.log.repair.RepairAttributeDataType;
 import org.processmining.log.repair.RepairAttributeDataType.ReviewCallback;
 
@@ -55,14 +58,14 @@ public final class CSVConversionPlugin {
 		while (result != InteractionResult.FINISHED) {
 			switch (i) {
 				case 0:
-					result = CSVConversion.queryImportConfig(context, csv, importConfig);
+					result = queryImportConfig(context, csv, importConfig);
 					csvConversionConfig = new CSVConversionConfig(csv.readHeader(importConfig));
 					break;
 				case 1:
-					result = CSVConversion.queryConversionConfig(context, csv, importConfig, csvConversionConfig);
+					result = queryConversionConfig(context, csv, importConfig, csvConversionConfig);
 					break;
 				case 2:
-					result = CSVConversion.queryExpertConfig(context, csv, importConfig, csvConversionConfig);
+					result = queryExpertConfig(context, csv, importConfig, csvConversionConfig);
 					break;
 			}
 			if (result == InteractionResult.NEXT || result == InteractionResult.CONTINUE) {
@@ -125,6 +128,24 @@ public final class CSVConversionPlugin {
 			}
 			return convertedLog;
 
+	}
+	
+	public static InteractionResult queryExpertConfig(UIPluginContext context, CSVFile csv, CSVImportConfig importConfig,
+			CSVConversionConfig converionConfig) {
+		ExpertConfigUI expertConfigUI = new ExpertConfigUI(csv, importConfig, converionConfig);
+		return context.showWizard("Configure Import of CSV", false, true, expertConfigUI);
+	}
+
+	public static InteractionResult queryImportConfig(UIPluginContext context, CSVFile csv, CSVImportConfig importConfig) {
+		ImportConfigUI importConfigUI = new ImportConfigUI(csv, importConfig);
+		return context.showWizard("Configure Import of CSV", true, false, importConfigUI);
+	}
+
+	public static InteractionResult queryConversionConfig(UIPluginContext context, CSVFile csv,
+			CSVImportConfig importConfig, CSVConversionConfig conversionConfig) throws IOException {
+		try (ConversionConfigUI conversionConfigUI = new ConversionConfigUI(csv, importConfig, conversionConfig)) {
+			return context.showWizard("Configure Conversion from CSV to XES", false, false, conversionConfigUI);
+		}
 	}
 
 }
