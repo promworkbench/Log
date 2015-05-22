@@ -165,8 +165,11 @@
 		<ivy:retrieve />
 		<copy todir="lib" overwrite="true">
 			<fileset dir="ivy">
+				<include name="univocity-parsers-*.jar"/>
 				<include name="OpenXES-20150501.jar" />
 				<include name="OpenXES-XStream-20150501.jar" />
+				<exclude name="*sources.jar"/>
+				<exclude name="*javadoc.jar"/>
 			</fileset>
 		</copy>
 	</target>

@@ -76,7 +76,8 @@ public final class CSVConversionConfig {
 		private Set<XExtension> extensions = new HashSet<>();
 		private Datatype dataType = Datatype.LITERAL;
 		private String dataPattern = "";
-		private String logAttributeName = "";
+		private String traceAttributeName = "";
+		private String eventAttributeName = "";
 
 		public Datatype getDataType() {
 			return dataType;
@@ -134,12 +135,20 @@ public final class CSVConversionConfig {
 			return extensions;
 		}
 
-		public String getLogAttributeName() {
-			return logAttributeName;
+		public String getTraceAttributeName() {
+			return traceAttributeName;
 		}
 
-		public void setLogAttributeName(String logAttributeName) {
-			this.logAttributeName = logAttributeName;
+		public void setTraceAttributeName(String traceAttributeName) {
+			this.traceAttributeName = traceAttributeName;
+		}
+
+		public String getEventAttributeName() {
+			return eventAttributeName;
+		}
+
+		public void setEventAttributeName(String eventAttributeName) {
+			this.eventAttributeName = eventAttributeName;
 		}
 
 	}
@@ -168,7 +177,11 @@ public final class CSVConversionConfig {
 
 	public CSVConversionConfig(String[] headers) {
 		for (String columnHeader : headers) {
-			conversionMap.put(columnHeader, new CSVMapping());
+			if (columnHeader != null) {
+				CSVMapping mapping = new CSVMapping();
+				mapping.setEventAttributeName(columnHeader);
+				conversionMap.put(columnHeader, mapping);	
+			}
 		}
 		//TODO make configurable
 		treatAsEmptyValues.add("");
@@ -191,6 +204,9 @@ public final class CSVConversionConfig {
 
 	public void setCaseColumns(String[] caseColumns) {
 		this.caseColumns = caseColumns;
+		for (String caseColumn: caseColumns) {
+			getConversionMap().get(caseColumn).traceAttributeName = "concept:name";
+		}
 	}
 
 	public String[] getEventNameColumns() {
@@ -199,6 +215,9 @@ public final class CSVConversionConfig {
 
 	public void setEventNameColumns(String[] eventNameColumns) {
 		this.eventNameColumns = eventNameColumns;
+		for (String eventColumn: eventNameColumns) {
+			getConversionMap().get(eventColumn).eventAttributeName = "concept:name";
+		}
 	}
 
 	public String getCompletionTimeColumn() {
@@ -209,6 +228,7 @@ public final class CSVConversionConfig {
 		if (completionTimeColumn != null && !completionTimeColumn.isEmpty()) {
 			getConversionMap().get(completionTimeColumn).setDataType(Datatype.TIME);
 			getConversionMap().get(completionTimeColumn).setPattern(CSVMapping.DEFAULT_DATE_PATTERN);
+			getConversionMap().get(completionTimeColumn).eventAttributeName = "time:timestamp";
 		}
 		this.completionTimeColumn = completionTimeColumn;
 	}
@@ -221,6 +241,7 @@ public final class CSVConversionConfig {
 		if (startTimeColumn != null && !startTimeColumn.isEmpty()) {
 			getConversionMap().get(startTimeColumn).setDataType(Datatype.TIME);
 			getConversionMap().get(startTimeColumn).setPattern(CSVMapping.DEFAULT_DATE_PATTERN);
+			getConversionMap().get(completionTimeColumn).eventAttributeName = "time:timestamp";
 		}
 		this.startTimeColumn = startTimeColumn;
 	}

@@ -1,6 +1,5 @@
 package org.processmining.log.csvimport.ui;
 
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -14,8 +13,10 @@ import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 
 import org.mozilla.universalchardet.CharsetListener;
@@ -27,6 +28,8 @@ import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csvimport.CSVQuoteCharacter;
 import org.processmining.log.csvimport.CSVSeperator;
 import org.processmining.log.csvimport.config.CSVImportConfig;
+
+import com.fluxicon.slickerbox.components.SlickerButton;
 
 /**
  * UI for the import configuration (charset, separator, ..)
@@ -68,10 +71,26 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		JLabel header = new JLabel("Please choose parameters regarding the format of the CSV file:");
-		header.setFont(header.getFont().deriveFont(Font.BOLD, 18));
-		header.setAlignmentY(LEFT_ALIGNMENT);
-		add(header);
+		JLabel header = new JLabel("<HTML><H2>CSV Parsing Parameters</H2></HTML>");
+		header.setAlignmentX(LEFT_ALIGNMENT);
+		header.setAlignmentY(TOP_ALIGNMENT);
+		
+		JButton showPreviewButton = new SlickerButton("Toggle Preview");
+		showPreviewButton.setAlignmentY(TOP_ALIGNMENT);
+		showPreviewButton.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				togglePreviewFrame();				
+			}
+		});
+		
+		JPanel headerPanel = new JPanel();
+		headerPanel.setOpaque(false);
+		headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.X_AXIS));
+		headerPanel.setAlignmentX(LEFT_ALIGNMENT);
+		headerPanel.add(header);
+		headerPanel.add(showPreviewButton);
+		add(headerPanel);
 
 		add(Box.createVerticalStrut(20));
 
@@ -169,8 +188,12 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 
 	}
 
-	public void showPreviewFrame() {
-		this.previewFrame.showFrame(getRootPane());
+	public void togglePreviewFrame() {
+		if (previewFrame.isVisible()) {
+			previewFrame.setVisible(false);
+		} else {
+			previewFrame.showFrame(getRootPane());	
+		}		
 	}
 
 	private void autoDetectCharset(final CSVFile file, final CharsetListener listener) {
@@ -287,7 +310,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		// Update Header
 		try {
 			previewFrame.setHeader(csv.readHeader(importConfig));
-		} catch (IOException e) {
+		} catch (IOException | ArrayIndexOutOfBoundsException e) {
 			JOptionPane.showMessageDialog(this, "Error parsing CSV " + e.getMessage(), "CSV Parsing Error",
 					JOptionPane.ERROR_MESSAGE);
 			return;

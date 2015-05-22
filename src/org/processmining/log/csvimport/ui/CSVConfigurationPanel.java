@@ -13,7 +13,7 @@ public class CSVConfigurationPanel extends JPanel {
 
 	protected static JLabel createLabel(String caption, String description) {
 		JLabel eventLabel = SlickerFactory.instance().createLabel(
-				"<HTML><B>" + caption + "</B><BR><I>" + description + "</I></HTML>");
+				"<HTML><B>" + caption + "</B><BR/><I>" + description + "</I></HTML>");
 		eventLabel.setAlignmentX(LEFT_ALIGNMENT);
 		eventLabel.setFont(eventLabel.getFont().deriveFont(Font.PLAIN));
 		return eventLabel;

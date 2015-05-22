@@ -44,10 +44,10 @@ import org.processmining.log.csvimport.config.CSVConversionConfig.Datatype;
  * Frame showing a part of the CSV file.
  * 
  * @author F. Mannhardt
- *
+ * 
  */
 public final class CSVPreviewFrame extends JFrame {
-	
+
 	private final class MappingCellEditor extends AbstractCellEditor implements TableCellEditor {
 
 		private static final long serialVersionUID = -8465152263165430372L;
@@ -107,7 +107,7 @@ public final class CSVPreviewFrame extends JFrame {
 		}
 
 		public int getRowCount() {
-			return 4;
+			return 5;
 		}
 
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
@@ -125,13 +125,15 @@ public final class CSVPreviewFrame extends JFrame {
 				case 1 :
 					csvMapping.setPattern((String) aValue);
 					break;
-				case 2:
+				case 2 :
 					csvMapping.getExtensions().clear();
 					if (aValue != null) {
 						csvMapping.getExtensions().add((XExtension) aValue);
-					}										
+					}
 					break;
-				case 3:
+				case 3 :
+					throw new IllegalStateException("Should not be able to edit this column!");
+				case 4 :
 					throw new IllegalStateException("Should not be able to edit this column!");
 				default :
 					throw new IllegalStateException("Could not find value at row " + rowIndex + " column "
@@ -148,10 +150,12 @@ public final class CSVPreviewFrame extends JFrame {
 					return csvMapping.getDataType();
 				case 1 :
 					return csvMapping.getPattern();
-				case 2:
+				case 2 :
 					return csvMapping.getExtensions().isEmpty() ? null : csvMapping.getExtensions().iterator().next();
-				case 3:
-					return csvMapping.getLogAttributeName();
+				case 3 :
+					return csvMapping.getTraceAttributeName();
+				case 4 :
+					return csvMapping.getEventAttributeName();
 			}
 			throw new IllegalStateException("Could not find value at row " + rowIndex + " column " + columnIndex);
 		}
@@ -169,7 +173,7 @@ public final class CSVPreviewFrame extends JFrame {
 		}
 
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			return rowIndex != 3 ? true : false;
+			return rowIndex < 3 ? true : false;
 		}
 
 	}
@@ -220,26 +224,37 @@ public final class CSVPreviewFrame extends JFrame {
 		previewTable.getTableHeader().setReorderingAllowed(false);
 
 		mainScrollPane = new ProMScrollPane(previewTable);
-		mainScrollPane.setAlignmentY(CENTER_ALIGNMENT);
-		
+
 		JPanel mainPanel = new JPanel();
-		mainPanel.setLayout(new  BoxLayout(mainPanel, BoxLayout.X_AXIS));
-		
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
+
 		JPanel rightPanel = new JPanel();
-		rightPanel.setLayout(new  BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
 
 		if (conversionConfig != null) {
 			TableModel dataModel = new DataTypeTableModel(conversionConfig, header);
-			datatypeTable = new JTable(dataModel);			
+			datatypeTable = new JTable(dataModel);
 			datatypeTable.setTableHeader(null);
 			datatypeTable.setDefaultEditor(Object.class, new MappingCellEditor());
 			datatypeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-			datatypeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);			
-			JScrollPane dataTypeScrollpane = new JScrollPane(datatypeTable);
-			dataTypeScrollpane.setAlignmentY(TOP_ALIGNMENT);
+			datatypeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			ProMScrollPane dataTypeScrollpane = new ProMScrollPane(datatypeTable) {
+
+				public Dimension getPreferredSize() {
+					Dimension preferredSize = super.getPreferredSize();
+					preferredSize.height = datatypeTable.getPreferredSize().height;
+					preferredSize.width = Short.MAX_VALUE;
+					return preferredSize;
+				}
+
+				public Dimension getMaximumSize() {
+					return getPreferredSize();
+				}
+				
+			};
 			dataTypeScrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 			getMainScrollPane().setHorizontalScrollBar(dataTypeScrollpane.getHorizontalScrollBar());
-			
+
 			previewTable.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
 
 				public void columnSelectionChanged(ListSelectionEvent e) {
@@ -268,18 +283,20 @@ public final class CSVPreviewFrame extends JFrame {
 				}
 
 			});
-			
+
 			JPanel leftPanel = new JPanel();
-			leftPanel.setLayout(new  BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-			leftPanel.add(new JLabel("Data Type"));			
-			leftPanel.add(new JLabel("Format Pattern"));
-			leftPanel.add(new JLabel("Extension"));
-			leftPanel.add(new JLabel("Log Attribute"));
+			leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+			leftPanel.add(new JLabel("Data Type"));
+			leftPanel.add(new JLabel("Data Pattern"));
+			leftPanel.add(new JLabel("XES Extension"));
+			leftPanel.add(new JLabel("Trace Attribute"));
+			leftPanel.add(new JLabel("Event Attribute"));
 			leftPanel.add(Box.createVerticalGlue());
 			mainPanel.add(leftPanel);
-			
+
 			rightPanel.add(dataTypeScrollpane);
 		}
+
 
 		rightPanel.add(mainScrollPane);
 		mainPanel.add(rightPanel);
@@ -347,4 +364,3 @@ public final class CSVPreviewFrame extends JFrame {
 	}
 
 }
-

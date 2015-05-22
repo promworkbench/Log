@@ -1,7 +1,6 @@
 package org.processmining.log.csvimport.ui;
 
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -12,6 +11,7 @@ import java.util.Map;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.JButton;
@@ -29,6 +29,7 @@ import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVMapping;
 import org.processmining.log.csvimport.config.CSVImportConfig;
 
+import com.fluxicon.slickerbox.components.SlickerButton;
 import com.fluxicon.slickerbox.factory.SlickerFactory;
 import com.google.common.collect.Lists;
 
@@ -49,8 +50,12 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		}
 
 		public void updateSettings() {
-			conversionConfig.getConversionMap().remove(
-					findColumnIndex(headers, conversionConfig.getCompletionTimeColumn()));
+			if (conversionConfig.getCompletionTimeColumn() != null) {
+				conversionConfig.getConversionMap().put(conversionConfig.getCompletionTimeColumn(), new CSVMapping());	
+			}			
+			if (conversionConfig.getStartTimeColumn() != null) {
+				conversionConfig.getConversionMap().put(conversionConfig.getStartTimeColumn(), new CSVMapping());
+			}
 			conversionConfig.setCaseColumns(caseComboBox.getElements().toArray(
 					new String[caseComboBox.getElements().size()]));
 			conversionConfig.setEventNameColumns(eventComboBox.getElements().toArray(
@@ -94,7 +99,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 	private final AbstractCSVReader reader;
 	private final CSVPreviewFrame previewFrame;
-	private int maxLoad = 5000;
+	private int maxLoad = 1000;
 		
 
 	public ConversionConfigUI(final CSVFile csv, final CSVImportConfig importConfig, CSVConversionConfig conversionConfig) throws IOException {		
@@ -110,19 +115,17 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);;
 
-		JLabel standardAttributesLabel = SlickerFactory.instance().createLabel("Mapping to Standard XES Attributes");
-		standardAttributesLabel.setFont(standardAttributesLabel.getFont().deriveFont(Font.BOLD, 18));
-		
-		JButton showPreviewButton = new JButton("Show Preview");
+		JLabel standardAttributesLabel = SlickerFactory.instance().createLabel("<HTML><H2>Mapping to Standard XES Attributes</H2></HTML>");
+		JButton showPreviewButton = new SlickerButton("Toggle Preview");
 		showPreviewButton.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent e) {
-				showPreviewFrame();				
+				togglePreviewFrame();				
 			}
 		});
 
 		caseComboBox = new ProMListSortableWithComboBox<>(new DefaultComboBoxModel<>(headers));
-		JLabel caseLabel = createLabel("Case Column (Optional)", "Groups events into traces, and is mapped to 'concept:name' of the trace. Select one or more columns by choosing from the box below, re-order by drag & drop and remove with the 'DELETE' key.");
+		JLabel caseLabel = createLabel("Case Column (Optional)", "Groups events into traces, and is mapped to 'concept:name' of the trace. Select one or more columns, re-order by drag & drop.");
 		caseComboBox.getListModel().addListDataListener(new ListDataListener() {
 
 			public void intervalRemoved(ListDataEvent e) {
@@ -139,7 +142,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		});
 
 		eventComboBox = new ProMListSortableWithComboBox<>(new DefaultComboBoxModel<>(headers));
-		JLabel eventLabel = createLabel("Event Column (Optional)", "Mapped to 'concept:name'. Select one or more columns by choosing from the box below, re-order by drag & drop and remove with the 'DELETE' key.");
+		JLabel eventLabel = createLabel("Event Column (Optional)", "Mapped to 'concept:name' of the event. Select one or more columns, re-order by drag & drop.");
 		eventComboBox.getListModel().addListDataListener(new ListDataListener() {
 
 			public void intervalRemoved(ListDataEvent e) {
@@ -165,9 +168,9 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 		
 		SequentialGroup verticalGroup = layout.createSequentialGroup();
-		verticalGroup.addGroup(layout.createSequentialGroup())
+		verticalGroup.addGroup(layout.createParallelGroup(Alignment.CENTER)
 				.addComponent(standardAttributesLabel)
-				.addComponent(showPreviewButton);
+				.addComponent(showPreviewButton));
 		verticalGroup.addGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup().addComponent(caseLabel).addComponent(caseComboBox))
 				.addGroup(layout.createSequentialGroup().addComponent(eventLabel).addComponent(eventComboBox)));
@@ -176,9 +179,9 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 				.addGroup(layout.createSequentialGroup().addComponent(startTimeLabel).addComponent(startTimeColumnCbx)));
 		
 		ParallelGroup horizontalGroup = layout.createParallelGroup();
-		horizontalGroup.addGroup(layout.createParallelGroup())
+		horizontalGroup.addGroup(layout.createSequentialGroup()
 				.addComponent(standardAttributesLabel)
-				.addComponent(showPreviewButton);
+				.addComponent(showPreviewButton));
 		horizontalGroup.addGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup().addComponent(caseLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH).addComponent(caseComboBox, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH))
 				.addGroup(layout.createParallelGroup().addComponent(eventLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH).addComponent(eventComboBox, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
@@ -217,14 +220,18 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		
 	}
 
-	private void showPreviewFrame() {
-		previewFrame.showFrame(this);
-		try {
-			// Update Content
-			new LoadCSVRecordsWorker().execute();
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "Error parsing CSV " + e.getMessage(), "CSV Parsing Error",
-					JOptionPane.ERROR_MESSAGE);
+	private void togglePreviewFrame() {
+		if (!previewFrame.isVisible()) {
+			previewFrame.showFrame(this);
+			try {
+				// Update Content
+				new LoadCSVRecordsWorker().execute();
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(this, "Error parsing CSV " + e.getMessage(), "CSV Parsing Error",
+						JOptionPane.ERROR_MESSAGE);
+			}	
+		} else {
+			previewFrame.setVisible(false);
 		}
 	}
 
@@ -275,7 +282,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 	@Override
 	public void addNotify() {
 		super.addNotify();
-		showPreviewFrame();
+		togglePreviewFrame();
 	}
 
 	/*
@@ -291,17 +298,6 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 	public CSVConversionConfig getConversionConfig() {
 		return conversionConfig;
-	}
-
-	private int findColumnIndex(String[] header, String caseColumn) {
-		int i = 0;
-		for (String column : header) {
-			if (column!=null&&column.equals(caseColumn)) {
-				return i;
-			}
-			i++;
-		}
-		return -1;
 	}
 
 	/*

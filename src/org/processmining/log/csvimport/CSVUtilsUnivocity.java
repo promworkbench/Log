@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 
 import org.processmining.log.csvimport.config.CSVImportConfig;
 
@@ -27,13 +28,13 @@ public class CSVUtilsUnivocity {
 		super();
 	}
 
-	public static CsvParser createCSVReader(InputStream is, CSVImportConfig importConfig){
+	public static CsvParser createCSVReader(InputStream is, CSVImportConfig importConfig) throws UnsupportedEncodingException{
 		CsvParserSettings settings = new CsvParserSettings();
 		settings.getFormat().setDelimiter(importConfig.getSeparator().getSeperatorChar());
 		settings.getFormat().setQuote(importConfig.getQuoteChar().getQuoteChar());
 		settings.getFormat().setCharToEscapeQuoteEscaping(importConfig.getEscapeChar().getEscapeChar());
 		CsvParser parser = new CsvParser(settings);
-		parser.beginParsing(new BufferedReader(new InputStreamReader(is), BUFFER_SIZE));
+		parser.beginParsing(new BufferedReader(new InputStreamReader(is, importConfig.getCharset()), BUFFER_SIZE));
 		return parser;
 	}
 
