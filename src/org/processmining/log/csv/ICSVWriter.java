@@ -2,10 +2,10 @@ package org.processmining.log.csv;
 
 import java.io.IOException;
 
-public interface AbstractCSVReader extends AutoCloseable {
+public interface ICSVWriter {
 
-	String[] readNext() throws IOException;
-
+	void writeNext(String[] value);
+	
 	void close() throws IOException;
-
+	
 }

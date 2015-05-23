@@ -1,10 +1,6 @@
-package org.processmining.log.csvimport.config;
+package org.processmining.log.csv.config;
 
 import java.nio.charset.Charset;
-
-import org.processmining.log.csvimport.CSVEscapeCharacter;
-import org.processmining.log.csvimport.CSVQuoteCharacter;
-import org.processmining.log.csvimport.CSVSeperator;
 
 /**
  * Configuration for the import of the CSV
@@ -12,11 +8,11 @@ import org.processmining.log.csvimport.CSVSeperator;
  * @author F. Mannhardt
  *
  */
-public final class CSVImportConfig {
+public final class CSVConfig {
 	
 	private String charset = Charset.defaultCharset().name();
 	private CSVSeperator separator = CSVSeperator.COMMA;
-	private CSVQuoteCharacter quoteChar = CSVQuoteCharacter.NONE;
+	private CSVQuoteCharacter quoteChar = CSVQuoteCharacter.DOUBLE_QUOTE;
 	private CSVEscapeCharacter escapeChar = CSVEscapeCharacter.QUOTE;
 
 	public String getCharset() {

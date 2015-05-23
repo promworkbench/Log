@@ -23,11 +23,11 @@ import org.mozilla.universalchardet.CharsetListener;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
-import org.processmining.log.csv.AbstractCSVReader;
+import org.processmining.log.csv.ICSVReader;
 import org.processmining.log.csv.CSVFile;
-import org.processmining.log.csvimport.CSVQuoteCharacter;
-import org.processmining.log.csvimport.CSVSeperator;
-import org.processmining.log.csvimport.config.CSVImportConfig;
+import org.processmining.log.csv.config.CSVConfig;
+import org.processmining.log.csv.config.CSVQuoteCharacter;
+import org.processmining.log.csv.config.CSVSeperator;
 
 import com.fluxicon.slickerbox.components.SlickerButton;
 
@@ -52,7 +52,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 	private static final int MAX_PREVIEW = 1000;
 
 	private final CSVFile csv;
-	private final CSVImportConfig importConfig;
+	private final CSVConfig importConfig;
 
 	private final ProMComboBox<String> charsetCbx;
 	private final ProMComboBox<CSVSeperator> separatorField;
@@ -63,7 +63,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 
 	private SwingWorker<Void, Object[]> worker;
 
-	public ImportConfigUI(final CSVFile csv, final CSVImportConfig importConfig) {
+	public ImportConfigUI(final CSVFile csv, final CSVConfig importConfig) {
 		super();
 		this.importConfig = importConfig;
 		this.csv = csv;
@@ -320,7 +320,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 
 			protected Void doInBackground() throws Exception {
 
-				try (AbstractCSVReader reader = csv.createReader(importConfig)) {
+				try (ICSVReader reader = csv.createReader(importConfig)) {
 					// Skip header
 					reader.readNext();
 					String[] nextLine;
@@ -350,7 +350,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		}
 	}
 
-	public CSVImportConfig getImportConfig() {
+	public CSVConfig getImportConfig() {
 		return importConfig;
 	}
 

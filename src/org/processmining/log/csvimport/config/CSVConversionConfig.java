@@ -22,7 +22,7 @@ import org.deckfour.xes.factory.XFactoryRegistry;
  * Configuration regarding the conversion of the CSV file.
  * 
  * @author F. Mannhardt
- *
+ * 
  */
 public final class CSVConversionConfig {
 
@@ -55,7 +55,7 @@ public final class CSVConversionConfig {
 		public String toString() {
 			return desc;
 		}
-		
+
 	}
 
 	public enum Datatype {
@@ -73,7 +73,7 @@ public final class CSVConversionConfig {
 				XTimeExtension.instance(), XLifecycleExtension.instance(), XCostExtension.instance(),
 				XOrganizationalExtension.instance() };
 
-		private Set<XExtension> extensions = new HashSet<>();
+		private XExtension extension = null;
 		private Datatype dataType = Datatype.LITERAL;
 		private String dataPattern = "";
 		private String traceAttributeName = "";
@@ -131,8 +131,12 @@ public final class CSVConversionConfig {
 			this.dataPattern = dataPattern;
 		}
 
-		public Set<XExtension> getExtensions() {
-			return extensions;
+		public void setExtension(XExtension extension) {
+			this.extension = extension;
+		}
+
+		public XExtension getExtension() {
+			return extension;
 		}
 
 		public String getTraceAttributeName() {
@@ -180,7 +184,7 @@ public final class CSVConversionConfig {
 			if (columnHeader != null) {
 				CSVMapping mapping = new CSVMapping();
 				mapping.setEventAttributeName(columnHeader);
-				conversionMap.put(columnHeader, mapping);	
+				conversionMap.put(columnHeader, mapping);
 			}
 		}
 		//TODO make configurable
@@ -204,7 +208,7 @@ public final class CSVConversionConfig {
 
 	public void setCaseColumns(String[] caseColumns) {
 		this.caseColumns = caseColumns;
-		for (String caseColumn: caseColumns) {
+		for (String caseColumn : caseColumns) {
 			getConversionMap().get(caseColumn).traceAttributeName = "concept:name";
 		}
 	}
@@ -215,7 +219,7 @@ public final class CSVConversionConfig {
 
 	public void setEventNameColumns(String[] eventNameColumns) {
 		this.eventNameColumns = eventNameColumns;
-		for (String eventColumn: eventNameColumns) {
+		for (String eventColumn : eventNameColumns) {
 			getConversionMap().get(eventColumn).eventAttributeName = "concept:name";
 		}
 	}

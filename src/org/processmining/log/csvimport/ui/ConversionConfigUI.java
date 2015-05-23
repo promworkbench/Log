@@ -23,11 +23,11 @@ import javax.swing.event.ListDataListener;
 
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.ProMListSortableWithComboBox;
-import org.processmining.log.csv.AbstractCSVReader;
+import org.processmining.log.csv.ICSVReader;
 import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csv.config.CSVConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVMapping;
-import org.processmining.log.csvimport.config.CSVImportConfig;
 
 import com.fluxicon.slickerbox.components.SlickerButton;
 import com.fluxicon.slickerbox.factory.SlickerFactory;
@@ -97,12 +97,12 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 	private final ProMComboBox<String> completionTimeColumnCbx;
 	private final ProMComboBox<String> startTimeColumnCbx;
 
-	private final AbstractCSVReader reader;
+	private final ICSVReader reader;
 	private final CSVPreviewFrame previewFrame;
 	private int maxLoad = 1000;
 		
 
-	public ConversionConfigUI(final CSVFile csv, final CSVImportConfig importConfig, CSVConversionConfig conversionConfig) throws IOException {		
+	public ConversionConfigUI(final CSVFile csv, final CSVConfig importConfig, CSVConversionConfig conversionConfig) throws IOException {		
 		GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);		
 		setMaximumSize(new Dimension(COLUMN_WIDTH * 2, Short.MAX_VALUE));

@@ -126,9 +126,10 @@ public final class CSVPreviewFrame extends JFrame {
 					csvMapping.setPattern((String) aValue);
 					break;
 				case 2 :
-					csvMapping.getExtensions().clear();
 					if (aValue != null) {
-						csvMapping.getExtensions().add((XExtension) aValue);
+						csvMapping.setExtension((XExtension) aValue);
+					} else {
+						csvMapping.setExtension(null);
 					}
 					break;
 				case 3 :
@@ -151,7 +152,7 @@ public final class CSVPreviewFrame extends JFrame {
 				case 1 :
 					return csvMapping.getPattern();
 				case 2 :
-					return csvMapping.getExtensions().isEmpty() ? null : csvMapping.getExtensions().iterator().next();
+					return csvMapping.getExtension();
 				case 3 :
 					return csvMapping.getTraceAttributeName();
 				case 4 :

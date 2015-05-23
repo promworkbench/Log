@@ -16,10 +16,10 @@ import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csv.config.CSVConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVEmptyCellHandlingMode;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVErrorHandlingMode;
-import org.processmining.log.csvimport.config.CSVImportConfig;
 
 import com.fluxicon.slickerbox.factory.SlickerFactory;
 import com.google.common.base.Function;
@@ -81,7 +81,7 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 	private final ProMComboBox<CSVEmptyCellHandlingMode> emptyCellHandlingModeCbx;
 	private final ProMComboBox<CSVErrorHandlingMode> errorHandlingModeCbx;
 
-	public ExpertConfigUI(final CSVFile csv, final CSVImportConfig importConfig, final CSVConversionConfig conversionConfig) {
+	public ExpertConfigUI(final CSVFile csv, final CSVConfig importConfig, final CSVConversionConfig conversionConfig) {
 		super();
 		GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);		

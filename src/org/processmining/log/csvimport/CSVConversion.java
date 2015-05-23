@@ -19,19 +19,18 @@ import java.util.regex.Pattern;
 import org.deckfour.xes.model.XLog;
 import org.processmining.framework.plugin.Progress;
 import org.processmining.log.csv.CSVFile;
-import org.processmining.log.csv.CSVFileReference;
+import org.processmining.log.csv.CSVFileReferenceOpenCSVImpl;
+import org.processmining.log.csv.ICSVReader;
+import org.processmining.log.csv.config.CSVConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVEmptyCellHandlingMode;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVErrorHandlingMode;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVMapping;
-import org.processmining.log.csvimport.config.CSVImportConfig;
 import org.processmining.log.csvimport.exception.CSVConversionConfigException;
 import org.processmining.log.csvimport.exception.CSVConversionException;
 import org.processmining.log.csvimport.exception.CSVSortException;
 import org.processmining.log.csvimport.handler.CSVConversionHandler;
 import org.processmining.log.csvimport.handler.XESConversionHandlerImpl;
-
-import au.com.bytecode.opencsv.CSVReader;
 
 import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Ordering;
@@ -142,7 +141,7 @@ public final class CSVConversion {
 	}
 
 	/**
-	 * Convert a {@link CSVFileReference} into an {@link XLog} using the
+	 * Convert a {@link CSVFileReferenceOpenCSVImpl} into an {@link XLog} using the
 	 * supplied configuration.
 	 * 
 	 * @param progressListener
@@ -154,16 +153,16 @@ public final class CSVConversion {
 	 * @throws CSVConversionConfigException
 	 */
 	public XLog doConvertCSVToXES(final ProgressListener progressListener, CSVFile csvFile,
-			CSVImportConfig importConfig, CSVConversionConfig conversionConfig) throws CSVConversionException,
+			CSVConfig importConfig, CSVConversionConfig conversionConfig) throws CSVConversionException,
 			CSVConversionConfigException {
 		return convertCSV(progressListener, importConfig, conversionConfig, csvFile, new XESConversionHandlerImpl(
 				progressListener, importConfig, conversionConfig));
 	}
 
 	/**
-	 * Converts a {@link CSVFileReference} into something determined by the
+	 * Converts a {@link CSVFileReferenceOpenCSVImpl} into something determined by the
 	 * supplied {@link CSVConversionHandler}. Use
-	 * {@link #doConvertCSVToXES(ProgressListener, CSVFileReference, CSVImportConfig, CSVConversionConfig)}
+	 * {@link #doConvertCSVToXES(ProgressListener, CSVFileReferenceOpenCSVImpl, CSVConfig, CSVConversionConfig)}
 	 * in case you want to convert to an {@link XLog}.
 	 * 
 	 * @param progress
@@ -175,7 +174,7 @@ public final class CSVConversion {
 	 * @throws CSVConversionException
 	 * @throws CSVConversionConfigException
 	 */
-	public <R> R convertCSV(ProgressListener progress, CSVImportConfig config, CSVConversionConfig conversionConfig,
+	public <R> R convertCSV(ProgressListener progress, CSVConfig config, CSVConversionConfig conversionConfig,
 			CSVFile csvFile, CSVConversionHandler<R> conversionHandler) throws CSVConversionException,
 			CSVConversionConfigException {
 
@@ -236,7 +235,7 @@ public final class CSVConversion {
 		try {
 			try {
 				long startSortTime = System.currentTimeMillis();
-				int maxMemory = (int) ((Runtime.getRuntime().maxMemory() * 0.50) / 1024 / 1024);
+				int maxMemory = (int) ((Runtime.getRuntime().maxMemory() * 0.30) / 1024 / 1024);
 				progress.log(String.format(
 						"Sorting CSV file (%.2f MB) by case and time using maximal %s MB of memory ...",
 						((double) csvFile.getFileSizeInBytes() / 1024 / 1024), maxMemory));
@@ -254,7 +253,7 @@ public final class CSVConversion {
 
 			// The following code assumes that the file is sorted by cases and written to disk compressed with LZF
 			progress.log("Reading cases ...");
-			try (CSVReader reader = CSVUtils.createCSVReader(sortedCsvInputStream, config)) {
+			try (ICSVReader reader = csvFile.getCSV().createReader(sortedCsvInputStream, config)) {
 
 				int caseIndex = 0;
 				int eventIndex = 0;

@@ -2,12 +2,10 @@ package org.processmining.log.csvimport.handler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import org.deckfour.xes.extension.XExtension;
 import org.deckfour.xes.extension.std.XConceptExtension;
@@ -21,10 +19,10 @@ import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csv.config.CSVConfig;
 import org.processmining.log.csvimport.CSVConversion.ProgressListener;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVErrorHandlingMode;
-import org.processmining.log.csvimport.config.CSVImportConfig;
 import org.processmining.log.csvimport.exception.CSVConversionException;
 import org.processmining.log.utils.XUtils;
 
@@ -55,7 +53,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 
 	private boolean errorDetected = false;
 
-	public XESConversionHandlerImpl(ProgressListener progress, CSVImportConfig importConfig,
+	public XESConversionHandlerImpl(ProgressListener progress, CSVConfig importConfig,
 			CSVConversionConfig conversionConfig) {
 		this.progress = progress;
 		this.conversionConfig = conversionConfig;
@@ -144,36 +142,36 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 
 	public void startAttribute(String name, String value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeLiteral(name, value, null), getExtensionsFromConfig(name));
+			assignAttribute(currentEvent, factory.createAttributeLiteral(name, value, getExtensionFromConfig(name)));
 		}
 	}
 
 	public void startAttribute(String name, long value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeDiscrete(name, value, null), getExtensionsFromConfig(name));
+			assignAttribute(currentEvent, factory.createAttributeDiscrete(name, value, getExtensionFromConfig(name)));
 		}
 	}
 
 	public void startAttribute(String name, double value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeContinuous(name, value, null), getExtensionsFromConfig(name));
+			assignAttribute(currentEvent, factory.createAttributeContinuous(name, value, getExtensionFromConfig(name)));
 		}
 	}
 
 	public void startAttribute(String name, Date value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeTimestamp(name, value, null), getExtensionsFromConfig(name));
+			assignAttribute(currentEvent, factory.createAttributeTimestamp(name, value, getExtensionFromConfig(name)));
 		}
 	}
 
 	public void startAttribute(String name, boolean value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeBoolean(name, value, null), getExtensionsFromConfig(name));
+			assignAttribute(currentEvent, factory.createAttributeBoolean(name, value, getExtensionFromConfig(name)));
 		}
 	}
 	
-	private Set<XExtension> getExtensionsFromConfig(String name) {
-		return conversionConfig.getConversionMap().get(name).getExtensions();
+	private XExtension getExtensionFromConfig(String name) {
+		return conversionConfig.getConversionMap().get(name).getExtension();
 	}
 
 	public void endAttribute() {
@@ -197,13 +195,8 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		progress.log(conversionErrors.toString());
 		return log;
 	}
-	
-	private static void assignAttribute(XAttributable a, XAttribute value) {
-		assignAttribute(a, value, Collections.<XExtension>emptyList());
-	}
 
-	private static void assignAttribute(XAttributable a, XAttribute value, Collection<XExtension> extensions) {
-		value.getExtensions().addAll(extensions);
+	private static void assignAttribute(XAttributable a, XAttribute value) {
 		a.getAttributes().put(value.getKey(), value);
 	}
 

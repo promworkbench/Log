@@ -1,12 +1,10 @@
 package org.processmining.log.csvimport;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.util.Comparator;
@@ -19,12 +17,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csv.ICSVReader;
+import org.processmining.log.csv.ICSVWriter;
+import org.processmining.log.csv.config.CSVConfig;
 import org.processmining.log.csvimport.CSVConversion.ProgressListener;
-import org.processmining.log.csvimport.config.CSVImportConfig;
 import org.processmining.log.csvimport.exception.CSVSortException;
-
-import au.com.bytecode.opencsv.CSVReader;
-import au.com.bytecode.opencsv.CSVWriter;
 
 import com.fasterxml.sort.DataReader;
 import com.fasterxml.sort.DataReaderFactory;
@@ -41,22 +38,24 @@ import com.ning.compress.lzf.parallel.PLZFOutputStream;
  * Sorts an {@link CSVFile}
  * 
  * @author F. Mannhardt
- *
+ * 
  */
 final class CSVSorter {
 
-	private static final class UncompressedOpenCSVReader extends DataReader<String[]> {
+	private static final class UncompressedCSVReaderWithoutHeader extends DataReader<String[]> {
 
 		private static final int MAX_COLUMNS_FOR_ERROR_REPORTING = 32;
 		private static final int MAX_FIELD_LENGTH_FOR_ERROR_REPORTING = 64;
-		
-		private final CSVReader reader;
+
+		private final ICSVReader reader;
 		private final int numColumns;
 
-		private UncompressedOpenCSVReader(InputStream inputStream, CSVImportConfig importConfig, int numColumns)
-				throws UnsupportedEncodingException {
+		private UncompressedCSVReaderWithoutHeader(CSVFile csvFile, CSVConfig importConfig, int numColumns)
+				throws IOException {
 			this.numColumns = numColumns;
-			this.reader = CSVUtils.createCSVReader(inputStream, importConfig);
+			this.reader = csvFile.createReader(importConfig);
+			// Skip header line
+			this.reader.readNext();
 		}
 
 		public void close() throws IOException {
@@ -88,31 +87,37 @@ final class CSVSorter {
 				sb.append('[');
 				for (int i = 0;; i++) {
 					String value = valueArray[i];
-					if (value.length() < MAX_FIELD_LENGTH_FOR_ERROR_REPORTING) {
-						sb.append(value);
-					} else {
-						sb.append(value.substring(0, MAX_FIELD_LENGTH_FOR_ERROR_REPORTING-1));
+					if (value != null) {
+						if (value.length() < MAX_FIELD_LENGTH_FOR_ERROR_REPORTING) {
+							sb.append(value);
+						} else {
+							sb.append(value.substring(0, MAX_FIELD_LENGTH_FOR_ERROR_REPORTING - 1));
+						}
+						if (i > MAX_COLUMNS_FOR_ERROR_REPORTING) {
+							return sb.append(String.format("[... omitted %s further columns]", valueArray.length - i))
+									.toString();
+						}
+						if (i == valueArray.length - 1)
+							return sb.append(']').toString();
+						sb.append(", ");
 					}
-					if (i > MAX_COLUMNS_FOR_ERROR_REPORTING) {
-						return sb.append(String.format("[... omitted %s further columns]", valueArray.length - i)).toString();
-					}
-					if (i == valueArray.length-1)
-						return sb.append(']').toString();
-					sb.append(", ");
 				}
 			}
 		}
 	}
 
-	private static final class CompressedOpenCSVDataWriterFactory extends DataWriterFactory<String[]> {
-		private final CSVImportConfig importConfig;
+	private static final class CompressedCSVDataWriterFactory extends DataWriterFactory<String[]> {
+		
+		private final CSVConfig importConfig;
+		private final CSVFile csvFile;
 
-		private CompressedOpenCSVDataWriterFactory(CSVImportConfig importConfig) {
+		private CompressedCSVDataWriterFactory(CSVFile csvFile, CSVConfig importConfig) {
+			this.csvFile = csvFile;
 			this.importConfig = importConfig;
 		}
 
 		public DataWriter<String[]> constructWriter(OutputStream os) throws IOException {
-			final CSVWriter writer = CSVUtils.createCSVWriter(new PLZFOutputStream(os), importConfig);
+			final ICSVWriter writer = csvFile.getCSV().createWriter(new PLZFOutputStream(os), importConfig);
 			// Write Header
 			return new DataWriter<String[]>() {
 
@@ -121,21 +126,24 @@ final class CSVSorter {
 				}
 
 				public void writeEntry(String[] val) throws IOException {
-					writer.writeNext(val, false);
+					writer.writeNext(val);
 				}
 			};
 		}
 	}
 
-	private static final class CompressedOpenCSVDataReaderFactory extends DataReaderFactory<String[]> {
-		private final CSVImportConfig importConfig;
+	private static final class CompressedCSVDataReaderFactory extends DataReaderFactory<String[]> {
+		
+		private final CSVConfig importConfig;
+		private final CSVFile csvFile;
 
-		private CompressedOpenCSVDataReaderFactory(CSVImportConfig importConfig) {
+		private CompressedCSVDataReaderFactory(CSVFile csvFile, CSVConfig importConfig) {
+			this.csvFile = csvFile;
 			this.importConfig = importConfig;
 		}
 
 		public DataReader<String[]> constructReader(InputStream is) throws IOException {
-			final CSVReader reader = CSVUtils.createCSVReader(new LZFInputStream(is), importConfig);
+			final ICSVReader reader = csvFile.getCSV().createReader(new LZFInputStream(is), importConfig);
 			return new DataReader<String[]>() {
 
 				public void close() throws IOException {
@@ -170,14 +178,14 @@ final class CSVSorter {
 	 * @throws CSVSortException
 	 */
 	public static File sortCSV(final CSVFile csvFile, final Comparator<String[]> rowComparator,
-			final CSVImportConfig importConfig, final int maxMemory, final int numOfColumnsInCSV,
+			final CSVConfig importConfig, final int maxMemory, final int numOfColumnsInCSV,
 			final ProgressListener progress) throws CSVSortException {
 
 		// Create Sorter
-		final CompressedOpenCSVDataReaderFactory dataReaderFactory = new CompressedOpenCSVDataReaderFactory(
-				importConfig);
-		final CompressedOpenCSVDataWriterFactory dataWriterFactory = new CompressedOpenCSVDataWriterFactory(
-				importConfig);
+		final CompressedCSVDataReaderFactory dataReaderFactory = new CompressedCSVDataReaderFactory(
+				csvFile, importConfig);
+		final CompressedCSVDataWriterFactory dataWriterFactory = new CompressedCSVDataWriterFactory(
+				csvFile, importConfig);
 		final IteratingSorter<String[]> sorter = new IteratingSorter<>(new SortConfig().withMaxMemoryUsage(
 				maxMemory * 1024l * 1024l).withTempFileProvider(new TempFileProvider() {
 
@@ -192,9 +200,7 @@ final class CSVSorter {
 			public File call() throws Exception {
 
 				// Read uncompressed CSV
-				InputStream inputStream = skipFirstLine(CSVUtils.getCSVInputStream(csvFile));
-				DataReader<String[]> inputDataReader = new UncompressedOpenCSVReader(inputStream, importConfig,
-						numOfColumnsInCSV);
+				DataReader<String[]> inputDataReader = new UncompressedCSVReaderWithoutHeader(csvFile, importConfig, numOfColumnsInCSV);
 				try {
 					Iterator<String[]> result = sorter.sort(inputDataReader);
 
@@ -264,25 +270,27 @@ final class CSVSorter {
 		}
 	}
 
-	private static InputStream skipFirstLine(InputStream inputStream) throws IOException {
-		InputStream is = new BufferedInputStream(inputStream);
-		int val = -1;
-		do {
-			val = (byte) is.read();
-		} while (val != -1 && ((val != '\n') && val != '\r'));
-		is.mark(1);
-		if (is.read() == '\n') {
-			return is;
-		} else {
-			is.reset();
-			return is;
-		}
-	}
+//	private static InputStream skipFirstLine(InputStream inputStream) throws IOException {
+//		InputStream is = new BufferedInputStream(inputStream);
+//		int val = -1;
+//		do {
+//			val = (byte) is.read();
+//		} while (val != -1 && ((val != '\n') && val != '\r'));
+//		is.mark(1);
+//		if (is.read() == '\n') {
+//			return is;
+//		} else {
+//			is.reset();
+//			return is;
+//		}
+//	}
 
 	private static int estimateSize(String[] item) {
 		int size = 8 * ((item.length * 4 + 12) / 8);
 		for (String s : item) {
-			size += 8 * ((((s.length()) * 2) + 45) / 8);
+			if (s != null) {
+				size += 8 * ((((s.length()) * 4) + 45) / 8);
+			}
 		}
 		return size;
 	}

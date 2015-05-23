@@ -8,7 +8,7 @@ import org.processmining.framework.abstractplugins.AbstractImportPlugin;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.log.csv.CSVFile;
-import org.processmining.log.csv.CSVFileReferenceUnivocity;
+import org.processmining.log.csv.CSVFileReferenceUnivocityImpl;
 
 /**
  * Converts a {@link CSVFile} to {@link XLog}.
@@ -24,7 +24,7 @@ public final class CSVImportPluginUnivocity extends AbstractImportPlugin {
 	protected CSVFile importFromStream(final PluginContext context, final InputStream input, final String filename,
 			final long fileSizeInBytes) throws Exception {
 		context.getFutureResult(0).setLabel("Imported CSV: "+filename);
-		return new CSVFileReferenceUnivocity(getFile().toPath(), filename, fileSizeInBytes);
+		return new CSVFileReferenceUnivocityImpl(getFile().toPath(), filename, fileSizeInBytes);
 	}
 
 }

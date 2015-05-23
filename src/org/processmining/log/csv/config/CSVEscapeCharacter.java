@@ -1,4 +1,4 @@
-package org.processmining.log.csvimport;
+package org.processmining.log.csv.config;
 
 public enum CSVEscapeCharacter {
 	
