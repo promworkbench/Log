@@ -43,9 +43,11 @@ import com.google.common.io.Files;
  */
 public final class CSVConversionPlugin {
 
-	@Plugin(name = "Convert CSV to XES", parameterLabels = { "CSV" }, returnLabels = { "XES Log" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, keywords = {
-			"CSV", "XES", "Conversion" }, help = "Converts the CSV file to a XES XLog object.")
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt", email = "f.mannhardt@tue.nl", website = "http://fmannhardt.de")
+	@Plugin(name = "Convert CSV to XES", parameterLabels = { "CSV" }, returnLabels = { "XES Event Log" }, // 
+			returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,// 
+			keywords = {"CSV", "OpenXES", "Conversion", "Import" }, help = "Converts the CSV file to a OpenXES XLog object.")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt, N. Tax, D. Schunselaar", // 
+			email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl")
 	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csv) throws IOException {
 
 		InteractionResult result = InteractionResult.CONTINUE;
