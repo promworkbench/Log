@@ -341,7 +341,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 				}
 				for (int j = 0; j < cells.length; j++) {
 					List<String> values = valuesPerColumn.get(header[j]);
-					values.add(values.get(j));
+					values.add(cells[j]);
 					valuesPerColumn.put(header[j], values);
 				}
 			}

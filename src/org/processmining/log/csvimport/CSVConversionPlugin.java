@@ -46,7 +46,7 @@ public final class CSVConversionPlugin {
 	@Plugin(name = "Convert CSV to XES", parameterLabels = { "CSV" }, returnLabels = { "XES Event Log" }, // 
 			returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,// 
 			keywords = {"CSV", "OpenXES", "Conversion", "Import" }, help = "Converts the CSV file to a OpenXES XLog object.")
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt, N. Tax, D. Schunselaar", // 
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt, N. Tax, D.M.M. Schunselaar", // 
 			email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl")
 	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csv) throws IOException {
 
