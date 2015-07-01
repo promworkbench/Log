@@ -36,6 +36,9 @@ import org.deckfour.xes.classification.XEventLifeTransClassifier;
 import org.deckfour.xes.classification.XEventNameClassifier;
 import org.deckfour.xes.extension.XExtension;
 import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.extension.std.XCostExtension;
+import org.deckfour.xes.extension.std.XLifecycleExtension;
+import org.deckfour.xes.extension.std.XOrganizationalExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
@@ -68,6 +71,34 @@ public class XUtils {
 
 	public static final XEventClassifier STANDARDCLASSIFIER = new XEventAndClassifier(new XEventNameClassifier(),
 			new XEventLifeTransClassifier());
+
+	/**
+	 * Returns whether the attribute key matches one of the registered standard
+	 * extensions of XES. 
+	 * 
+	 * @param attribute
+	 * @return whether the attribute is one of the standard extension attributes
+	 */
+	public static boolean isStandardExtensionAttribute(XAttribute attribute) {
+		// Lets hope that the JIT is clever enough to transform this to a hash table
+		switch (attribute.getKey()) {
+			case XConceptExtension.KEY_NAME:
+			case XConceptExtension.KEY_INSTANCE:
+			case XTimeExtension.KEY_TIMESTAMP:
+			case XLifecycleExtension.KEY_MODEL:
+			case XLifecycleExtension.KEY_TRANSITION:
+			case XOrganizationalExtension.KEY_GROUP:
+			case XOrganizationalExtension.KEY_RESOURCE:
+			case XOrganizationalExtension.KEY_ROLE:
+			case XCostExtension.KEY_AMOUNT:
+			case XCostExtension.KEY_CURRENCY:
+			case XCostExtension.KEY_DRIVER:
+			case XCostExtension.KEY_TOTAL:
+			case XCostExtension.KEY_TYPE:
+				return true;
+		}
+		return false;		
+	}
 
 	/**
 	 * Added by Eric Verbeek
