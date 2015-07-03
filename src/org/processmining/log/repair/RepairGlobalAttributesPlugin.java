@@ -1,4 +1,4 @@
-package org.processmining.log.plugins;
+package org.processmining.log.repair;
 
 import java.util.HashSet;
 import java.util.Iterator;
