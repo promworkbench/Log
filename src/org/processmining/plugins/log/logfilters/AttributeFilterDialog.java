@@ -81,7 +81,7 @@ public class AttributeFilterDialog extends JPanel {
 			checkBox.setSelected(parameters.getMustHaves().contains(key));
 			mustHaves.put(key, checkBox);
 			
-			JPanel panel = new BorderPanel(0, 0);
+			JPanel panel = new BorderPanel(5, 2);
 			double panelSize[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.FILL, 30 } };
 			panel.setLayout(new TableLayout(panelSize));
 			panel.add(lists.get(key), "0, 0");
