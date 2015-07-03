@@ -1,5 +1,6 @@
 package org.processmining.log.repair;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -9,16 +10,27 @@ import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
+import org.deckfour.xes.util.XAttributeUtils;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginCategory;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+
 public final class RepairGlobalAttributesPlugin {
+	
+	private static final Function<XAttribute, XAttribute> PROTOTYPE_TRANSFORMER = new Function<XAttribute, XAttribute>() {
+
+		public XAttribute apply(XAttribute firstAttr) {
+			return XAttributeUtils.derivePrototype(firstAttr);
+		}
+	};
 
 	public interface GlobalInfo {
-		Set<XAttribute> getEventAttributes();
-		Set<XAttribute> getTraceAttributes();
+		Collection<XAttribute> getEventAttributes();
+		Collection<XAttribute> getTraceAttributes();
 	}
 
 	@Plugin(name = "Repair Global Attributes (In Place)", parameterLabels = { "Event Log" }, returnLabels = {}, returnTypes = {}, userAccessible = true, mostSignificantResult = -1, categories = { PluginCategory.Enhancement }, //
@@ -55,8 +67,8 @@ public final class RepairGlobalAttributesPlugin {
 
 	public static GlobalInfo detectGlobals(XLog log) {
 
-		final Set<XAttribute> eventAttributes = new HashSet<>();
-		final Set<XAttribute> traceAttributes = new HashSet<>();
+		Set<XAttribute> eventAttributes = new HashSet<>();
+		Set<XAttribute> traceAttributes = new HashSet<>();
 
 		for (ListIterator<XTrace> logIter = log.listIterator(); logIter.hasNext();) {
 			int traceIndex = logIter.nextIndex();
@@ -85,16 +97,19 @@ public final class RepairGlobalAttributesPlugin {
 					}
 				}
 			}
-
 		}
+		
+		final Collection<XAttribute> defaultEventAttributes = Collections2.transform(eventAttributes, PROTOTYPE_TRANSFORMER);
+		final Collection<XAttribute> defaultTraceAttributes = Collections2.transform(traceAttributes, PROTOTYPE_TRANSFORMER);
+		
 		return new GlobalInfo() {
 
-			public Set<XAttribute> getEventAttributes() {
-				return eventAttributes;
+			public Collection<XAttribute> getEventAttributes() {
+				return defaultEventAttributes;
 			}
 
-			public Set<XAttribute> getTraceAttributes() {
-				return traceAttributes;
+			public Collection<XAttribute> getTraceAttributes() {
+				return defaultTraceAttributes;
 			}
 
 		};

@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import org.deckfour.xes.classification.XEventNameClassifier;
 import org.deckfour.xes.extension.XExtension;
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XLifecycleExtension;
@@ -70,7 +71,8 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			log.getExtensions().add(XTimeExtension.instance());
 			log.getExtensions().add(XLifecycleExtension.instance());
 		}
-		//TODO add globals?
+		//TODO globals
+		log.getClassifiers().add(new XEventNameClassifier());
 		assignName(factory, log, inputFile.getFilename());
 	}
 
@@ -91,6 +93,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			Collections.sort(currentEvents, new Comparator<XEvent>() {
 
 				public int compare(XEvent o1, XEvent o2) {
+					// assumes stable sorting so start events will be always before complete events
 					return XTimeExtension.instance().extractTimestamp(o1)
 							.compareTo(XTimeExtension.instance().extractTimestamp(o2));
 				}
@@ -169,7 +172,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			assignAttribute(currentEvent, factory.createAttributeBoolean(name, value, getExtensionFromConfig(name)));
 		}
 	}
-	
+
 	private XExtension getExtensionFromConfig(String name) {
 		return conversionConfig.getConversionMap().get(name).getExtension();
 	}
@@ -201,7 +204,8 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	}
 
 	private static void assignLifecycleTransition(XFactory factory, XAttributable a, StandardModel lifecycle) {
-		assignAttribute(a, factory.createAttributeLiteral(XLifecycleExtension.KEY_TRANSITION, lifecycle.getEncoding(), XLifecycleExtension.instance()));
+		assignAttribute(a, factory.createAttributeLiteral(XLifecycleExtension.KEY_TRANSITION, lifecycle.getEncoding(),
+				XLifecycleExtension.instance()));
 	}
 
 	private static void assignInstance(XFactory factory, XAttributable a, String value) {
@@ -258,8 +262,8 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	}
 
 	private static boolean specialColumn(String columnName) {
-		return columnName==null || XConceptExtension.KEY_NAME.equals(columnName) || XTimeExtension.KEY_TIMESTAMP.equals(columnName)
-				|| XConceptExtension.KEY_INSTANCE.equals(columnName);
+		return columnName == null || XConceptExtension.KEY_NAME.equals(columnName)
+				|| XTimeExtension.KEY_TIMESTAMP.equals(columnName) || XConceptExtension.KEY_INSTANCE.equals(columnName);
 	}
 
 }
