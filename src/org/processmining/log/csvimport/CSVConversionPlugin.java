@@ -28,6 +28,7 @@ import org.processmining.log.csvimport.ui.ExpertConfigUI;
 import org.processmining.log.csvimport.ui.ImportConfigUI;
 import org.processmining.log.repair.RepairAttributeDataType;
 import org.processmining.log.repair.RepairAttributeDataType.ReviewCallback;
+import org.processmining.log.repair.RepairGlobalAttributesPlugin;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
@@ -125,6 +126,9 @@ public final class CSVConversionPlugin {
 					return guessedDataTypes;
 				}
 			});
+			
+			RepairGlobalAttributesPlugin.doRepairLog(convertedLog);
+			
 			context.getFutureResult(0).setLabel(
 					Files.getNameWithoutExtension(csv.getFilename()) + " (converted @"
 							+ DateFormat.getTimeInstance().format(new Date()) + ")");

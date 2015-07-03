@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Set;
 
+import org.deckfour.xes.classification.XEventAttributeClassifier;
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
@@ -40,11 +41,7 @@ public final class RepairGlobalAttributesPlugin {
 
 		context.getProgress().setMinimum(0);
 		context.getProgress().setMaximum(log.size());
-
-		GlobalInfo info = detectGlobals(log);
-
-		log.getGlobalEventAttributes().addAll(info.getEventAttributes());
-		log.getGlobalTraceAttributes().addAll(info.getTraceAttributes());
+		doRepairLog(log);
 	}
 
 	@Plugin(name = "Repair Global Attributes", parameterLabels = { "Event Log" }, returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
@@ -55,14 +52,22 @@ public final class RepairGlobalAttributesPlugin {
 		context.getProgress().setMinimum(0);
 		context.getProgress().setMaximum(log.size());
 
-		GlobalInfo info = detectGlobals(log);
-
 		XLog newLog = (XLog) log.clone();
 
-		newLog.getGlobalEventAttributes().addAll(info.getEventAttributes());
-		newLog.getGlobalTraceAttributes().addAll(info.getTraceAttributes());
+		doRepairLog(newLog);
 
 		return newLog;
+	}
+	
+	public static void doRepairLog(XLog log) {
+		GlobalInfo info = detectGlobals(log);
+
+		for (XAttribute attr: info.getEventAttributes()) {
+			log.getClassifiers().add(new XEventAttributeClassifier(attr.getKey(), attr.getKey()));
+			log.getGlobalEventAttributes().add(attr);	
+		}
+		
+		log.getGlobalTraceAttributes().addAll(info.getTraceAttributes());
 	}
 
 	public static GlobalInfo detectGlobals(XLog log) {
