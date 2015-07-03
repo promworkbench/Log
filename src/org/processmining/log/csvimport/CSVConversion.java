@@ -316,7 +316,7 @@ public final class CSVConversion {
 							final String name = header[i];
 							final String value = nextLine[i];
 
-							if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.EXCLUDE && (value == null || conversionConfig
+							if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.SPARSE && (value == null || conversionConfig
 									.getTreatAsEmptyValues().contains(value) || value.isEmpty()))) {
 								parseAttributes(progress, conversionConfig, conversionHandler, mappingMap.get(i),
 										lineIndex, i, name, nextLine);

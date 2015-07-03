@@ -43,7 +43,7 @@ public final class CSVConversionConfig {
 	}
 
 	public enum CSVEmptyCellHandlingMode {
-		INCLUDE("Include empty cells"), EXCLUDE("Exclue empty cells");
+		DENSE("Dense (Include empty cells)"), SPARSE("Sparse (Exclude empty cells)");
 
 		private String desc;
 
@@ -174,7 +174,7 @@ public final class CSVConversionConfig {
 
 	// Various "expert" configuration options	
 	private CSVErrorHandlingMode errorHandlingMode = CSVErrorHandlingMode.OMIT_TRACE_ON_ERROR;
-	private CSVEmptyCellHandlingMode emptyCellHandlingMode = CSVEmptyCellHandlingMode.EXCLUDE;
+	private CSVEmptyCellHandlingMode emptyCellHandlingMode = CSVEmptyCellHandlingMode.SPARSE;
 	private Set<String> treatAsEmptyValues = new HashSet<>();
 
 	private boolean shouldGuessDataTypes = true;

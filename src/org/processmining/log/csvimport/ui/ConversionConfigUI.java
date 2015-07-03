@@ -69,6 +69,15 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		add("activityid");
 	}};
 	
+	private static final Set<String> START_TIME_COLUMN_IDS = new HashSet<String>() {
+		private static final long serialVersionUID = 6419129336151793063L;
+	{
+		add("starttime");
+		add("startdate");
+		add("datumtijdbegin");
+	}};
+
+	
 	private static final Set<String> COMPLETION_TIME_COLUMN_IDS = new HashSet<String>() {
 		private static final long serialVersionUID = 6419129336151793063L;
 	{
@@ -76,12 +85,15 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		add("time");
 		add("date");
 		add("enddate");
+		add("endtime");
 		add("timestamp");
 		add("datetime");
 		add("date");
 		add("eventtime");
+		add("eindtijd");
 		add("tijd");
 		add("datum");
+		add("datumtijdeind");
 	}};
 
 	private final class ChangeListenerImpl implements ActionListener {
@@ -253,6 +265,9 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 		layout.linkSize(eventLabel, caseLabel);
 		layout.linkSize(completionTimeLabel, startTimeLabel);
+		
+		layout.setAutoCreateContainerGaps(true);
+		layout.setAutoCreateGaps(true);
 
 		layout.setVerticalGroup(verticalGroup);
 		layout.setHorizontalGroup(horizontalGroup);
@@ -272,6 +287,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 		autoDetectCaseColumn();
 		autoDetectEventColumn();
+		autoDetectStartTimeColumn();
 		autoDetectCompletionTimeColumn();
 		autoDetectDataTypes(csv, conversionConfig.getConversionMap(), importConfig);
 
@@ -321,6 +337,17 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 			if (COMPLETION_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
 				completionTimeColumnCbx.setSelectedItem(header);
+				return;
+			}
+		}
+	}
+	
+	private void autoDetectStartTimeColumn() {
+		for (int i = 0; i < headers.length; i++) {
+			String header = headers[i];
+
+			if (START_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
+				startTimeColumnCbx.setSelectedItem(header);
 				return;
 			}
 		}

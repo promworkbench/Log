@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.JLabel;
@@ -32,7 +33,7 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 	private static final int COLUMN_WIDTH = 360;
 
 	private static final class XFactoryUI {
-		
+
 		private final XFactory factory;
 
 		public XFactoryUI(XFactory factory) {
@@ -43,7 +44,7 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 		public XFactory getFactory() {
 			return factory;
 		}
-		
+
 		@Override
 		public String toString() {
 			return factory.getName();
@@ -75,7 +76,7 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 		}
 
 	}
-	
+
 	private final ProMComboBox<XFactoryUI> xFactoryChoice;
 	private final ProMComboBox<Boolean> repairDataTypesCbx;
 	private final ProMComboBox<CSVEmptyCellHandlingMode> emptyCellHandlingModeCbx;
@@ -84,24 +85,24 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 	public ExpertConfigUI(final CSVFile csv, final CSVConfig importConfig, final CSVConversionConfig conversionConfig) {
 		super();
 		GroupLayout layout = new GroupLayout(this);
-		setLayout(layout);		
+		setLayout(layout);
 		setMaximumSize(new Dimension(COLUMN_WIDTH * 2, Short.MAX_VALUE));
 
 		JLabel conversionOptionsLabel = SlickerFactory.instance().createLabel(
 				"Expert Conversion Options (Defaults are a good guess)");
 		conversionOptionsLabel.setFont(conversionOptionsLabel.getFont().deriveFont(Font.BOLD, 20));
-		
-		xFactoryChoice = new ProMComboBox<>(Iterables.transform(getAvailableXFactories(), new Function<XFactory, XFactoryUI>() {
 
-			public XFactoryUI apply(XFactory factory) {
-				return new XFactoryUI(factory);
-			}
-			
-		}));
+		xFactoryChoice = new ProMComboBox<>(Iterables.transform(getAvailableXFactories(),
+				new Function<XFactory, XFactoryUI>() {
+
+					public XFactoryUI apply(XFactory factory) {
+						return new XFactoryUI(factory);
+					}
+
+				}));
 		xFactoryChoice.setSelectedItem(new XFactoryUI(conversionConfig.getFactory()));
-		JLabel xFactoryLabel = createLabel("XFactory",
-				"Implementation that is be used to create the Log.");
-		
+		JLabel xFactoryLabel = createLabel("XFactory", "Implementation that is be used to create the Log.");
+
 		xFactoryChoice.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
@@ -122,7 +123,11 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 
 		emptyCellHandlingModeCbx = new ProMComboBox<>(CSVEmptyCellHandlingMode.values());
 		emptyCellHandlingModeCbx.setSelectedItem(conversionConfig.getEmptyCellHandlingMode());
-		JLabel emptyCellHandlingModeLabel = createLabel("Empty Cells", "Exclude or include empty cells in the conversion.");
+		JLabel emptyCellHandlingModeLabel = createLabel(
+				"Sparse / Dense Log",
+				"Exclude (sparse) or include (dense) empty cells in the conversion. This affects how empty cells in the CSV are handled. "
+				+ "Some plug-ins require the log to be dense, i.e., all attributes are defined for each event. "
+				+ "In other cases it might be more efficient or even required to only add attributes to events if the attributes actually contain data.");
 		emptyCellHandlingModeCbx.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
@@ -130,37 +135,62 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 						.getSelectedItem());
 			}
 		});
-		
+
 		repairDataTypesCbx = new ProMComboBox<>(new Boolean[] { true, false });
 		repairDataTypesCbx.setSelectedItem(conversionConfig.isShouldGuessDataTypes());
-		JLabel repairDataTypesLabel = createLabel("Guess Attribute Types",
-						"Should the plug-in make an attempt to guess the correct datatypes after conversion? Leave as 'true' in case you are unsure!");
+		JLabel repairDataTypesLabel = createLabel(
+				"Guess Attribute Types",
+				"Should the plug-in make an attempt to guess the correct datatypes after conversion? Leave as 'true' in case you are unsure!");
 		repairDataTypesCbx.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
 				conversionConfig.setShouldGuessDataTypes((Boolean) repairDataTypesCbx.getSelectedItem());
 			}
 		});
-		
-		
+
 		SequentialGroup verticalGroup = layout.createSequentialGroup();
-		verticalGroup.addGroup(layout.createParallelGroup()
-				.addGroup(layout.createSequentialGroup().addComponent(errorHandlingModeLabel).addComponent(errorHandlingModeCbx))
+		verticalGroup.addGroup(layout
+				.createParallelGroup()
+				.addGroup(
+						layout.createSequentialGroup().addComponent(errorHandlingModeLabel)
+								.addComponent(errorHandlingModeCbx))
 				.addGroup(layout.createSequentialGroup().addComponent(xFactoryLabel).addComponent(xFactoryChoice)));
-		verticalGroup.addGroup(layout.createParallelGroup()
-				.addGroup(layout.createSequentialGroup().addComponent(emptyCellHandlingModeLabel).addComponent(emptyCellHandlingModeCbx))
-				.addGroup(layout.createSequentialGroup().addComponent(repairDataTypesLabel).addComponent(repairDataTypesCbx)));
-		
+		verticalGroup.addGroup(layout
+				.createParallelGroup()
+				.addGroup(
+						layout.createSequentialGroup().addComponent(emptyCellHandlingModeLabel)
+								.addComponent(emptyCellHandlingModeCbx))
+				.addGroup(
+						layout.createSequentialGroup().addComponent(repairDataTypesLabel)
+								.addComponent(repairDataTypesCbx)));
+
 		ParallelGroup horizontalGroup = layout.createParallelGroup();
-		horizontalGroup.addGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup().addComponent(errorHandlingModeLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH).addComponent(errorHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH ))
-				.addGroup(layout.createParallelGroup().addComponent(xFactoryLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH).addComponent(xFactoryChoice, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
-		horizontalGroup.addGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup().addComponent(emptyCellHandlingModeLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH).addComponent(emptyCellHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH))
-				.addGroup(layout.createParallelGroup().addComponent(repairDataTypesLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH).addComponent(repairDataTypesCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
-		
+		horizontalGroup.addGroup(layout
+				.createSequentialGroup()
+				.addGroup(
+						layout.createParallelGroup()
+								.addComponent(errorHandlingModeLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
+								.addComponent(errorHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH))
+				.addGroup(
+						layout.createParallelGroup()
+								.addComponent(xFactoryLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
+								.addComponent(xFactoryChoice, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
+		horizontalGroup.addGroup(layout
+				.createSequentialGroup()
+				.addGroup(
+						layout.createParallelGroup()
+								.addComponent(emptyCellHandlingModeLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
+								.addComponent(emptyCellHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH))
+				.addGroup(
+						layout.createParallelGroup()
+								.addComponent(repairDataTypesLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
+								.addComponent(repairDataTypesCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
+
 		layout.linkSize(errorHandlingModeLabel, xFactoryLabel);
 		layout.linkSize(emptyCellHandlingModeLabel, repairDataTypesLabel);
+		
+		layout.setAutoCreateContainerGaps(true);
+		layout.setAutoCreateGaps(true);
 
 		layout.setVerticalGroup(verticalGroup);
 		layout.setHorizontalGroup(horizontalGroup);
@@ -188,5 +218,5 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 				| IllegalArgumentException | InvocationTargetException e) {
 		}
 	}
-	
+
 }
