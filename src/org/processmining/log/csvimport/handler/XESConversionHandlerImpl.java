@@ -7,13 +7,13 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import org.deckfour.xes.classification.XEventNameClassifier;
 import org.deckfour.xes.extension.XExtension;
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XLifecycleExtension;
 import org.deckfour.xes.extension.std.XLifecycleExtension.StandardModel;
 import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XAttributable;
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XEvent;
@@ -66,13 +66,13 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		log = factory.createLog();
 		if (conversionConfig.getEventNameColumns() != null) {
 			log.getExtensions().add(XConceptExtension.instance());
+			log.getClassifiers().add(XLogInfoImpl.NAME_CLASSIFIER);
 		}
 		if (conversionConfig.getCompletionTimeColumn() != null || conversionConfig.getStartTimeColumn() != null) {
 			log.getExtensions().add(XTimeExtension.instance());
 			log.getExtensions().add(XLifecycleExtension.instance());
-		}
-		//TODO globals
-		log.getClassifiers().add(new XEventNameClassifier());
+			log.getClassifiers().add(XUtils.STANDARDCLASSIFIER);
+		}		
 		assignName(factory, log, inputFile.getFilename());
 	}
 
@@ -229,20 +229,20 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		switch (errorMode) {
 			case BEST_EFFORT :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ": Skipping attribute " + nulLSafeToString(content)
+					conversionErrors.append("Line: " + line + ": Skipping attribute " + nullSafeToString(content)
 							+ " Error: " + e + "\n");
 				}
 				break;
 			case OMIT_EVENT_ON_ERROR :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
 					conversionErrors.append("Line: " + line + ": Skipping event, could not convert "
-							+ nulLSafeToString(content) + " Error: " + e + "\n");
+							+ nullSafeToString(content) + " Error: " + e + "\n");
 				}
 				break;
 			case OMIT_TRACE_ON_ERROR :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
 					conversionErrors.append("Line: " + line + ": Skipping trace " + XUtils.getConceptName(currentTrace)
-							+ ", could not convert" + nulLSafeToString(content) + " Error: " + e + "\n");
+							+ ", could not convert" + nullSafeToString(content) + " Error: " + e + "\n");
 				}
 				break;
 			default :
@@ -251,7 +251,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		}
 	}
 
-	private static String nulLSafeToString(Object obj) {
+	private static String nullSafeToString(Object obj) {
 		if (obj == null) {
 			return "NULL";
 		} else if (obj.getClass().isArray()) {
