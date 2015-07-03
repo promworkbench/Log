@@ -30,12 +30,12 @@ public class AttributeFilterPlugin {
 		dialog.applyFilter();
 		return filterPrivate(context, log, parameters);
 	}
-	
+
 	@PluginVariant(variantLabel = "Filter Log on Event Attribute Values, Parameters", requiredParameterLabels = { 0 })
 	public XLog filterParameters(PluginContext context, XLog log, AttributeFilterParameters parameters) {
 		return filterPrivate(context, log, parameters);
 	}
-	
+
 	private XLog filterPrivate(PluginContext context, XLog log, AttributeFilterParameters parameters) {
 		XFactory factory = XFactoryRegistry.instance().currentDefault();
 		XLog filteredLog = factory.createLog((XAttributeMap) log.getAttributes().clone());
@@ -47,15 +47,17 @@ public class AttributeFilterPlugin {
 			XTrace filteredTrace = factory.createTrace(trace.getAttributes());
 			for (XEvent event : trace) {
 				boolean add = true;
-				for (String key : event.getAttributes().keySet()) {
-					String value = event.getAttributes().get(key).toString();
-					if (!parameters.getFilter().get(key).contains(value)) {
-						add = false;
-						continue;
+				if (event.getAttributes().keySet().containsAll(parameters.getMustHaves())) {
+					for (String key : event.getAttributes().keySet()) {
+						String value = event.getAttributes().get(key).toString();
+						if (!parameters.getFilter().get(key).contains(value)) {
+							add = false;
+							continue;
+						}
 					}
-				}
-				if (add) {
-					filteredTrace.add(event);
+					if (add) {
+						filteredTrace.add(event);
+					}
 				}
 				context.getProgress().inc();
 			}

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.framework.plugin.PluginContext;
@@ -22,6 +23,9 @@ public class TraceAttributeFilterParameters extends AttributeFilterParameters {
 				filter.get(key).add(trace.getAttributes().get(key).toString());
 			}
 			context.getProgress().inc();
+		}
+		for (XAttribute attribute : log.getGlobalTraceAttributes()) {
+			mustHaves.add(attribute.getKey());
 		}
 		name = XConceptExtension.instance().extractName(log);
 	}

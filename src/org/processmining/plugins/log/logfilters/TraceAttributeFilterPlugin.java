@@ -44,15 +44,17 @@ public class TraceAttributeFilterPlugin {
 		filteredLog.getGlobalEventAttributes().addAll(log.getGlobalEventAttributes());
 		for (XTrace trace : log) {
 			boolean add = true;
-			for (String key : trace.getAttributes().keySet()) {
-				String value = trace.getAttributes().get(key).toString();
-				if (!parameters.getFilter().get(key).contains(value)) {
-					add = false;
-					continue;
+			if (trace.getAttributes().keySet().containsAll(parameters.getMustHaves())) {
+				for (String key : trace.getAttributes().keySet()) {
+					String value = trace.getAttributes().get(key).toString();
+					if (!parameters.getFilter().get(key).contains(value)) {
+						add = false;
+						continue;
+					}
 				}
-			}
-			if (add) {
-				filteredLog.add(trace);
+				if (add) {
+					filteredLog.add(trace);
+				}
 			}
 			context.getProgress().inc();
 		}

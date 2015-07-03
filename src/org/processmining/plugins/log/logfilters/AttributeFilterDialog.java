@@ -7,10 +7,13 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -18,8 +21,11 @@ import javax.swing.ListSelectionModel;
 
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.util.collection.AlphanumComparator;
+import org.processmining.framework.util.ui.widgets.BorderPanel;
 import org.processmining.framework.util.ui.widgets.ProMList;
 import org.processmining.framework.util.ui.widgets.ProMTextField;
+
+import com.fluxicon.slickerbox.factory.SlickerFactory;
 
 public class AttributeFilterDialog extends JPanel {
 
@@ -28,6 +34,7 @@ public class AttributeFilterDialog extends JPanel {
 	 */
 	private static final long serialVersionUID = -5477222861834208877L;
 	private Map<String, ProMList<String>> lists;
+	private Map<String, JCheckBox> mustHaves;
 	private ProMTextField textField;
 	AttributeFilterParameters parameters;
 	
@@ -47,6 +54,8 @@ public class AttributeFilterDialog extends JPanel {
 		setOpaque(false);
 		
 		lists = new HashMap<String, ProMList<String>>();
+		mustHaves = new HashMap<String, JCheckBox>();
+		
 		JTabbedPane tabbedPane = new JTabbedPane();
 		List<String> sortedKeys = new ArrayList<String>();
 		sortedKeys.addAll(values.keySet());
@@ -68,7 +77,17 @@ public class AttributeFilterDialog extends JPanel {
 			list.setPreferredSize(new Dimension(100, 100));
 			context.getProgress().inc();
 			
-			tabbedPane.add(key, list);
+			JCheckBox checkBox = SlickerFactory.instance().createCheckBox("Remove if no value provided", false);
+			checkBox.setSelected(parameters.getMustHaves().contains(key));
+			mustHaves.put(key, checkBox);
+			
+			JPanel panel = new BorderPanel(0, 0);
+			double panelSize[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.FILL, 30 } };
+			panel.setLayout(new TableLayout(panelSize));
+			panel.add(lists.get(key), "0, 0");
+			panel.add(mustHaves.get(key), "0, 1");
+			
+			tabbedPane.add(key, panel);
 		}
 		this.add(tabbedPane, "0, 0, 1, 0");
 		
@@ -81,10 +100,15 @@ public class AttributeFilterDialog extends JPanel {
 	}
 	
 	public void applyFilter() {
+		Set<String> mustHaves = new HashSet<String>();
 		for (String key : lists.keySet()) {
 			parameters.getFilter().get(key).clear();
 			parameters.getFilter().get(key).addAll(lists.get(key).getSelectedValuesList());
+			if (this.mustHaves.get(key).isSelected()) {
+				mustHaves.add(key);
+			}
 		}
+		parameters.setMustHave(mustHaves);
 		parameters.setName(textField.getText());
 	}
 }
