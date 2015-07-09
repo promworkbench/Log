@@ -245,7 +245,7 @@ public final class CSVConversionConfig {
 		if (startTimeColumn != null && !startTimeColumn.isEmpty()) {
 			getConversionMap().get(startTimeColumn).setDataType(Datatype.TIME);
 			getConversionMap().get(startTimeColumn).setPattern(CSVMapping.DEFAULT_DATE_PATTERN);
-			getConversionMap().get(completionTimeColumn).eventAttributeName = "time:timestamp";
+			getConversionMap().get(startTimeColumn).eventAttributeName = "time:timestamp";
 		}
 		this.startTimeColumn = startTimeColumn;
 	}
