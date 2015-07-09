@@ -6,9 +6,11 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.deckfour.xes.extension.std.XConceptExtension;
@@ -25,6 +27,7 @@ import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.out.XSerializer;
+import org.processmining.log.utils.XUtils;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
@@ -111,28 +114,46 @@ public final class XesCsvSerializer implements XSerializer {
 		List<String[]> traceList = new ArrayList<String[]>();
 		String[] currentRow = null;
 		for (ListIterator<XEvent> iterator = trace.listIterator(); iterator.hasNext();) {
+			Set<XEvent> convertedEvents = new HashSet<>();
 			XEvent event = iterator.next();
-			StandardModel lifecycle = XLifecycleExtension.instance().extractStandardTransition(event);
-			if (lifecycle == null || lifecycle == StandardModel.START) {
-				XEvent completionEvent = null;
-				if (lifecycle == StandardModel.START) {
-					completionEvent = lookupCompletion(trace.listIterator(iterator.nextIndex()), event);
+			if (!convertedEvents.contains(event)) {
+				StandardModel lifecycle = XLifecycleExtension.instance().extractStandardTransition(event);
+				if (lifecycle == null) {					
+					currentRow = compileEvent(trace, event, null, columnMap, rowLength, currentRow);
+					convertedEvents.add(event);
+				} else if (lifecycle == StandardModel.START) {
+					XEvent completionEvent = null;
+					if (lifecycle == StandardModel.START) {
+						completionEvent = lookup(trace.listIterator(iterator.nextIndex()), event, StandardModel.COMPLETE);
+					}
+					currentRow = compileEvent(trace, event, completionEvent, columnMap, rowLength, currentRow);
+					convertedEvents.add(event);
+					convertedEvents.add(completionEvent);
+				} else if (lifecycle == StandardModel.COMPLETE) {
+					XEvent startEvent = null;
+					if (lifecycle == StandardModel.START) {
+						startEvent = lookup(trace.listIterator(iterator.nextIndex()), event, StandardModel.START);
+					}
+					currentRow = compileEvent(trace, startEvent, event, columnMap, rowLength, currentRow);
+					convertedEvents.add(event);
+					convertedEvents.add(startEvent);
+				} else {
+					// ignore we only export start and complete 
 				}
-				currentRow = compileEvent(trace, event, completionEvent, columnMap, rowLength, currentRow);
-				traceList.add(currentRow);	
 			}
+			traceList.add(currentRow);
 		}
 		return traceList;
 	}
 
-	private XEvent lookupCompletion(ListIterator<XEvent> listIterator, XEvent event) {
+	private XEvent lookup(ListIterator<XEvent> listIterator, XEvent event, StandardModel model) {
 		XConceptExtension concept = XConceptExtension.instance();
 		String eventInstance = concept.extractInstance(event);
-		while (listIterator.hasNext()) {			
-			XEvent e = listIterator.next();			
+		while (listIterator.hasNext()) {
+			XEvent e = listIterator.next();
 			if (eventInstance != null && eventInstance.equals(concept.extractInstance(e))) {
 				StandardModel lifecycle = XLifecycleExtension.instance().extractStandardTransition(e);
-				if (lifecycle == StandardModel.COMPLETE) {
+				if (lifecycle == model) {
 					return e;
 				}
 			}
@@ -140,28 +161,28 @@ public final class XesCsvSerializer implements XSerializer {
 		return null;
 	}
 
-	private String[] compileEvent(XTrace trace, XEvent event, XEvent completionEvent, Map<String, Integer> columnMap, int rowLength,
-			String[] lastRow) {
+	private String[] compileEvent(XTrace trace, XEvent event, XEvent completionEvent, Map<String, Integer> columnMap,
+			int rowLength, String[] lastRow) {
 		String[] row = new String[rowLength];
 		row[0] = XConceptExtension.instance().extractName(trace);
 		row[1] = XConceptExtension.instance().extractName(event);
 		row[2] = dateFormat.format(XTimeExtension.instance().extractTimestamp(event));
 		if (completionEvent != null) {
-			row[3] = dateFormat.format(XTimeExtension.instance().extractTimestamp(completionEvent));	
+			row[3] = dateFormat.format(XTimeExtension.instance().extractTimestamp(completionEvent));
 		} else {
 			row[3] = dateFormat.format(XTimeExtension.instance().extractTimestamp(event));
 		}
-		
+
 		for (XAttribute attr : trace.getAttributes().values()) {
-			if (!isStandardExtension(attr)) {
+			if (!XUtils.isStandardExtensionAttribute(attr)) {
 				assert columnMap.containsKey("trace_" + attr.getKey()) : "Column unkown " + attr.getKey();
-				row[columnMap.get("trace_" + attr.getKey())] = convertAttribute(attr);	
+				row[columnMap.get("trace_" + attr.getKey())] = convertAttribute(attr);
 			}
 		}
 		for (XAttribute attr : event.getAttributes().values()) {
-			if (!isStandardExtension(attr)) {
+			if (!XUtils.isStandardExtensionAttribute(attr)) {
 				assert columnMap.containsKey("event_" + attr.getKey()) : "Column unkown " + attr.getKey();
-				row[columnMap.get("event_" + attr.getKey())] = convertAttribute(attr);	
+				row[columnMap.get("event_" + attr.getKey())] = convertAttribute(attr);
 			}
 		}
 		if (lastRow != null) {
@@ -176,7 +197,7 @@ public final class XesCsvSerializer implements XSerializer {
 
 	private String[] compileHeader(XLog log, Map<String, Integer> columnMap) {
 		XLogInfo logInfo = XLogInfoFactory.createLogInfo(log);
-		
+
 		List<String> headerList = new ArrayList<String>();
 		headerList.add("case");
 		headerList.add("event");
@@ -186,15 +207,15 @@ public final class XesCsvSerializer implements XSerializer {
 		int i = headerList.size() - 1;
 		XAttributeInfo traceAttributeInfo = logInfo.getTraceAttributeInfo();
 		for (XAttribute attr : traceAttributeInfo.getAttributes()) {
-			if (!isStandardExtension(attr)) {
+			if (!XUtils.isStandardExtensionAttribute(attr)) {
 				i++;
 				headerList.add(attr.getKey());
-				columnMap.put("trace_" + attr.getKey(), i);				
+				columnMap.put("trace_" + attr.getKey(), i);
 			}
 		}
 		XAttributeInfo eventAttributeInfo = logInfo.getEventAttributeInfo();
 		for (XAttribute attr : eventAttributeInfo.getAttributes()) {
-			if (!isStandardExtension(attr)) {
+			if (!XUtils.isStandardExtensionAttribute(attr)) {
 				i++;
 				if (headerList.contains(attr.getKey())) {
 					headerList.add("event_" + attr.getKey());
@@ -206,10 +227,6 @@ public final class XesCsvSerializer implements XSerializer {
 			}
 		}
 		return headerList.toArray(new String[headerList.size()]);
-	}
-
-	private boolean isStandardExtension(XAttribute attr) {
-		return attr.getKey().equals(XConceptExtension.KEY_NAME) || attr.getKey().equals(XTimeExtension.KEY_TIMESTAMP);
 	}
 
 	/**
