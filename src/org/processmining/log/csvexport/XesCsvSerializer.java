@@ -119,7 +119,8 @@ public final class XesCsvSerializer implements XSerializer {
 			if (!convertedEvents.contains(event)) {
 				StandardModel lifecycle = XLifecycleExtension.instance().extractStandardTransition(event);
 				if (lifecycle == null) {					
-					currentRow = compileEvent(trace, event, null, columnMap, rowLength, currentRow);
+					// treat as complete
+					currentRow = compileEvent(trace, null, event, columnMap, rowLength, currentRow);
 					convertedEvents.add(event);
 				} else if (lifecycle == StandardModel.START) {
 					XEvent completionEvent = null;
@@ -128,7 +129,9 @@ public final class XesCsvSerializer implements XSerializer {
 					}
 					currentRow = compileEvent(trace, event, completionEvent, columnMap, rowLength, currentRow);
 					convertedEvents.add(event);
-					convertedEvents.add(completionEvent);
+					if (completionEvent != null) {
+						convertedEvents.add(completionEvent);
+					}
 				} else if (lifecycle == StandardModel.COMPLETE) {
 					XEvent startEvent = null;
 					if (lifecycle == StandardModel.START) {
@@ -136,7 +139,9 @@ public final class XesCsvSerializer implements XSerializer {
 					}
 					currentRow = compileEvent(trace, startEvent, event, columnMap, rowLength, currentRow);
 					convertedEvents.add(event);
-					convertedEvents.add(startEvent);
+					if (startEvent != null) {
+						convertedEvents.add(startEvent);
+					}
 				} else {
 					// ignore we only export start and complete 
 				}
@@ -161,16 +166,21 @@ public final class XesCsvSerializer implements XSerializer {
 		return null;
 	}
 
-	private String[] compileEvent(XTrace trace, XEvent event, XEvent completionEvent, Map<String, Integer> columnMap,
+	private String[] compileEvent(XTrace trace, XEvent startEvent, XEvent completionEvent, Map<String, Integer> columnMap,
 			int rowLength, String[] lastRow) {
+		XEvent mainEvent = completionEvent != null ? completionEvent : startEvent;
 		String[] row = new String[rowLength];
-		row[0] = XConceptExtension.instance().extractName(trace);
-		row[1] = XConceptExtension.instance().extractName(event);
-		row[2] = dateFormat.format(XTimeExtension.instance().extractTimestamp(event));
+		row[0] = XConceptExtension.instance().extractName(trace);		
+		row[1] = XConceptExtension.instance().extractName(mainEvent);
+		if (startEvent != null) { 
+			row[2] = dateFormat.format(XTimeExtension.instance().extractTimestamp(startEvent));
+		} else {
+			row[2] = dateFormat.format(XTimeExtension.instance().extractTimestamp(completionEvent));
+		}
 		if (completionEvent != null) {
 			row[3] = dateFormat.format(XTimeExtension.instance().extractTimestamp(completionEvent));
 		} else {
-			row[3] = dateFormat.format(XTimeExtension.instance().extractTimestamp(event));
+			row[3] = dateFormat.format(XTimeExtension.instance().extractTimestamp(startEvent));
 		}
 
 		for (XAttribute attr : trace.getAttributes().values()) {
@@ -179,7 +189,7 @@ public final class XesCsvSerializer implements XSerializer {
 				row[columnMap.get("trace_" + attr.getKey())] = convertAttribute(attr);
 			}
 		}
-		for (XAttribute attr : event.getAttributes().values()) {
+		for (XAttribute attr : mainEvent.getAttributes().values()) {
 			if (!XUtils.isStandardExtensionAttribute(attr)) {
 				assert columnMap.containsKey("event_" + attr.getKey()) : "Column unkown " + attr.getKey();
 				row[columnMap.get("event_" + attr.getKey())] = convertAttribute(attr);
