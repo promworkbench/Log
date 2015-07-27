@@ -5,6 +5,8 @@ import java.nio.file.Path;
 
 import org.processmining.log.csv.config.CSVConfig;
 
+import com.univocity.parsers.common.TextParsingException;
+
 /**
  * {@link CSVFile} implementation that holds a reference to a CSV file on disk.
  *
@@ -29,8 +31,12 @@ public final class CSVFileReferenceUnivocityImpl extends AbstractCSVFile {
 	 */
 	@Override
 	public String[] readHeader(CSVConfig importConfig) throws IOException {
-		String[] s = createReader(importConfig).readNext();
-		return s;
+		try {
+			return createReader(importConfig).readNext();
+		} catch (TextParsingException | IllegalStateException e) {
+			// Wrap unchecked Univocity exceptions into a IOException for consistency
+			throw new IOException(e);
+		}
 	}
 
 	/* (non-Javadoc)

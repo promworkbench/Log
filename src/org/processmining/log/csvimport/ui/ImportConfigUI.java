@@ -19,12 +19,13 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.universalchardet.CharsetListener;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
-import org.processmining.log.csv.ICSVReader;
 import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csv.ICSVReader;
 import org.processmining.log.csv.config.CSVConfig;
 import org.processmining.log.csv.config.CSVQuoteCharacter;
 import org.processmining.log.csv.config.CSVSeperator;
@@ -38,6 +39,8 @@ import com.fluxicon.slickerbox.components.SlickerButton;
  *
  */
 public final class ImportConfigUI extends CSVConfigurationPanel {
+
+	private static final int SEPARATOR_DETECTION_ROW_LIMIT = 10;
 
 	public interface QuoteListener {
 		void quoteDetected(CSVQuoteCharacter quote);
@@ -74,16 +77,16 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		JLabel header = new JLabel("<HTML><H2>CSV Parsing Parameters</H2></HTML>");
 		header.setAlignmentX(LEFT_ALIGNMENT);
 		header.setAlignmentY(TOP_ALIGNMENT);
-		
+
 		JButton showPreviewButton = new SlickerButton("Toggle Preview");
 		showPreviewButton.setAlignmentY(TOP_ALIGNMENT);
 		showPreviewButton.addActionListener(new ActionListener() {
-			
+
 			public void actionPerformed(ActionEvent e) {
-				togglePreviewFrame();				
+				togglePreviewFrame();
 			}
 		});
-		
+
 		JPanel headerPanel = new JPanel();
 		headerPanel.setOpaque(false);
 		headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.X_AXIS));
@@ -184,16 +187,12 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		refreshPreview();
 	}
 
-	private void autoDetectQuote(CSVFile csv2, QuoteListener quoteListener) {
-
-	}
-
 	public void togglePreviewFrame() {
 		if (previewFrame.isVisible()) {
 			previewFrame.setVisible(false);
 		} else {
-			previewFrame.showFrame(getRootPane());	
-		}		
+			previewFrame.showFrame(getRootPane());
+		}
 	}
 
 	private void autoDetectCharset(final CSVFile file, final CharsetListener listener) {
@@ -227,8 +226,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		try {
 			worker.execute();
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "Error detectic charset of CSV " + e.getMessage(), "CSV Reading Error",
-					JOptionPane.ERROR_MESSAGE);
+			ProMUIHelper.showErrorMessage(this, "Error detectic charset of CSV " + e.getMessage(), "CSV Reading Error");
 		}
 
 	}
@@ -236,7 +234,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 	private void autoDetectSeparator(final CSVFile csvFile, final SeparatorListener listener) {
 		try (BufferedReader reader = new BufferedReader(new FileReader(csvFile.getFile().toFile()))) {
 			Map<CSVSeperator, Integer> counter = new HashMap<>();
-			for (int i = 0; i < 10; i++) {
+			for (int i = 0; i < SEPARATOR_DETECTION_ROW_LIMIT; i++) {
 				String line = reader.readLine();
 				if (line == null) {
 					break;
@@ -249,32 +247,50 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 			for (CSVSeperator seperator : counter.keySet()) {
 				if (counter.get(seperator) > 1) {
 					listener.separatorDetected(seperator);
+					return;
 				}
 			}
-			reader.close();
-			//ProMUIHelper.showErrorMessage(this, "", "Error in determining separator character");
-		} catch (IOException e1) {
-			ProMUIHelper.showErrorMessage(this, e1.toString(),
-					"Error reading CSV while determining separator character");
+			// if none of them was properly detected go with inconsistent ones
+			for (CSVSeperator seperator : counter.keySet()) {
+				if (counter.get(seperator) == -1) {
+					listener.separatorDetected(seperator);
+					return;
+				}
+			}
+			// None could be detected		
+		} catch (IOException e) {
+			ProMUIHelper
+					.showErrorMessage(this, e.toString(), "Error reading CSV while determining separator character");
 		}
 	}
 
-	private void updateCounter(Map<CSVSeperator, Integer> counter, CSVSeperator separator, String token, String line) {
+	private static void updateCounter(Map<CSVSeperator, Integer> counter, CSVSeperator separator, String token,
+			String line) {
+		// Remove all text in between quotes as it should be ignored for separator detection 
+		String lineWithoutQuotes = removeTextInQuotes(line);
+		int matchCount = StringUtils.countMatches(lineWithoutQuotes, token);
+		if (counter.get(separator) == null) {
+			counter.put(separator, matchCount);
+		} else if (counter.get(separator) != matchCount) {
+			// Inconsistent number of separator characters
+			counter.put(separator, -1);
+		}
+	}
+
+	private static String removeTextInQuotes(String line) {
 		String internalLine = line;
 		while (internalLine.contains("\"")) {
 			int startIndex = internalLine.indexOf("\"");
 			int endIndex = internalLine.substring(startIndex + 1, internalLine.length()).indexOf("\"");
-			// now remove the in between part of the string
+			// now remove the in between part of the string and replace it with some placeholder text
 			internalLine = internalLine.substring(0, startIndex) + "placeholder"
 					+ internalLine.substring(startIndex + 1 + endIndex + 1, internalLine.length());
 		}
-		if (counter.get(separator) == null) {
-			counter.put(separator, internalLine.split(token).length);
-		} else {
-			if (!counter.get(separator).equals(internalLine.split(token).length)) {
-				counter.put(separator, -1);
-			}
-		}
+		return internalLine;
+	}
+
+	private void autoDetectQuote(CSVFile csvFile, QuoteListener quoteListener) {
+		//TODO detected whether double quotes or single quotes are quoting characters
 	}
 
 	/*
@@ -311,8 +327,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		try {
 			previewFrame.setHeader(csv.readHeader(importConfig));
 		} catch (IOException | ArrayIndexOutOfBoundsException e) {
-			JOptionPane.showMessageDialog(this, "Error parsing CSV " + e.getMessage(), "CSV Parsing Error",
-					JOptionPane.ERROR_MESSAGE);
+			ProMUIHelper.showWarningMessage(this, "Error parsing CSV " + e.getMessage(), "CSV Parsing Error");
 			return;
 		}
 

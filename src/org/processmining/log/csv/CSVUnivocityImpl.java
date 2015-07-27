@@ -17,11 +17,13 @@ import com.univocity.parsers.csv.CsvWriterSettings;
 
 public class CSVUnivocityImpl implements ICSV {
 	
+	private static final int MAX_CHARS_PER_COLUMN = 65536;
+	
 	private static final int BUFFER_SIZE = 8192 * 4;
 
 	private static CsvParser createCSVReader(InputStream is, CSVConfig importConfig) throws UnsupportedEncodingException{
 		CsvParserSettings settings = new CsvParserSettings();
-		settings.setMaxCharsPerColumn(4096);
+		settings.setMaxCharsPerColumn(MAX_CHARS_PER_COLUMN);
 		settings.getFormat().setDelimiter(importConfig.getSeparator().getSeperatorChar());
 		settings.getFormat().setQuote(importConfig.getQuoteChar().getQuoteChar());
 		settings.getFormat().setCharToEscapeQuoteEscaping(importConfig.getEscapeChar().getEscapeChar());
