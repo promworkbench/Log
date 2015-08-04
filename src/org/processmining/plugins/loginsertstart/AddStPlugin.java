@@ -5,6 +5,7 @@ import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 
 /**
@@ -13,7 +14,7 @@ import org.processmining.framework.plugin.annotations.PluginVariant;
  * @author jnakatumba
  * 
  */
-@Plugin(name = "Add Missing Events", parameterLabels = { "Log" }, returnLabels = { "Log (With Start Events)" }, returnTypes = { AddStVisualizer.class }, userAccessible = true)
+@Plugin(name = "Add Missing Events", categories = { PluginCategory.Filtering }, parameterLabels = { "Log" }, returnLabels = { "Log (With Start Events)" }, returnTypes = { AddStVisualizer.class }, userAccessible = true)
 public class AddStPlugin {
 	/**
 	 * This class adds missing start events to the event log

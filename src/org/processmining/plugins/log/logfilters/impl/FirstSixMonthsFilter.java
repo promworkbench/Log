@@ -11,10 +11,11 @@ import org.deckfour.xes.model.XTrace;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 
 public class FirstSixMonthsFilter {
 
-	@Plugin(name = "Filter log on first six months per trace", parameterLabels = { "Log" }, returnLabels = { "Log (filtered)" }, returnTypes = { XLog.class })
+	@Plugin(name = "Filter log on first six months per trace", categories = { PluginCategory.Filtering }, parameterLabels = { "Log" }, returnLabels = { "Log (filtered)" }, returnTypes = { XLog.class })
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")
 	public XLog filter(PluginContext context, XLog log) {
 		XLog filtered = (XLog) log.clone();

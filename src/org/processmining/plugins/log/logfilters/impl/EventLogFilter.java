@@ -14,11 +14,12 @@ import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.plugins.log.logfilters.LogFilter;
 import org.processmining.plugins.log.logfilters.XEventCondition;
 
-@Plugin(name = "Event Log Filter", parameterLabels = { "Log", "All Event Classes", "Event Classes to keep",
+@Plugin(name = "Event Log Filter", categories = { PluginCategory.Filtering }, parameterLabels = { "Log", "All Event Classes", "Event Classes to keep",
 		"Minimal Occurrence frequency", "Minimal Occurrence in cases", "Satisfy both" }, returnLabels = { "Log (filtered)" }, returnTypes = { XLog.class })
 public class EventLogFilter {
 

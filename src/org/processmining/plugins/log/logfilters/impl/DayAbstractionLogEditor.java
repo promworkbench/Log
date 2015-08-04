@@ -8,12 +8,13 @@ import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.plugins.log.logfilters.LogFilter;
 import org.processmining.plugins.log.logfilters.LogFilterException;
 import org.processmining.plugins.log.logfilters.XEventEditor;
 
-@Plugin(name = "Day Abstraction Log Editor", parameterLabels = { "Log" }, returnLabels = { "Log (edited)" }, returnTypes = { XLog.class })
+@Plugin(name = "Day Abstraction Log Editor", categories = { PluginCategory.Filtering }, parameterLabels = { "Log" }, returnLabels = { "Log (edited)" }, returnTypes = { XLog.class })
 public class DayAbstractionLogEditor {
 
 	XTimeExtension timeExtension = XTimeExtension.instance();

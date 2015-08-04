@@ -6,12 +6,13 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.plugins.log.logfilters.LogFilter;
 import org.processmining.plugins.log.logfilters.LogFilterException;
 import org.processmining.plugins.log.logfilters.XTraceEditor;
 
-@Plugin(name = "Duplicate Event Log Filter", parameterLabels = { "Log", "Event Classes" }, returnLabels = { "Log (filtered)" }, returnTypes = { XLog.class })
+@Plugin(name = "Duplicate Event Log Filter", categories = { PluginCategory.Filtering }, parameterLabels = { "Log", "Event Classes" }, returnLabels = { "Log (filtered)" }, returnTypes = { XLog.class })
 public class DuplicateEventLogFilter {
 	/**
 	 * This method filters a log by removing events from a trace, if the event

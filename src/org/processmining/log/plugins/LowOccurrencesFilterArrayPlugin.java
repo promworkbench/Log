@@ -6,6 +6,7 @@ import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.log.dialogs.LowOccurrencesFilterDialog;
 import org.processmining.log.help.LowOccurrencesFilterArrayHelp;
@@ -13,7 +14,7 @@ import org.processmining.log.models.EventLogArray;
 import org.processmining.log.models.impl.EventLogArrayFactory;
 import org.processmining.log.parameters.LowOccurrencesFilterParameters;
 
-@Plugin(name = "Filter Out Low-Occurrence Traces (Multiple Logs)", parameterLabels = { "Event Logs" }, returnLabels = { "Filtered Logs" }, returnTypes = { EventLogArray.class }, userAccessible = true, help = LowOccurrencesFilterArrayHelp.TEXT)
+@Plugin(name = "Filter Out Low-Occurrence Traces (Multiple Logs)", categories = { PluginCategory.Filtering }, parameterLabels = { "Event Logs" }, returnLabels = { "Filtered Logs" }, returnTypes = { EventLogArray.class }, userAccessible = true, help = LowOccurrencesFilterArrayHelp.TEXT)
 public class LowOccurrencesFilterArrayPlugin {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")

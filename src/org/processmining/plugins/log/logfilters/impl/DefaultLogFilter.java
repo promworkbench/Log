@@ -11,12 +11,13 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.plugins.log.logfilters.LogFilter;
 import org.processmining.plugins.log.logfilters.XEventCondition;
 import org.processmining.plugins.log.logfilters.XTraceCondition;
 
-@Plugin(name = "Default Log Filter", parameterLabels = { "Log", "Remove", "Skip instance" }, returnLabels = { "Log (filtered)" }, returnTypes = { XLog.class })
+@Plugin(name = "Default Log Filter", categories = { PluginCategory.Filtering }, parameterLabels = { "Log", "Remove", "Skip instance" }, returnLabels = { "Log (filtered)" }, returnTypes = { XLog.class })
 public class DefaultLogFilter {
 	/**
 	 * This method filters a log by 1) removing all XEvents of which the

@@ -9,6 +9,7 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.connections.ConnectionCannotBeObtained;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.log.algorithms.LogCentralityFilterAlgorithm;
 import org.processmining.log.connections.LogCentralityFilterConnection;
@@ -17,7 +18,7 @@ import org.processmining.log.help.LogCentralityFilterHelp;
 import org.processmining.log.models.LogCentrality;
 import org.processmining.log.parameters.LogCentralityFilterParameters;
 
-@Plugin(name = "Happify Log", parameterLabels = { "Happifiable Log", "Parameters" }, returnLabels = { "Happified Log" }, returnTypes = { XLog.class }, help = LogCentralityFilterHelp.TEXT)
+@Plugin(name = "Happify Log", categories = { PluginCategory.Filtering }, parameterLabels = { "Happifiable Log", "Parameters" }, returnLabels = { "Happified Log" }, returnTypes = { XLog.class }, help = LogCentralityFilterHelp.TEXT)
 public class LogCentralityFilterPlugin extends LogCentralityFilterAlgorithm {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")

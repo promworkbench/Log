@@ -9,6 +9,7 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.connections.ConnectionCannotBeObtained;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.log.algorithms.HighFrequencyFilterAlgorithm;
 import org.processmining.log.connections.HighFrequencyFilterConnection;
@@ -16,7 +17,7 @@ import org.processmining.log.dialogs.HighFrequencyFilterDialog;
 import org.processmining.log.help.HighFrequencyFilterHelp;
 import org.processmining.log.parameters.HighFrequencyFilterParameters;
 
-@Plugin(name = "Filter In High-Frequency Traces (Single Log)", parameterLabels = { "Event Log" }, returnLabels = { "Filtered Log" }, returnTypes = { XLog.class }, userAccessible = true, help = HighFrequencyFilterHelp.TEXT)
+@Plugin(name = "Filter In High-Frequency Traces (Single Log)", categories = { PluginCategory.Discovery }, parameterLabels = { "Event Log" }, returnLabels = { "Filtered Log" }, returnTypes = { XLog.class }, userAccessible = true, help = HighFrequencyFilterHelp.TEXT)
 public class HighFrequencyFilterPlugin {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")

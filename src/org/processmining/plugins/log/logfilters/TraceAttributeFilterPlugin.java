@@ -11,9 +11,10 @@ import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 
-@Plugin(name = "Filter Log on Trace Attribute Values", parameterLabels = { "Log", "Parameters" }, returnLabels = { "Log" }, returnTypes = { XLog.class })
+@Plugin(name = "Filter Log on Trace Attribute Values", categories = { PluginCategory.Filtering }, parameterLabels = { "Log", "Parameters" }, returnLabels = { "Log" }, returnTypes = { XLog.class })
 public class TraceAttributeFilterPlugin {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")
