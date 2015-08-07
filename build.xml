@@ -1,4 +1,4 @@
-<project name="Log" default="Compile Sources" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant" >
+<project name="Log" default="Compile Sources" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
 	<!-- set global properties for this build -->
 	<property environment="env" />
 	<property name="src" location="src" />
@@ -162,15 +162,16 @@
 	</target>
 
 	<target name="resolve">
-		<ivy:retrieve />
+		<ivy:retrieve sync="true" />
 		<delete>
-			<fileset dir="lib" includes="*"/>
+			<fileset dir="lib" includes="*" />
 		</delete>
 		<copy todir="lib" overwrite="true">
 			<fileset dir="ivy">
-				<include name="univocity-parsers-1.5.5.jar"/>
-				<include name="OpenXES-20150807.jar" />
-				<include name="OpenXES-XStream-20150807.jar" />
+				<include name="univocity-parsers-*.jar" />
+				<include name="OpenXES-*.jar" />
+				<exclude name="*sources.jar" />
+				<exclude name="*javadoc.jar" />
 			</fileset>
 		</copy>
 	</target>
