@@ -2,14 +2,9 @@ package org.processmining.log.csvimport.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -19,9 +14,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 
-import org.apache.commons.lang3.StringUtils;
-import org.mozilla.universalchardet.CharsetListener;
-import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
 import org.processmining.log.csv.CSVFile;
@@ -40,17 +32,7 @@ import com.fluxicon.slickerbox.components.SlickerButton;
  */
 public final class ImportConfigUI extends CSVConfigurationPanel {
 
-	private static final int SEPARATOR_DETECTION_ROW_LIMIT = 10;
-
-	public interface QuoteListener {
-		void quoteDetected(CSVQuoteCharacter quote);
-	}
-
-	public interface SeparatorListener {
-		public void separatorDetected(CSVSeperator separator);
-	}
-
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	private static final int MAX_PREVIEW = 1000;
 
@@ -114,15 +96,6 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		});
 		charsetCbx.setAlignmentX(LEFT_ALIGNMENT);
 
-		autoDetectCharset(csv, new CharsetListener() {
-
-			public void report(String charset) {
-				if (charset != null) {
-					charsetCbx.setSelectedItem(charset);
-				}
-			}
-		});
-
 		separatorField = new ProMComboBox<>(CSVSeperator.values());
 		separatorField.setPreferredSize(null);
 		separatorField.setMinimumSize(null);
@@ -137,12 +110,6 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 			public void actionPerformed(ActionEvent e) {
 				importConfig.setSeparator(((CSVSeperator) separatorField.getSelectedItem()));
 				refreshPreview();
-			}
-		});
-		autoDetectSeparator(csv, new SeparatorListener() {
-
-			public void separatorDetected(CSVSeperator separator) {
-				separatorField.setSelectedItem(separator);
 			}
 		});
 
@@ -162,13 +129,6 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 			}
 		});
 		quoteField.setSelectedItem(importConfig.getQuoteChar());
-		autoDetectQuote(csv, new QuoteListener() {
-
-			public void quoteDetected(CSVQuoteCharacter quote) {
-				quoteField.setSelectedItem(quote);
-			}
-
-		});
 
 		/*
 		 * escapeField = new ProMComboBox<>(CSVEscapeCharacter.values());
@@ -193,104 +153,6 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		} else {
 			previewFrame.showFrame(getRootPane());
 		}
-	}
-
-	private void autoDetectCharset(final CSVFile file, final CharsetListener listener) {
-
-		final UniversalDetector detector = new UniversalDetector(null);
-
-		SwingWorker<Void, Object[]> worker = new SwingWorker<Void, Object[]>() {
-
-			protected Void doInBackground() throws Exception {
-
-				try (FileInputStream fis = new FileInputStream(file.getFile().toFile())) {
-					byte[] buf = new byte[4096];
-					int nread;
-					while ((nread = fis.read(buf)) > 0 && !detector.isDone()) {
-						detector.handleData(buf, 0, nread);
-					}
-					detector.dataEnd();
-				}
-
-				return null;
-			}
-
-			protected void done() {
-				if (!isCancelled()) {
-					listener.report(detector.getDetectedCharset());
-				}
-			}
-
-		};
-
-		try {
-			worker.execute();
-		} catch (Exception e) {
-			ProMUIHelper.showErrorMessage(this, "Error detectic charset of CSV " + e.getMessage(), "CSV Reading Error");
-		}
-
-	}
-
-	private void autoDetectSeparator(final CSVFile csvFile, final SeparatorListener listener) {
-		try (BufferedReader reader = new BufferedReader(new FileReader(csvFile.getFile().toFile()))) {
-			Map<CSVSeperator, Integer> counter = new HashMap<>();
-			for (int i = 0; i < SEPARATOR_DETECTION_ROW_LIMIT; i++) {
-				String line = reader.readLine();
-				if (line == null) {
-					break;
-				}
-				updateCounter(counter, CSVSeperator.COMMA, ",", line);
-				updateCounter(counter, CSVSeperator.TAB, "\t", line);
-				updateCounter(counter, CSVSeperator.SEMICOLON, ";", line);
-			}
-			// now check which are still fine
-			for (CSVSeperator seperator : counter.keySet()) {
-				if (counter.get(seperator) > 1) {
-					listener.separatorDetected(seperator);
-					return;
-				}
-			}
-			// if none of them was properly detected go with inconsistent ones
-			for (CSVSeperator seperator : counter.keySet()) {
-				if (counter.get(seperator) == -1) {
-					listener.separatorDetected(seperator);
-					return;
-				}
-			}
-			// None could be detected		
-		} catch (IOException e) {
-			ProMUIHelper
-					.showErrorMessage(this, e.toString(), "Error reading CSV while determining separator character");
-		}
-	}
-
-	private static void updateCounter(Map<CSVSeperator, Integer> counter, CSVSeperator separator, String token,
-			String line) {
-		// Remove all text in between quotes as it should be ignored for separator detection 
-		String lineWithoutQuotes = removeTextInQuotes(line);
-		int matchCount = StringUtils.countMatches(lineWithoutQuotes, token);
-		if (counter.get(separator) == null) {
-			counter.put(separator, matchCount);
-		} else if (counter.get(separator) != matchCount) {
-			// Inconsistent number of separator characters
-			counter.put(separator, -1);
-		}
-	}
-
-	private static String removeTextInQuotes(String line) {
-		String internalLine = line;
-		while (internalLine.contains("\"")) {
-			int startIndex = internalLine.indexOf("\"");
-			int endIndex = internalLine.substring(startIndex + 1, internalLine.length()).indexOf("\"");
-			// now remove the in between part of the string and replace it with some placeholder text
-			internalLine = internalLine.substring(0, startIndex) + "placeholder"
-					+ internalLine.substring(startIndex + 1 + endIndex + 1, internalLine.length());
-		}
-		return internalLine;
-	}
-
-	private void autoDetectQuote(CSVFile csvFile, QuoteListener quoteListener) {
-		//TODO detected whether double quotes or single quotes are quoting characters
 	}
 
 	/*

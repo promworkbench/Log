@@ -21,7 +21,6 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csv.config.CSVConfig;
-import org.processmining.log.csvimport.CSVConversion.ProgressListener;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVErrorHandlingMode;
 import org.processmining.log.csvimport.exception.CSVConversionException;
@@ -40,7 +39,6 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	private final XFactory factory;
 	private final CSVConversionConfig conversionConfig;
 	private final StringBuilder conversionErrors;
-	private final ProgressListener progress;
 
 	private XLog log = null;
 
@@ -54,14 +52,24 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 
 	private boolean errorDetected = false;
 
-	public XESConversionHandlerImpl(ProgressListener progress, CSVConfig importConfig,
+	public XESConversionHandlerImpl(CSVConfig importConfig,
 			CSVConversionConfig conversionConfig) {
-		this.progress = progress;
 		this.conversionConfig = conversionConfig;
 		this.factory = conversionConfig.getFactory();
 		this.conversionErrors = new StringBuilder();
 	}
+	
+	@Override
+	public String getConversionErrors() {
+		return conversionErrors.toString();
+	}
+	
+	@Override
+	public boolean hasConversionErrors() {
+		return conversionErrors.length() != 0;
+	}
 
+	@Override
 	public void startLog(CSVFile inputFile) {
 		log = factory.createLog();
 		if (conversionConfig.getEventNameColumns() != null) {
@@ -76,6 +84,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		assignName(factory, log, inputFile.getFilename());
 	}
 
+	@Override
 	public void startTrace(String caseId) {
 		currentEvents.clear();
 		hasStartEvents = false;
@@ -84,6 +93,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		assignName(factory, currentTrace, caseId);
 	}
 
+	@Override
 	public void endTrace(String caseId) {
 		if (errorDetected && conversionConfig.getErrorHandlingMode() == CSVErrorHandlingMode.OMIT_TRACE_ON_ERROR) {
 			// Do not include the whole trace
@@ -103,6 +113,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		log.add(currentTrace);
 	}
 
+	@Override
 	public void startEvent(String eventClass, Date completionTime, Date startTime) {
 		if (conversionConfig.getErrorHandlingMode() == CSVErrorHandlingMode.OMIT_EVENT_ON_ERROR) {
 			// Include the other events in that trace
@@ -143,30 +154,35 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		}
 	}
 
+	@Override
 	public void startAttribute(String name, String value) {
 		if (!specialColumn(name)) {
 			assignAttribute(currentEvent, factory.createAttributeLiteral(name, value, getExtensionFromConfig(name)));
 		}
 	}
 
+	@Override
 	public void startAttribute(String name, long value) {
 		if (!specialColumn(name)) {
 			assignAttribute(currentEvent, factory.createAttributeDiscrete(name, value, getExtensionFromConfig(name)));
 		}
 	}
 
+	@Override
 	public void startAttribute(String name, double value) {
 		if (!specialColumn(name)) {
 			assignAttribute(currentEvent, factory.createAttributeContinuous(name, value, getExtensionFromConfig(name)));
 		}
 	}
 
+	@Override
 	public void startAttribute(String name, Date value) {
 		if (!specialColumn(name)) {
 			assignAttribute(currentEvent, factory.createAttributeTimestamp(name, value, getExtensionFromConfig(name)));
 		}
 	}
 
+	@Override
 	public void startAttribute(String name, boolean value) {
 		if (!specialColumn(name)) {
 			assignAttribute(currentEvent, factory.createAttributeBoolean(name, value, getExtensionFromConfig(name)));
@@ -177,10 +193,12 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		return conversionConfig.getConversionMap().get(name).getExtension();
 	}
 
+	@Override
 	public void endAttribute() {
 		//No-op
 	}
 
+	@Override
 	public void endEvent() {
 		if (errorDetected && conversionConfig.getErrorHandlingMode() == CSVErrorHandlingMode.OMIT_EVENT_ON_ERROR) {
 			// Do not include the event
@@ -194,8 +212,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		currentEvent = null;
 	}
 
-	public XLog getResult() {
-		progress.log(conversionErrors.toString());
+	public XLog getResult() {		
 		return log;
 	}
 
@@ -223,6 +240,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 				factory.createAttributeLiteral(XConceptExtension.KEY_NAME, value, XConceptExtension.instance()));
 	}
 
+	@Override
 	public void errorDetected(int line, Object content, Exception e) throws CSVConversionException {
 		CSVErrorHandlingMode errorMode = conversionConfig.getErrorHandlingMode();
 		errorDetected = true;

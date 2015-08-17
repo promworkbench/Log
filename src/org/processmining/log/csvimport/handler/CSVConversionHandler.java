@@ -40,4 +40,8 @@ public interface CSVConversionHandler<R> {
 
 	R getResult();
 
+	boolean hasConversionErrors();
+
+	String getConversionErrors();
+
 }

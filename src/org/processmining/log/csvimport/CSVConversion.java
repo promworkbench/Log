@@ -44,6 +44,12 @@ import com.ning.compress.lzf.LZFInputStream;
  *
  */
 public final class CSVConversion {
+	
+	public interface ConversionResult<R> {
+		R getResult();
+		boolean hasConversionErrors();
+		String getConversionErrors();
+	}
 
 	public interface ProgressListener {
 		Progress getProgress();
@@ -77,7 +83,7 @@ public final class CSVConversion {
 
 	private static final class ImportOrdering extends Ordering<String[]> {
 
-		private final int[] indices;
+		private final int[] caseIndices;
 
 		private final int completionTimeIndex;
 		private final CSVMapping completionTimeMapping;
@@ -86,7 +92,7 @@ public final class CSVConversion {
 
 		public ImportOrdering(int[] indices, Map<Integer, CSVMapping> mappingMap, int completionTimeIndex,
 				int startTimeIndex, CSVErrorHandlingMode errorHandlingMode) {
-			this.indices = indices;
+			this.caseIndices = indices;
 			this.completionTimeIndex = completionTimeIndex;
 			this.completionTimeMapping = mappingMap.get(completionTimeIndex);
 			this.errorHandlingMode = errorHandlingMode;
@@ -94,23 +100,27 @@ public final class CSVConversion {
 
 		public int compare(String[] o1, String[] o2) {
 			if (o1.length != o2.length) {
-				throw new IllegalArgumentException("Can only compare String arrays of the exact same size!");
+				throw new IllegalArgumentException(
+						"Can only compare lines in a CSV file with the same number of columns!");
 			}
-			for (int i = 0; i < indices.length; i++) {
-				int index = indices[i];
-				int comp = o1[index].compareTo(o2[index]);
+			// First compare on all the case columns
+			for (int i = 0; i < caseIndices.length; i++) {
+				int index = caseIndices[i];
+				// We treat empty and NULL cells as the same as there is no concept of a NULL cell in CSV 
+				String s1 = o1[index] == null ? "" : o1[index];
+				String s2 = o2[index] == null ? "" : o2[index];
+				int comp = s1.compareTo(s2);
 				if (comp != 0) {
-					// Different on current index
+					// Case ID is different on current index
 					return comp;
 				}
 			}
-			// Same over all indices
+			// Belongs to the same case over all indices, compare on completion time
 			if (completionTimeIndex != -1) {
 				// Sort by completion time
-				//TODO what to do with start & completion time
 				return compareTime(completionTimeMapping, o1[completionTimeIndex], o2[completionTimeIndex]);
 			} else {
-				// Keep ordering
+				// Keep ordering -> using a stable sort algorithm
 				return 0;
 			}
 		}
@@ -141,8 +151,8 @@ public final class CSVConversion {
 	}
 
 	/**
-	 * Convert a {@link CSVFileReferenceOpenCSVImpl} into an {@link XLog} using the
-	 * supplied configuration.
+	 * Convert a {@link CSVFileReferenceOpenCSVImpl} into an {@link XLog} using
+	 * the supplied configuration.
 	 * 
 	 * @param progressListener
 	 * @param csvFile
@@ -152,21 +162,20 @@ public final class CSVConversion {
 	 * @throws CSVConversionException
 	 * @throws CSVConversionConfigException
 	 */
-	public XLog doConvertCSVToXES(final ProgressListener progressListener, CSVFile csvFile,
-			CSVConfig importConfig, CSVConversionConfig conversionConfig) throws CSVConversionException,
-			CSVConversionConfigException {
+	public ConversionResult<XLog> doConvertCSVToXES(final ProgressListener progressListener, CSVFile csvFile, CSVConfig importConfig,
+			CSVConversionConfig conversionConfig) throws CSVConversionException, CSVConversionConfigException {
 		return convertCSV(progressListener, importConfig, conversionConfig, csvFile, new XESConversionHandlerImpl(
-				progressListener, importConfig, conversionConfig));
+				importConfig, conversionConfig));
 	}
 
 	/**
-	 * Converts a {@link CSVFileReferenceOpenCSVImpl} into something determined by the
-	 * supplied {@link CSVConversionHandler}. Use
+	 * Converts a {@link CSVFileReferenceOpenCSVImpl} into something determined
+	 * by the supplied {@link CSVConversionHandler}. Use
 	 * {@link #doConvertCSVToXES(ProgressListener, CSVFileReferenceOpenCSVImpl, CSVConfig, CSVConversionConfig)}
 	 * in case you want to convert to an {@link XLog}.
 	 * 
 	 * @param progress
-	 * @param config
+	 * @param importConfig
 	 * @param conversionConfig
 	 * @param csvFile
 	 * @param conversionHandler
@@ -174,11 +183,12 @@ public final class CSVConversion {
 	 * @throws CSVConversionException
 	 * @throws CSVConversionConfigException
 	 */
-	public <R> R convertCSV(ProgressListener progress, CSVConfig config, CSVConversionConfig conversionConfig,
-			CSVFile csvFile, CSVConversionHandler<R> conversionHandler) throws CSVConversionException,
+	public <R> ConversionResult<R> convertCSV(ProgressListener progress, CSVConfig importConfig, CSVConversionConfig conversionConfig,
+			CSVFile csvFile, final CSVConversionHandler<R> conversionHandler) throws CSVConversionException,
 			CSVConversionConfigException {
 
 		Progress p = progress.getProgress();
+
 		//TODO can we provide determinate progress? maybe based on bytes of CSV read
 		p.setMinimum(0);
 		p.setMaximum(1);
@@ -199,7 +209,7 @@ public final class CSVConversion {
 		final Map<Integer, CSVMapping> mappingMap = new HashMap<>();
 
 		try {
-			header = csvFile.readHeader(config);
+			header = csvFile.readHeader(importConfig);
 			for (int i = 0; i < header.length; i++) {
 				String columnHeader = header[i];
 				Integer oldIndex = headerMap.put(columnHeader, i);
@@ -226,7 +236,7 @@ public final class CSVConversion {
 				startTimeColumnIndex = headerMap.get(conversionConfig.getStartTimeColumn());
 			}
 		} catch (IOException e) {
-			throw new CSVConversionException("Could not read CSV file header", e);
+			throw new CSVConversionException("Could not read first row of CSV file with header information", e);
 		}
 
 		InputStream sortedCsvInputStream = null;
@@ -241,7 +251,8 @@ public final class CSVConversion {
 						((double) csvFile.getFileSizeInBytes() / 1024 / 1024), maxMemory));
 				Ordering<String[]> caseComparator = new ImportOrdering(caseColumnIndex, mappingMap,
 						completionTimeColumnIndex, startTimeColumnIndex, conversionConfig.getErrorHandlingMode());
-				sortedFile = CSVSorter.sortCSV(csvFile, caseComparator, config, maxMemory, header.length, progress);
+				sortedFile = CSVSorter.sortCSV(csvFile, caseComparator, importConfig, maxMemory, header.length,
+						progress);
 				sortedCsvInputStream = new LZFInputStream(new FileInputStream(sortedFile));
 				long endSortTime = System.currentTimeMillis();
 				progress.log(String.format("Finished sorting in %d seconds", (endSortTime - startSortTime) / 1000));
@@ -253,7 +264,7 @@ public final class CSVConversion {
 
 			// The following code assumes that the file is sorted by cases and written to disk compressed with LZF
 			progress.log("Reading cases ...");
-			try (ICSVReader reader = csvFile.getCSV().createReader(sortedCsvInputStream, config)) {
+			try (ICSVReader reader = csvFile.getCSV().createReader(sortedCsvInputStream, importConfig)) {
 
 				int caseIndex = 0;
 				int eventIndex = 0;
@@ -316,8 +327,8 @@ public final class CSVConversion {
 							final String name = header[i];
 							final String value = nextLine[i];
 
-							if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.SPARSE && (value == null || conversionConfig
-									.getTreatAsEmptyValues().contains(value) || value.isEmpty()))) {
+							if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.SPARSE && (value == null
+									|| conversionConfig.getTreatAsEmptyValues().contains(value) || value.isEmpty()))) {
 								parseAttributes(progress, conversionConfig, conversionHandler, mappingMap.get(i),
 										lineIndex, i, name, nextLine);
 							}
@@ -354,7 +365,20 @@ public final class CSVConversion {
 		long endConvertTime = System.currentTimeMillis();
 		progress.log(String.format("Finished reading cases in %d seconds.", (endConvertTime - startCSVTime) / 1000));
 
-		return conversionHandler.getResult();
+		return new ConversionResult<R>() {
+
+			public R getResult() {
+				return conversionHandler.getResult();
+			}
+
+			public boolean hasConversionErrors() {
+				return conversionHandler.hasConversionErrors();
+			}
+
+			public String getConversionErrors() {
+				return conversionHandler.getConversionErrors();
+			}
+		}; 
 	}
 
 	private <R> void parseAttributes(ProgressListener progress, CSVConversionConfig conversionConfig,
@@ -429,11 +453,15 @@ public final class CSVConversion {
 		}
 		int size = 0;
 		for (int index : columnIndex) {
-			size += line[index].length();
+			String cell = line[index];
+			size += (cell == null ? 0 : cell.length());
 		}
 		StringBuilder sb = new StringBuilder(size + columnIndex.length);
 		for (int index : columnIndex) {
-			sb.append(line[index]);
+			String cell = line[index];
+			if (cell != null) {
+				sb.append(cell);
+			}
 			sb.append(compositeSeparator);
 		}
 		return sb.substring(0, sb.length() - 1);
@@ -442,6 +470,10 @@ public final class CSVConversion {
 	private static Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*");
 
 	private static Date parseDate(DateFormat customDateFormat, String value) throws ParseException {
+
+		if (value == null) {
+			throw new ParseException("Could not parse NULL timestamp!", 0);
+		}
 
 		if (customDateFormat != null) {
 			ParsePosition pos = new ParsePosition(0);

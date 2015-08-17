@@ -14,15 +14,18 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.Progress;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.events.Logger.MessageLevel;
 import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csv.config.CSVConfig;
+import org.processmining.log.csvimport.CSVConversion.ConversionResult;
 import org.processmining.log.csvimport.CSVConversion.ProgressListener;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVMapping;
 import org.processmining.log.csvimport.config.CSVConversionConfig.Datatype;
 import org.processmining.log.csvimport.exception.CSVConversionConfigException;
 import org.processmining.log.csvimport.exception.CSVConversionException;
+import org.processmining.log.csvimport.handler.XESConversionHandlerImpl;
 import org.processmining.log.csvimport.ui.ConversionConfigUI;
 import org.processmining.log.csvimport.ui.ExpertConfigUI;
 import org.processmining.log.csvimport.ui.ImportConfigUI;
@@ -45,56 +48,73 @@ import com.google.common.io.Files;
 public final class CSVConversionPlugin {
 
 	@Plugin(name = "Convert CSV to XES", parameterLabels = { "CSV" }, returnLabels = { "XES Event Log" }, // 
-			returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,// 
-			keywords = {"CSV", "OpenXES", "Conversion", "Import" }, help = "Converts the CSV file to a OpenXES XLog object.")
+	returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,// 
+	keywords = { "CSV", "OpenXES", "Conversion", "Import" }, help = "Converts the CSV file to a OpenXES XLog object.")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt, N. Tax, D.M.M. Schunselaar", // 
-			email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl")
-	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csv) throws IOException {
+	email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl")
+	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csvFile) {
 
 		InteractionResult result = InteractionResult.CONTINUE;
 
-		CSVConfig importConfig = new CSVConfig();
-		CSVConversionConfig csvConversionConfig = null;
+		try {
+			CSVConfig importConfig = new CSVConfig(csvFile);
+			CSVConversionConfig csvConversionConfig = null;
 
-		int i = 0;
-		while (result != InteractionResult.FINISHED) {
-			switch (i) {
-				case 0 :
-					result = queryImportConfig(context, csv, importConfig);
-					csvConversionConfig = new CSVConversionConfig(csv.readHeader(importConfig));
-					break;
-				case 1 :
-					result = queryConversionConfig(context, csv, importConfig, csvConversionConfig);
-					break;
-				case 2 :
-					result = queryExpertConfig(context, csv, importConfig, csvConversionConfig);
-					break;
+			int i = 0;
+			while (result != InteractionResult.FINISHED) {
+				switch (i) {
+					case 0 :
+						result = queryImportConfig(context, csvFile, importConfig);
+						csvConversionConfig = new CSVConversionConfig(csvFile.readHeader(importConfig));
+						break;
+					case 1 :
+						result = queryConversionConfig(context, csvFile, importConfig, csvConversionConfig);
+						break;
+					case 2 :
+						result = queryExpertConfig(context, csvFile, importConfig, csvConversionConfig);
+						break;
+				}
+				if (result == InteractionResult.NEXT || result == InteractionResult.CONTINUE) {
+					i++;
+				} else if (result == InteractionResult.PREV) {
+					i--;
+				} else if (result == InteractionResult.CANCEL) {
+					return null;
+				}
 			}
-			if (result == InteractionResult.NEXT || result == InteractionResult.CONTINUE) {
-				i++;
-			} else if (result == InteractionResult.PREV) {
-				i--;
-			} else if (result == InteractionResult.CANCEL) {
+
+			CSVConversion csvConversion = new CSVConversion();
+			try {
+				ConversionResult<XLog> conversionResult = doConvertCSVToXes(context, csvFile, importConfig, csvConversionConfig,
+						csvConversion);
+				if (conversionResult.hasConversionErrors()) {
+					ProMUIHelper.showErrorMessage(context, conversionResult.getConversionErrors(), "Warning: Some issues have been detected during conversion");
+				}
+				return conversionResult.getResult();
+			} catch (CSVConversionException e) {
+				String errorMessage = Joiner.on("\ncaused by\n").join(Throwables.getCausalChain(e));
+				String stackTrace = Throwables.getStackTraceAsString(e);
+				ProMUIHelper.showErrorMessage(context, errorMessage + "\n\n Stack Trace\n" + stackTrace,
+						"Conversion Failed");
+				context.getFutureResult(0).cancel(false);
 				return null;
 			}
-		}
-
-		CSVConversion csvConversion = new CSVConversion();
-		try {
-			return doConvertCSVToXes(context, csv, importConfig, csvConversionConfig, csvConversion);
-		} catch (CSVConversionException e) {
+		} catch (IOException e) {
 			String errorMessage = Joiner.on("\ncaused by\n").join(Throwables.getCausalChain(e));
 			String stackTrace = Throwables.getStackTraceAsString(e);
-			ProMUIHelper.showErrorMessage(context, errorMessage + "\n\n Stack Trace\n" + stackTrace, "Conversion Failed");
+			ProMUIHelper.showErrorMessage(context, errorMessage + "\n\n Stack Trace\n" + stackTrace,
+					"Conversion Failed");
 			context.getFutureResult(0).cancel(false);
 			return null;
 		}
+
 	}
 
-	public XLog doConvertCSVToXes(final PluginContext context, CSVFile csv, CSVConfig importConfig,
+	public ConversionResult<XLog> doConvertCSVToXes(final PluginContext context, CSVFile csvFile, CSVConfig importConfig,
 			CSVConversionConfig conversionConfig, CSVConversion csvConversion) throws CSVConversionConfigException,
 			CSVConversionException {
-		XLog convertedLog = csvConversion.doConvertCSVToXES(new ProgressListener() {
+		
+		ProgressListener progressListener = new ProgressListener() {
 
 			public Progress getProgress() {
 				return context.getProgress();
@@ -104,7 +124,16 @@ public final class CSVConversionPlugin {
 				context.log(message);
 
 			}
-		}, csv, importConfig, conversionConfig);
+		};
+
+		XESConversionHandlerImpl xesHandler = new XESConversionHandlerImpl(importConfig, conversionConfig);
+		final ConversionResult<XLog> conversionResult = csvConversion.convertCSV(progressListener, importConfig, conversionConfig, csvFile, xesHandler);
+		final XLog convertedLog = conversionResult.getResult();
+		
+		if (xesHandler.hasConversionErrors()) {
+			context.log(xesHandler.getConversionErrors(), MessageLevel.WARNING);
+		}
+		
 		if (conversionConfig.isShouldGuessDataTypes()) {
 			RepairAttributeDataType repairTypes = new RepairAttributeDataType();
 			Builder<DateFormat> dateFormatSet = ImmutableSet.<DateFormat>builder().addAll(
@@ -126,14 +155,27 @@ public final class CSVConversionPlugin {
 					return guessedDataTypes;
 				}
 			});
-			
+
 			RepairGlobalAttributesPlugin.doRepairLog(convertedLog);
-			
+
 			context.getFutureResult(0).setLabel(
-					Files.getNameWithoutExtension(csv.getFilename()) + " (converted @"
+					Files.getNameWithoutExtension(csvFile.getFilename()) + " (converted @"
 							+ DateFormat.getTimeInstance().format(new Date()) + ")");
 		}
-		return convertedLog;
+		return new ConversionResult<XLog>() {
+			
+			public boolean hasConversionErrors() {
+				return conversionResult.hasConversionErrors();
+			}
+			
+			public XLog getResult() {
+				return convertedLog;
+			}
+			
+			public String getConversionErrors() {
+				return conversionResult.getConversionErrors();
+			}
+		};
 
 	}
 
