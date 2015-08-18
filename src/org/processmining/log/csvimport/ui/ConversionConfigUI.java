@@ -27,6 +27,7 @@ import org.processmining.log.csv.ICSVReader;
 import org.processmining.log.csv.config.CSVConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVMapping;
+import org.processmining.log.csvimport.ui.preview.CSVPreviewFrame;
 
 import com.fluxicon.slickerbox.components.SlickerButton;
 import com.fluxicon.slickerbox.factory.SlickerFactory;
@@ -114,7 +115,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 		JLabel standardAttributesLabel = SlickerFactory.instance().createLabel(
 				"<HTML><H2>Mapping to Standard XES Attributes</H2></HTML>");
-		JButton showPreviewButton = new SlickerButton("Toggle Preview");
+		JButton showPreviewButton = new SlickerButton("Toggle Expert View");
 		showPreviewButton.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
@@ -270,7 +271,6 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 	@Override
 	public void addNotify() {
 		super.addNotify();
-		togglePreviewFrame();
 	}
 
 	/*

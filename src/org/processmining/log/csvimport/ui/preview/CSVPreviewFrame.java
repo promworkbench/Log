@@ -1,4 +1,4 @@
-package org.processmining.log.csvimport.ui;
+package org.processmining.log.csvimport.ui.preview;
 
 import java.awt.Component;
 import java.awt.Dimension;

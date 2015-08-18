@@ -1,18 +1,23 @@
 package org.processmining.log.csvimport.config;
 
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.MessageFormat;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.deckfour.xes.extension.XExtension;
 import org.deckfour.xes.extension.std.XConceptExtension;
@@ -37,6 +42,40 @@ import com.google.common.collect.ImmutableList;
 public final class CSVConversionConfig {
 	
 	private static final int DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES = 100;
+	
+	@SuppressWarnings("serial")
+	public static final Set<DateFormat> STANDARD_DATE_FORMATTERS = new LinkedHashSet<DateFormat>() {
+		{
+			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
+			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss"));
+			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
+			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy-MM-dd HH:mm"));
+			add(new SimpleDateFormat("yyyy-MM-dd"));
+			add(new SimpleDateFormat("MM/dd/yyyy HH:mm"));
+			add(new SimpleDateFormat("MM/dd/yyyy"));
+			add(new SimpleDateFormat("dd-MM-yyyy:HH:mm:ss"));
+			add(new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z"));
+			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz"));
+			add(new SimpleDateFormat("MM-dd-yyyy HH:mm:ss"));
+			add(new SimpleDateFormat("MM-dd-yyyy HH:mm"));
+			add(new SimpleDateFormat("MM-dd-yyyy"));
+			add(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"));
+			add(new SimpleDateFormat("dd-MM-yyyy HH:mm"));
+			add(new SimpleDateFormat("dd-MM-yyyy"));
+		}
+	};
+
+	static {
+		for (DateFormat df : STANDARD_DATE_FORMATTERS) {
+			df.setLenient(false);
+		}
+	}
+
 	
 	private static final Set<String> CASE_COLUMN_IDS = new HashSet<String>() {
 		private static final long serialVersionUID = 1113995381788343439L;
@@ -342,13 +381,99 @@ public final class CSVConversionConfig {
 			// now we can guess the data type
 			for (String column : header) {
 				List<String> values = valuesPerColumn.get(column);
-				// now we can guess the type
-				// let's try the discrete values
-				
-				getConversionMap().get(column).setDataType(Datatype.TIME);
-				
+				Datatype inferred = inferDataType(values);
+				getConversionMap().get(column).setDataType(inferred);
 			}
 		}
+	}
+	
+	private static boolean isInteger(String s) {
+	    return isInteger(s,19);
+	}
+
+	private static boolean isInteger(String s, int radix) {
+	    if(s.isEmpty()) return false;
+	    for(int i = 0; i < s.length(); i++) {
+	        if(i == 0 && s.charAt(i) == '-') {
+	            if(s.length() == 1) return false;
+	            else continue;
+	        }
+	        if(Character.digit(s.charAt(i),radix) < 0) return false;
+	    }
+	    return true;
+	}
+	
+	private Datatype inferDataType(List<String> values){
+		boolean allEmpty = true;
+		for(String value : values){
+			if(value != null && !value.isEmpty()){
+				allEmpty = false;
+				break;
+			}
+		}
+		if(allEmpty)
+			return Datatype.LITERAL;
+		
+		// check whether type is boolean
+		boolean isBoolean = true;
+		for (String value : values){
+			if(value!=null && !value.isEmpty() && !(value.toLowerCase().equals("true".toLowerCase()) || value.toLowerCase().equals("false".toLowerCase()))){
+				isBoolean = false;
+				break;
+			}
+		}
+		if(isBoolean)
+			return Datatype.BOOLEAN;
+		
+		// check whether type is discrete
+		boolean isDiscrete = true;
+		for (String value : values){
+			if(value!=null && !value.isEmpty() && !isInteger(value)){
+				isDiscrete = false;
+				break;
+			}
+		}
+		if(isDiscrete)
+			return Datatype.DISCRETE;
+		
+		// check whether type is continuous
+		final Pattern CONTINUOUS_PATTERN = Pattern.compile("((-)?[0-9]*\\.[0-9]+)|((-)?[0-9]+(\\.[0-9]+)?(e|E)\\+[0-9]+)");
+		boolean isContinuous = true;
+		for (String value : values){
+			if(value!=null && !value.isEmpty() && !CONTINUOUS_PATTERN.matcher(value).matches()){
+				isContinuous = false;
+				break;
+			}
+		}
+		if(isContinuous)
+			return Datatype.CONTINUOUS;
+
+		// check whether type is date
+		boolean isConsistentDateFormat = true;
+		DateFormat globalFormatter = null;
+		final Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*");
+		for (String value : values){
+			if(value==null || value.isEmpty())
+				continue;
+			ParsePosition pos = new ParsePosition(0);
+			String fixedValue = INVALID_MS_PATTERN.matcher(value).replaceFirst("$1");
+			for (DateFormat formatter : STANDARD_DATE_FORMATTERS) {
+				pos.setIndex(0);
+				Date date = formatter.parse(fixedValue, pos);
+				if (date != null && globalFormatter==null){
+					globalFormatter = formatter;
+				}
+				// check whether date is not parsable, or date format for parsing is inconsistent
+				if (date != null && (globalFormatter!=null && !globalFormatter.equals(formatter))) {
+					isConsistentDateFormat = false;
+					break;
+				}
+			}
+		}
+		if(isConsistentDateFormat && globalFormatter != null)
+			return Datatype.TIME;
+		
+		return Datatype.LITERAL;
 	}
 
 	public XFactory getFactory() {

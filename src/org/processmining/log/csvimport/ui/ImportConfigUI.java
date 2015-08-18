@@ -1,5 +1,6 @@
 package org.processmining.log.csvimport.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -8,10 +9,14 @@ import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.GroupLayout.ParallelGroup;
+import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
@@ -21,8 +26,7 @@ import org.processmining.log.csv.ICSVReader;
 import org.processmining.log.csv.config.CSVConfig;
 import org.processmining.log.csv.config.CSVQuoteCharacter;
 import org.processmining.log.csv.config.CSVSeperator;
-
-import com.fluxicon.slickerbox.components.SlickerButton;
+import org.processmining.log.csvimport.ui.preview.CSVPreviewPanel;
 
 /**
  * UI for the import configuration (charset, separator, ..)
@@ -36,15 +40,16 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 
 	private static final int MAX_PREVIEW = 1000;
 
+	private static final int COLUMN_WIDTH = 240;
+
 	private final CSVFile csv;
 	private final CSVConfig importConfig;
 
 	private final ProMComboBox<String> charsetCbx;
 	private final ProMComboBox<CSVSeperator> separatorField;
 	private final ProMComboBox<CSVQuoteCharacter> quoteField;
-	//private final ProMComboBox<CSVQuoteCharacter> escapeField;
 
-	private final CSVPreviewFrame previewFrame;
+	private final CSVPreviewPanel previewPanel;
 
 	private SwingWorker<Void, Object[]> worker;
 
@@ -52,41 +57,45 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		super();
 		this.importConfig = importConfig;
 		this.csv = csv;
-		this.previewFrame = new CSVPreviewFrame();
+		this.previewPanel = new CSVPreviewPanel();
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		setOpaque(false);		
 
 		JLabel header = new JLabel("<HTML><H2>CSV Parsing Parameters</H2></HTML>");
-		header.setAlignmentX(LEFT_ALIGNMENT);
+		header.setAlignmentX(CENTER_ALIGNMENT);
 		header.setAlignmentY(TOP_ALIGNMENT);
-
-		JButton showPreviewButton = new SlickerButton("Toggle Preview");
-		showPreviewButton.setAlignmentY(TOP_ALIGNMENT);
-		showPreviewButton.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e) {
-				togglePreviewFrame();
-			}
-		});
-
+		
 		JPanel headerPanel = new JPanel();
 		headerPanel.setOpaque(false);
 		headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.X_AXIS));
-		headerPanel.setAlignmentX(LEFT_ALIGNMENT);
 		headerPanel.add(header);
-		headerPanel.add(showPreviewButton);
 		add(headerPanel);
 
-		add(Box.createVerticalStrut(20));
+		add(Box.createVerticalStrut(10));
 
+		JPanel topPanel = new JPanel();
+		
+		GroupLayout layout = new GroupLayout(topPanel);
+		layout.setAutoCreateContainerGaps(true);
+		layout.setAutoCreateGaps(true);
+
+		topPanel.setOpaque(false);
+		topPanel.setLayout(layout);
+		
+		JPanel charsetPanel = new JPanel();
+		charsetPanel.setOpaque(false);
+		charsetPanel.setLayout(new BoxLayout(charsetPanel, BoxLayout.Y_AXIS));
 		charsetCbx = new ProMComboBox<>(Charset.availableCharsets().keySet());
 		charsetCbx.setSelectedItem(importConfig.getCharset());
 		charsetCbx.setPreferredSize(null);
 		charsetCbx.setMinimumSize(null);
-		JLabel charsetLabel = createLabel("Charset", "");
+		JLabel charsetLabel = createLabel("Charset", 
+				"Configure the character encoding that is used by the CSV file");
 		charsetLabel.setAlignmentX(LEFT_ALIGNMENT);
-		add(charsetLabel);
-		add(charsetCbx);
+		charsetCbx.setAlignmentX(LEFT_ALIGNMENT);
+		charsetPanel.add(charsetLabel);
+		charsetPanel.add(charsetCbx);
 		charsetCbx.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
@@ -94,17 +103,20 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 				refreshPreview();
 			}
 		});
-		charsetCbx.setAlignmentX(LEFT_ALIGNMENT);
 
+		JPanel separatorPanel = new JPanel();
+		separatorPanel.setOpaque(false);
+		separatorPanel.setLayout(new BoxLayout(separatorPanel, BoxLayout.Y_AXIS));
 		separatorField = new ProMComboBox<>(CSVSeperator.values());
 		separatorField.setPreferredSize(null);
 		separatorField.setMinimumSize(null);
 		separatorField.setSelectedItem(importConfig.getSeparator());
-		separatorField.setAlignmentX(LEFT_ALIGNMENT);
-		JLabel seperationLabel = createLabel("Separator Character", "");
+		JLabel seperationLabel = createLabel("Separator Character", 
+				"Configure the character that is used by the CSV file to separate two fields");
 		seperationLabel.setAlignmentX(LEFT_ALIGNMENT);
-		add(seperationLabel);
-		add(separatorField);
+		separatorField.setAlignmentX(LEFT_ALIGNMENT);
+		separatorPanel.add(seperationLabel);
+		separatorPanel.add(separatorField);
 		separatorField.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
@@ -113,14 +125,18 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 			}
 		});
 
+		JPanel quotePanel = new JPanel();
+		quotePanel.setOpaque(false);
+		quotePanel.setLayout(new BoxLayout(quotePanel, BoxLayout.Y_AXIS));
 		quoteField = new ProMComboBox<>(CSVQuoteCharacter.values());
 		quoteField.setPreferredSize(null);
 		quoteField.setMinimumSize(null);
-		quoteField.setAlignmentX(LEFT_ALIGNMENT);
-		JLabel quoteLabel = createLabel("Quote Character", "");
+		JLabel quoteLabel = createLabel("Quote Character", 
+				"Configure the character that is used by the CSV file that is used to quote values if they contain the separator character or a newline");
 		quoteLabel.setAlignmentX(LEFT_ALIGNMENT);
-		add(quoteLabel);
-		add(quoteField);
+		quoteField.setAlignmentX(LEFT_ALIGNMENT);
+		quotePanel.add(quoteLabel);
+		quotePanel.add(quoteField);
 		quoteField.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
@@ -130,51 +146,27 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		});
 		quoteField.setSelectedItem(importConfig.getQuoteChar());
 
-		/*
-		 * escapeField = new ProMComboBox<>(CSVEscapeCharacter.values());
-		 * escapeField.setPreferredSize(null); escapeField.setMinimumSize(null);
-		 * JLabel escapeLabel =
-		 * SlickerFactory.instance().createLabel("Escape Character of the CSV");
-		 * escapeLabel.setAlignmentX(LEFT_ALIGNMENT); add(escapeLabel);
-		 * add(escapeField); escapeField.addActionListener(new ActionListener()
-		 * {
-		 * 
-		 * public void actionPerformed(ActionEvent e) { importConfig.escapeChar
-		 * = (CSVEscapeCharacter) escapeField.getSelectedItem();
-		 * refreshPreview(); } }); escapeField.setAlignmentX(LEFT_ALIGNMENT);
-		 */
+		ParallelGroup verticalGroup = layout.createParallelGroup()
+				.addComponent(charsetPanel, Alignment.TRAILING)
+				.addComponent(separatorPanel, Alignment.TRAILING)
+				.addComponent(quotePanel, Alignment.TRAILING);
 
-		refreshPreview();
-	}
+		SequentialGroup horizontalGroup = layout.createSequentialGroup()
+				.addComponent(charsetPanel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
+				.addComponent(separatorPanel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH )
+				.addComponent(quotePanel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH);
 
-	public void togglePreviewFrame() {
-		if (previewFrame.isVisible()) {
-			previewFrame.setVisible(false);
-		} else {
-			previewFrame.showFrame(getRootPane());
-		}
-	}
+		layout.linkSize(SwingConstants.HORIZONTAL, separatorPanel, charsetPanel, quotePanel);
+		
+		layout.setAutoCreateContainerGaps(true);
+		layout.setAutoCreateGaps(true);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.JComponent#addNotify()
-	 */
-	@Override
-	public void addNotify() {
-		super.addNotify();
-		previewFrame.showFrame(getRootPane());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.JComponent#removeNotify()
-	 */
-	@Override
-	public void removeNotify() {
-		super.removeNotify();
-		previewFrame.setVisible(false);
+		layout.setVerticalGroup(verticalGroup);
+		layout.setHorizontalGroup(horizontalGroup);
+		
+		add(topPanel);
+		previewPanel.setMaximumSize(new Dimension(720, 350));
+		add(previewPanel);
 	}
 
 	private void refreshPreview() {
@@ -183,11 +175,11 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 			worker.cancel(true);
 		}
 
-		previewFrame.clear();
+		previewPanel.clear();
 
 		// Update Header
 		try {
-			previewFrame.setHeader(csv.readHeader(importConfig));
+			previewPanel.setHeader(csv.readHeader(importConfig));
 		} catch (IOException | ArrayIndexOutOfBoundsException e) {
 			ProMUIHelper.showWarningMessage(this, "Error parsing CSV " + e.getMessage(), "CSV Parsing Error");
 			return;
@@ -213,7 +205,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 
 			protected void process(List<Object[]> chunks) {
 				for (Object[] row : chunks) {
-					previewFrame.addRow(row);
+					previewPanel.addRow(row);
 				}
 			}
 

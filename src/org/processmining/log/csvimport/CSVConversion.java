@@ -8,12 +8,9 @@ import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.deckfour.xes.model.XLog;
@@ -57,30 +54,6 @@ public final class CSVConversion {
 		Progress getProgress();
 
 		void log(String message);
-	}
-
-	@SuppressWarnings("serial")
-	static final Set<DateFormat> STANDARD_DATE_FORMATTERS = new LinkedHashSet<DateFormat>() {
-		{
-			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
-			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy-MM-dd HH:mm"));
-			add(new SimpleDateFormat("yyyy-MM-dd"));
-			add(new SimpleDateFormat("MM/dd/yyyy HH:mm"));
-			add(new SimpleDateFormat("MM/dd/yyyy"));
-			add(new SimpleDateFormat("dd-MM-yyyy:HH:mm:ss"));
-		}
-	};
-
-	static {
-		for (DateFormat df : STANDARD_DATE_FORMATTERS) {
-			df.setLenient(false);
-		}
 	}
 
 	private static final class ImportOrdering extends Ordering<String[]> {
@@ -495,26 +468,8 @@ public final class CSVConversion {
 				}
 			}
 		}
-		ParsePosition pos = new ParsePosition(0);
-		for (DateFormat formatter : STANDARD_DATE_FORMATTERS) {
-			pos.setIndex(0);
-			Date date = formatter.parse(value, pos);
-			if (date != null) {
-				return date;
-			}
-		}
-
-		// Milliseconds fix
-		String fixedValue = INVALID_MS_PATTERN.matcher(value).replaceFirst("$1");
-		for (DateFormat formatter : STANDARD_DATE_FORMATTERS) {
-			pos.setIndex(0);
-			Date date = formatter.parse(fixedValue, pos);
-			if (date != null) {
-				return date;
-			}
-		}
-
-		throw new ParseException("Could not parse " + value, pos.getErrorIndex());
+		
+		throw new ParseException("Could not parse " + value, -1);
 	}
 
 }

@@ -78,7 +78,6 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 	}
 
 	private final ProMComboBox<XFactoryUI> xFactoryChoice;
-	private final ProMComboBox<Boolean> repairDataTypesCbx;
 	private final ProMComboBox<CSVEmptyCellHandlingMode> emptyCellHandlingModeCbx;
 	private final ProMComboBox<CSVErrorHandlingMode> errorHandlingModeCbx;
 
@@ -136,18 +135,6 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 			}
 		});
 
-		repairDataTypesCbx = new ProMComboBox<>(new Boolean[] { true, false });
-		repairDataTypesCbx.setSelectedItem(conversionConfig.isShouldGuessDataTypes());
-		JLabel repairDataTypesLabel = createLabel(
-				"Guess Attribute Types",
-				"Should the plug-in make an attempt to guess the correct datatypes after conversion? Leave as 'true' in case you are unsure!");
-		repairDataTypesCbx.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e) {
-				conversionConfig.setShouldGuessDataTypes((Boolean) repairDataTypesCbx.getSelectedItem());
-			}
-		});
-
 		SequentialGroup verticalGroup = layout.createSequentialGroup();
 		verticalGroup.addGroup(layout
 				.createParallelGroup()
@@ -159,10 +146,7 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 				.createParallelGroup()
 				.addGroup(
 						layout.createSequentialGroup().addComponent(emptyCellHandlingModeLabel)
-								.addComponent(emptyCellHandlingModeCbx))
-				.addGroup(
-						layout.createSequentialGroup().addComponent(repairDataTypesLabel)
-								.addComponent(repairDataTypesCbx)));
+								.addComponent(emptyCellHandlingModeCbx)));
 
 		ParallelGroup horizontalGroup = layout.createParallelGroup();
 		horizontalGroup.addGroup(layout
@@ -180,14 +164,9 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 				.addGroup(
 						layout.createParallelGroup()
 								.addComponent(emptyCellHandlingModeLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
-								.addComponent(emptyCellHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH))
-				.addGroup(
-						layout.createParallelGroup()
-								.addComponent(repairDataTypesLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
-								.addComponent(repairDataTypesCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
+								.addComponent(emptyCellHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
 
-		layout.linkSize(errorHandlingModeLabel, xFactoryLabel);
-		layout.linkSize(emptyCellHandlingModeLabel, repairDataTypesLabel);
+		layout.linkSize(errorHandlingModeLabel, xFactoryLabel, emptyCellHandlingModeLabel);
 		
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
