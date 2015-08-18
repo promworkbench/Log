@@ -6,13 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
@@ -48,54 +42,6 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 	private static final int COLUMN_WIDTH = 360;
 
-	private static final int DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES = 100;
-	
-	private static final Set<String> CASE_COLUMN_IDS = new HashSet<String>() {
-		private static final long serialVersionUID = 1113995381788343439L;
-	{
-		add("case");
-		add("trace");
-		add("traceid");
-		add("caseid");
-	}};
-	
-	private static final Set<String> EVENT_COLUMN_IDS = new HashSet<String>() {
-		private static final long serialVersionUID = -4218883319932959922L;
-	{
-		add("event");
-		add("eventname");
-		add("activity");
-		add("eventid");
-		add("activityid");
-	}};
-	
-	private static final Set<String> START_TIME_COLUMN_IDS = new HashSet<String>() {
-		private static final long serialVersionUID = 6419129336151793063L;
-	{
-		add("starttime");
-		add("startdate");
-		add("datumtijdbegin");
-	}};
-
-	
-	private static final Set<String> COMPLETION_TIME_COLUMN_IDS = new HashSet<String>() {
-		private static final long serialVersionUID = 6419129336151793063L;
-	{
-		add("completiontime");
-		add("time");
-		add("date");
-		add("enddate");
-		add("endtime");
-		add("timestamp");
-		add("datetime");
-		add("date");
-		add("eventtime");
-		add("eindtijd");
-		add("tijd");
-		add("datum");
-		add("datumtijdeind");
-	}};
-
 	private final class ChangeListenerImpl implements ActionListener {
 
 		public void actionPerformed(ActionEvent e) {
@@ -109,10 +55,8 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 			if (conversionConfig.getStartTimeColumn() != null) {
 				conversionConfig.getConversionMap().put(conversionConfig.getStartTimeColumn(), new CSVMapping());
 			}
-			conversionConfig.setCaseColumns(caseComboBox.getElements().toArray(
-					new String[caseComboBox.getElements().size()]));
-			conversionConfig.setEventNameColumns(eventComboBox.getElements().toArray(
-					new String[eventComboBox.getElements().size()]));
+			conversionConfig.setCaseColumns(caseComboBox.getElements());
+			conversionConfig.setEventNameColumns(eventComboBox.getElements());
 			conversionConfig.setStartTimeColumn(startTimeColumnCbx.getSelectedItem().toString());
 			conversionConfig.setCompletionTimeColumn(completionTimeColumnCbx.getSelectedItem().toString());
 			previewFrame.refresh();
@@ -138,7 +82,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		}
 	}
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	private final CSVConversionConfig conversionConfig;
 
@@ -167,7 +111,6 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
-		;
 
 		JLabel standardAttributesLabel = SlickerFactory.instance().createLabel(
 				"<HTML><H2>Mapping to Standard XES Attributes</H2></HTML>");
@@ -183,6 +126,9 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		JLabel caseLabel = createLabel(
 				"Case Column (Optional)",
 				"Groups events into traces, and is mapped to 'concept:name' of the trace. Select one or more columns, re-order by drag & drop.");
+		for (String caseColumn: conversionConfig.getCaseColumns()) {
+			caseComboBox.addElement(caseColumn);	
+		}		
 		caseComboBox.getListModel().addListDataListener(new ListDataListener() {
 
 			public void intervalRemoved(ListDataEvent e) {
@@ -201,6 +147,9 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		eventComboBox = new ProMListSortableWithComboBox<>(new DefaultComboBoxModel<>(headers));
 		JLabel eventLabel = createLabel("Event Column (Optional)",
 				"Mapped to 'concept:name' of the event. Select one or more columns, re-order by drag & drop.");
+		for (String eventColumn: conversionConfig.getEventNameColumns()) {
+			eventComboBox.addElement(eventColumn);	
+		}
 		eventComboBox.getListModel().addListDataListener(new ListDataListener() {
 
 			public void intervalRemoved(ListDataEvent e) {
@@ -218,11 +167,21 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 		completionTimeColumnCbx = new ProMComboBox<>(headersInclEmpty);
 		JLabel completionTimeLabel = createLabel("Completion Time (Optional)", "Mapped to 'time:timestamp'");
+		if (conversionConfig.getCompletionTimeColumn() != null) {
+			completionTimeColumnCbx.setSelectedItem(conversionConfig.getCompletionTimeColumn());
+		} else {
+			completionTimeColumnCbx.setSelectedItem("");
+		}
 		completionTimeColumnCbx.addActionListener(changeListener);
 
 		startTimeColumnCbx = new ProMComboBox<>(headersInclEmpty);
 		JLabel startTimeLabel = createLabel("Start Time (Optional)",
 				"Mapped to 'time:timestamp' of a separate start event");
+		if (conversionConfig.getStartTimeColumn() != null) {
+			startTimeColumnCbx.setSelectedItem(conversionConfig.getStartTimeColumn());
+		} else {
+			startTimeColumnCbx.setSelectedItem("");
+		}
 		startTimeColumnCbx.addActionListener(changeListener);
 
 		SequentialGroup verticalGroup = layout.createSequentialGroup();
@@ -285,12 +244,6 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 			}
 		});
 
-		autoDetectCaseColumn();
-		autoDetectEventColumn();
-		autoDetectStartTimeColumn();
-		autoDetectCompletionTimeColumn();
-		autoDetectDataTypes(csv, conversionConfig.getConversionMap(), importConfig);
-
 		changeListener.updateSettings();
 	}
 
@@ -306,79 +259,6 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 			}
 		} else {
 			previewFrame.setVisible(false);
-		}
-	}
-
-	private void autoDetectCaseColumn() {
-		for (int i = 0; i < headers.length; i++) {
-			String header = headers[i];
-
-			if (CASE_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
-				caseComboBox.addElement(header);
-				return;
-			}
-		}
-	}
-
-	private void autoDetectEventColumn() {
-		for (int i = 0; i < headers.length; i++) {
-			String header = headers[i];
-
-			if (EVENT_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
-				eventComboBox.addElement(header);
-				return;
-			}
-		}
-	}
-
-	private void autoDetectCompletionTimeColumn() {
-		for (int i = 0; i < headers.length; i++) {
-			String header = headers[i];
-
-			if (COMPLETION_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
-				completionTimeColumnCbx.setSelectedItem(header);
-				return;
-			}
-		}
-	}
-	
-	private void autoDetectStartTimeColumn() {
-		for (int i = 0; i < headers.length; i++) {
-			String header = headers[i];
-
-			if (START_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
-				startTimeColumnCbx.setSelectedItem(header);
-				return;
-			}
-		}
-	}
-
-	private void autoDetectDataTypes(CSVFile csv, Map<String, CSVMapping> conversionMap, CSVConfig csvConfig) throws IOException {
-		try (ICSVReader reader = csv.createReader(csvConfig)) {
-			String[] header = reader.readNext();
-			Map<String, List<String>> valuesPerColumn = new HashMap<>();
-			for (String h : header) {
-				valuesPerColumn.put(h, new ArrayList<String>());
-			}
-			// now read 10 lines or so to guess the data type
-			for (int i = 0; i < DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES; i++) {
-				String[] cells = reader.readNext();
-				if (cells == null) {
-					break;
-				}
-				for (int j = 0; j < cells.length; j++) {
-					List<String> values = valuesPerColumn.get(header[j]);
-					values.add(cells[j]);
-					valuesPerColumn.put(header[j], values);
-				}
-			}
-			// now we can guess the data type
-			for (String h : header) {
-				List<String> values = valuesPerColumn.get(h);
-				// now we can guess the type
-				// let's try the discrete values
-				
-			}
 		}
 	}
 

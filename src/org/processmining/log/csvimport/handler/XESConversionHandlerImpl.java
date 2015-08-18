@@ -34,7 +34,7 @@ import org.processmining.log.utils.XUtils;
  */
 public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog> {
 
-	private static final int MAX_ERROR_LENGTH = 16 * 1024 * 1024;
+	private static final int MAX_ERROR_LENGTH = 1 * 1024 * 1024;
 
 	private final XFactory factory;
 	private final CSVConversionConfig conversionConfig;
@@ -61,7 +61,11 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	
 	@Override
 	public String getConversionErrors() {
-		return conversionErrors.toString();
+		if (conversionErrors.length() >= MAX_ERROR_LENGTH) {
+			return conversionErrors.toString().concat("... (multiple error messages have been omitted to avoid running out of memory)");
+		} else {
+			return conversionErrors.toString();
+		}
 	}
 	
 	@Override

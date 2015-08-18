@@ -65,7 +65,8 @@ public final class CSVConversionPlugin {
 				switch (i) {
 					case 0 :
 						result = queryImportConfig(context, csvFile, importConfig);
-						csvConversionConfig = new CSVConversionConfig(csvFile.readHeader(importConfig));
+						csvConversionConfig = new CSVConversionConfig(csvFile, importConfig);
+						csvConversionConfig.autoDetect();
 						break;
 					case 1 :
 						result = queryConversionConfig(context, csvFile, importConfig, csvConversionConfig);

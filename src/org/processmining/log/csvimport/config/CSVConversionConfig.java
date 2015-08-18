@@ -1,11 +1,16 @@
 package org.processmining.log.csvimport.config;
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,6 +22,11 @@ import org.deckfour.xes.extension.std.XOrganizationalExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
+import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csv.ICSVReader;
+import org.processmining.log.csv.config.CSVConfig;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Configuration regarding the conversion of the CSV file.
@@ -25,6 +35,54 @@ import org.deckfour.xes.factory.XFactoryRegistry;
  * 
  */
 public final class CSVConversionConfig {
+	
+	private static final int DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES = 100;
+	
+	private static final Set<String> CASE_COLUMN_IDS = new HashSet<String>() {
+		private static final long serialVersionUID = 1113995381788343439L;
+	{
+		add("case");
+		add("trace");
+		add("traceid");
+		add("caseid");
+	}};
+	
+	private static final Set<String> EVENT_COLUMN_IDS = new HashSet<String>() {
+		private static final long serialVersionUID = -4218883319932959922L;
+	{
+		add("event");
+		add("eventname");
+		add("activity");
+		add("eventid");
+		add("activityid");
+	}};
+	
+	private static final Set<String> START_TIME_COLUMN_IDS = new HashSet<String>() {
+		private static final long serialVersionUID = 6419129336151793063L;
+	{
+		add("starttime");
+		add("startdate");
+		add("datumtijdbegin");
+	}};
+
+	
+	private static final Set<String> COMPLETION_TIME_COLUMN_IDS = new HashSet<String>() {
+		private static final long serialVersionUID = 6419129336151793063L;
+	{
+		add("completiontime");
+		add("time");
+		add("date");
+		add("enddate");
+		add("endtime");
+		add("timestamp");
+		add("datetime");
+		add("date");
+		add("eventtime");
+		add("eindtijd");
+		add("tijd");
+		add("datum");
+		add("datumtijdeind");
+	}};
 
 	public enum CSVErrorHandlingMode {
 		ABORT_ON_ERROR("Stop on Error"), OMIT_TRACE_ON_ERROR("Omit Trace on Error"), OMIT_EVENT_ON_ERROR(
@@ -62,7 +120,7 @@ public final class CSVConversionConfig {
 		LITERAL, DISCRETE, CONTINUOUS, TIME, BOOLEAN
 	}
 
-	public static class CSVMapping {
+	public static final class CSVMapping {
 
 		public static final String DEFAULT_DATE_PATTERN = "";
 		public static final String DEFAULT_DISCRETE_PATTERN = "";
@@ -161,8 +219,8 @@ public final class CSVConversionConfig {
 	private XFactory factory = XFactoryRegistry.instance().currentDefault();
 
 	// Mapping to some of the XES standard extensions
-	private String[] caseColumns;
-	private String[] eventNameColumns;
+	private List<String> caseColumns = Collections.emptyList();
+	private List<String> eventNameColumns = Collections.emptyList();
 	private String completionTimeColumn;
 	private String startTimeColumn;
 
@@ -179,7 +237,15 @@ public final class CSVConversionConfig {
 
 	private boolean shouldGuessDataTypes = true;
 
-	public CSVConversionConfig(String[] headers) {
+	// Internal only
+	private final CSVFile csvFile;
+	private final CSVConfig csvConfig;
+
+	public CSVConversionConfig(CSVFile csvFile, CSVConfig csvConfig) throws IOException {
+		this.csvFile = csvFile;
+		this.csvConfig = csvConfig;
+		
+		String[] headers = csvFile.readHeader(csvConfig);
 		for (String columnHeader : headers) {
 			if (columnHeader != null) {
 				CSVMapping mapping = new CSVMapping();
@@ -187,11 +253,100 @@ public final class CSVConversionConfig {
 				conversionMap.put(columnHeader, mapping);
 			}
 		}
-		//TODO make configurable
+		
+		// Standard settings for empty/NULL or N/A values
 		treatAsEmptyValues.add("");
 		treatAsEmptyValues.add("NULL");
 		treatAsEmptyValues.add("null");
 		treatAsEmptyValues.add("NOT_SET");
+		treatAsEmptyValues.add("N/A");
+		treatAsEmptyValues.add("n/a");
+	}
+
+	public void autoDetect() throws IOException {
+		String[] headers = csvFile.readHeader(csvConfig);
+		autoDetectCaseColumn(headers);
+		autoDetectEventColumn(headers);
+		autoDetectCompletionTimeColumn(headers);
+		autoDetectStartTimeColumn(headers);
+		autoDetectDataTypes(csvFile, getConversionMap(), csvConfig);
+	}
+	
+	private void autoDetectCaseColumn(String[] headers) {
+		List<String> caseColumns = new ArrayList<>();
+		for (int i = 0; i < headers.length; i++) {
+			String header = headers[i];
+						
+			if (CASE_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
+				caseColumns.add(header);
+				return;
+			}
+		}
+		setCaseColumns(caseColumns);
+	}
+
+	private void autoDetectEventColumn(String[] headers) {
+		List<String> eventColumns = new ArrayList<>();
+		for (int i = 0; i < headers.length; i++) {
+			String header = headers[i];
+
+			if (EVENT_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
+				eventColumns.add(header);
+				return;
+			}
+		}
+		setEventNameColumns(eventColumns);
+	}
+
+	private void autoDetectCompletionTimeColumn(String[] headers) {
+		for (int i = 0; i < headers.length; i++) {
+			String header = headers[i];
+
+			if (COMPLETION_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
+				setCompletionTimeColumn(header);
+				return;
+			}
+		}
+	}
+	
+	private void autoDetectStartTimeColumn(String[] headers) {
+		for (int i = 0; i < headers.length; i++) {
+			String header = headers[i];
+
+			if (START_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
+				setStartTimeColumn(header);
+				return;
+			}
+		}
+	}
+
+	private void autoDetectDataTypes(CSVFile csv, Map<String, CSVMapping> conversionMap, CSVConfig csvConfig) throws IOException {
+		try (ICSVReader reader = csv.createReader(csvConfig)) {
+			String[] header = reader.readNext();
+			Map<String, List<String>> valuesPerColumn = new HashMap<>();
+			for (String h : header) {
+				valuesPerColumn.put(h, new ArrayList<String>());
+			}
+			// now read 10 lines or so to guess the data type
+			for (int i = 0; i < DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES; i++) {
+				String[] cells = reader.readNext();
+				if (cells == null) {
+					break;
+				}
+				for (int j = 0; j < cells.length; j++) {
+					List<String> values = valuesPerColumn.get(header[j]);
+					values.add(cells[j]);
+					valuesPerColumn.put(header[j], values);
+				}
+			}
+			// now we can guess the data type
+			for (String h : header) {
+				List<String> values = valuesPerColumn.get(h);
+				// now we can guess the type
+				// let's try the discrete values
+				
+			}
+		}
 	}
 
 	public XFactory getFactory() {
@@ -202,22 +357,22 @@ public final class CSVConversionConfig {
 		this.factory = factory;
 	}
 
-	public String[] getCaseColumns() {
-		return caseColumns;
+	public List<String> getCaseColumns() {
+		return ImmutableList.copyOf(caseColumns);
 	}
 
-	public void setCaseColumns(String[] caseColumns) {
+	public void setCaseColumns(List<String> caseColumns) {
 		this.caseColumns = caseColumns;
 		for (String caseColumn : caseColumns) {
 			getConversionMap().get(caseColumn).traceAttributeName = "concept:name";
 		}
 	}
 
-	public String[] getEventNameColumns() {
-		return eventNameColumns;
+	public List<String> getEventNameColumns() {
+		return ImmutableList.copyOf(eventNameColumns);
 	}
 
-	public void setEventNameColumns(String[] eventNameColumns) {
+	public void setEventNameColumns(List<String> eventNameColumns) {
 		this.eventNameColumns = eventNameColumns;
 		for (String eventColumn : eventNameColumns) {
 			getConversionMap().get(eventColumn).eventAttributeName = "concept:name";

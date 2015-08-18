@@ -44,10 +44,12 @@ import com.ning.compress.lzf.LZFInputStream;
  *
  */
 public final class CSVConversion {
-	
+
 	public interface ConversionResult<R> {
 		R getResult();
+
 		boolean hasConversionErrors();
+
 		String getConversionErrors();
 	}
 
@@ -162,8 +164,9 @@ public final class CSVConversion {
 	 * @throws CSVConversionException
 	 * @throws CSVConversionConfigException
 	 */
-	public ConversionResult<XLog> doConvertCSVToXES(final ProgressListener progressListener, CSVFile csvFile, CSVConfig importConfig,
-			CSVConversionConfig conversionConfig) throws CSVConversionException, CSVConversionConfigException {
+	public ConversionResult<XLog> doConvertCSVToXES(final ProgressListener progressListener, CSVFile csvFile,
+			CSVConfig importConfig, CSVConversionConfig conversionConfig) throws CSVConversionException,
+			CSVConversionConfigException {
 		return convertCSV(progressListener, importConfig, conversionConfig, csvFile, new XESConversionHandlerImpl(
 				importConfig, conversionConfig));
 	}
@@ -183,9 +186,9 @@ public final class CSVConversion {
 	 * @throws CSVConversionException
 	 * @throws CSVConversionConfigException
 	 */
-	public <R> ConversionResult<R> convertCSV(ProgressListener progress, CSVConfig importConfig, CSVConversionConfig conversionConfig,
-			CSVFile csvFile, final CSVConversionHandler<R> conversionHandler) throws CSVConversionException,
-			CSVConversionConfigException {
+	public <R> ConversionResult<R> convertCSV(ProgressListener progress, CSVConfig importConfig,
+			CSVConversionConfig conversionConfig, CSVFile csvFile, final CSVConversionHandler<R> conversionHandler)
+			throws CSVConversionException, CSVConversionConfigException {
 
 		Progress p = progress.getProgress();
 
@@ -199,8 +202,8 @@ public final class CSVConversion {
 
 		conversionHandler.startLog(csvFile);
 
-		int[] caseColumnIndex = new int[conversionConfig.getCaseColumns().length];
-		int[] eventNameColumnIndex = new int[conversionConfig.getEventNameColumns().length];
+		int[] caseColumnIndex = new int[conversionConfig.getCaseColumns().size()];
+		int[] eventNameColumnIndex = new int[conversionConfig.getEventNameColumns().size()];
 		int completionTimeColumnIndex = -1;
 		int startTimeColumnIndex = -1;
 		String[] header = null;
@@ -223,11 +226,11 @@ public final class CSVConversion {
 				mappingMap.put(i, columnMapping);
 			}
 
-			for (int i = 0; i < conversionConfig.getCaseColumns().length; i++) {
-				caseColumnIndex[i] = headerMap.get(conversionConfig.getCaseColumns()[i]);
+			for (int i = 0; i < conversionConfig.getCaseColumns().size(); i++) {
+				caseColumnIndex[i] = headerMap.get(conversionConfig.getCaseColumns().get(i));
 			}
-			for (int i = 0; i < conversionConfig.getEventNameColumns().length; i++) {
-				eventNameColumnIndex[i] = headerMap.get(conversionConfig.getEventNameColumns()[i]);
+			for (int i = 0; i < conversionConfig.getEventNameColumns().size(); i++) {
+				eventNameColumnIndex[i] = headerMap.get(conversionConfig.getEventNameColumns().get(i));
 			}
 			if (conversionConfig.getCompletionTimeColumn() != "") {
 				completionTimeColumnIndex = headerMap.get(conversionConfig.getCompletionTimeColumn());
@@ -328,7 +331,8 @@ public final class CSVConversion {
 							final String value = nextLine[i];
 
 							if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.SPARSE && (value == null
-									|| conversionConfig.getTreatAsEmptyValues().contains(value) || value.isEmpty()))) {
+									|| conversionConfig.getTreatAsEmptyValues().contains(value) 
+									|| value.isEmpty()))) {
 								parseAttributes(progress, conversionConfig, conversionHandler, mappingMap.get(i),
 										lineIndex, i, name, nextLine);
 							}
@@ -378,7 +382,7 @@ public final class CSVConversion {
 			public String getConversionErrors() {
 				return conversionHandler.getConversionErrors();
 			}
-		}; 
+		};
 	}
 
 	private <R> void parseAttributes(ProgressListener progress, CSVConversionConfig conversionConfig,
