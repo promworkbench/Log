@@ -18,7 +18,7 @@ import org.processmining.log.csv.CSVFileReferenceOpenCSVImpl;
 //@Plugin(name = "Import a CSV file and convert it to XES", parameterLabels = { "Filename" }, returnLabels = { "Imported CSV File" }, returnTypes = { CSVFile.class })
 //@UIImportPlugin(description = "CSV File (XES Conversion with Log package)", extensions = { "csv", "zip", "csv.gz", "txt" })
 @Deprecated
-public final class CSVImportPlugin extends AbstractImportPlugin {
+final class CSVImportPlugin extends AbstractImportPlugin {
 
 	@Override
 	protected CSVFile importFromStream(final PluginContext context, final InputStream input, final String filename,

@@ -270,21 +270,6 @@ final class CSVSorter {
 		}
 	}
 
-//	private static InputStream skipFirstLine(InputStream inputStream) throws IOException {
-//		InputStream is = new BufferedInputStream(inputStream);
-//		int val = -1;
-//		do {
-//			val = (byte) is.read();
-//		} while (val != -1 && ((val != '\n') && val != '\r'));
-//		is.mark(1);
-//		if (is.read() == '\n') {
-//			return is;
-//		} else {
-//			is.reset();
-//			return is;
-//		}
-//	}
-
 	private static int estimateSize(String[] item) {
 		int size = 8 * ((item.length * 4 + 12) / 8);
 		for (String s : item) {
