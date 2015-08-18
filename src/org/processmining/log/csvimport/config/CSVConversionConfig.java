@@ -327,7 +327,7 @@ public final class CSVConversionConfig {
 			for (String h : header) {
 				valuesPerColumn.put(h, new ArrayList<String>());
 			}
-			// now read 10 lines or so to guess the data type
+			// now read some lines or so to guess the data type
 			for (int i = 0; i < DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES; i++) {
 				String[] cells = reader.readNext();
 				if (cells == null) {
@@ -340,10 +340,12 @@ public final class CSVConversionConfig {
 				}
 			}
 			// now we can guess the data type
-			for (String h : header) {
-				List<String> values = valuesPerColumn.get(h);
+			for (String column : header) {
+				List<String> values = valuesPerColumn.get(column);
 				// now we can guess the type
 				// let's try the discrete values
+				
+				getConversionMap().get(column).setDataType(Datatype.TIME);
 				
 			}
 		}
