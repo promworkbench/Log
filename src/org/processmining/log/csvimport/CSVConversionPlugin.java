@@ -76,7 +76,7 @@ public final class CSVConversionPlugin {
 				ConversionResult<XLog> conversionResult = doConvertCSVToXes(context, csvFile, importConfig,
 						csvConversionConfig, csvConversion);
 				if (conversionResult.hasConversionErrors()) {
-					ProMUIHelper.showErrorMessage(context, conversionResult.getConversionErrors(),
+					ProMUIHelper.showWarningMessage(context, conversionResult.getConversionErrors(),
 							"Warning: Some issues have been detected during conversion");
 				}
 				return conversionResult.getResult();

@@ -231,13 +231,13 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 				.addGroup(layout
 						.createParallelGroup()
 						.addGroup(
-								layout.createSequentialGroup().addComponent(completionTimeLabel)
-										.addComponent(completionTimeColumnCbx)
-										.addComponent(completionTimeFormat))
-						.addGroup(
 								layout.createSequentialGroup().addComponent(startTimeLabel)
 										.addComponent(startTimeColumnCbx)
-										.addComponent(startTimeFormat)));
+										.addComponent(startTimeFormat))
+						.addGroup(
+								layout.createSequentialGroup().addComponent(completionTimeLabel)
+										.addComponent(completionTimeColumnCbx)
+										.addComponent(completionTimeFormat)));
 
 		ParallelGroup horizontalGroup = layout.createParallelGroup();
 		horizontalGroup.addGroup(layout.createSequentialGroup().addComponent(standardAttributesLabel)
@@ -254,14 +254,14 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 				.createSequentialGroup()
 				.addGroup(
 						layout.createParallelGroup()
-								.addComponent(completionTimeLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
-								.addComponent(completionTimeColumnCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
-								.addComponent(completionTimeFormat, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH))
-				.addGroup(
-						layout.createParallelGroup()
 								.addComponent(startTimeLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
 								.addComponent(startTimeColumnCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
-								.addComponent(startTimeFormat, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
+								.addComponent(startTimeFormat, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH))
+				.addGroup(
+						layout.createParallelGroup()
+								.addComponent(completionTimeLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
+								.addComponent(completionTimeColumnCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
+								.addComponent(completionTimeFormat, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
 
 		layout.linkSize(eventLabel, caseLabel);
 		layout.linkSize(completionTimeLabel, startTimeLabel);
