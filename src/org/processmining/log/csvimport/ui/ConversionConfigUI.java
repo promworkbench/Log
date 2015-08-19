@@ -75,10 +75,17 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 	private final class LoadCSVRecordsWorker extends SwingWorker<Void, Object[]> {
 		protected Void doInBackground() throws Exception {
+			String[] oldLine = null;
 			String[] nextLine;
 			int i = 0;
-			while ((nextLine = reader.readNext()) != null && i < maxLoad) {
+			while ((nextLine = reader.readNext()) != null && i < maxLoad) {				
+				if (oldLine != null) {
+					if (oldLine.length != nextLine.length) {
+						throw new IllegalArgumentException("CSV file has inconsistent number of columns, please check CSV config.");
+					}
+				}
 				publish(nextLine);
+				oldLine = nextLine;
 				i++;
 			}
 			return null;
