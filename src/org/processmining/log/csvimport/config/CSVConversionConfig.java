@@ -515,15 +515,15 @@ public final class CSVConversionConfig {
 		// check whether type is boolean
 		boolean isBoolean = true;
 		for (String value : values) {
-			if (value == null || value.isEmpty() || !treatAsEmptyValues.contains(value)) {
+			if (value == null || value.isEmpty() || treatAsEmptyValues.contains(value)) {
 				continue;
 			}
+			hasParsed = true;
 			//TODO what about mixed
 			if (!("J".equalsIgnoreCase(value) || "Y".equalsIgnoreCase(value) || "T".equalsIgnoreCase(value)
 					|| "true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value) || "N".equalsIgnoreCase(value) || "F"
 						.equalsIgnoreCase(value))) {
 				isBoolean = false;
-				hasParsed = true;
 				break;
 			}
 		}
@@ -543,14 +543,14 @@ public final class CSVConversionConfig {
 		hasParsed = false;
 		boolean isDiscrete = true;
 		for (String value : values) {
-			if (value == null || value.isEmpty() || !treatAsEmptyValues.contains(value)) {
+			if (value == null || value.isEmpty() || treatAsEmptyValues.contains(value)) {
 				continue;
 			}
+			hasParsed = true;
 			if (!isInteger(value)) {
 				isDiscrete = false;
-				hasParsed = true;
 				break;
-			}
+			} 
 		}
 		if (hasParsed && isDiscrete)
 			return new DatatypeWithPattern() {
@@ -570,12 +570,12 @@ public final class CSVConversionConfig {
 		hasParsed = false;
 		boolean isContinuous = true;
 		for (String value : values) {
-			if (value == null || value.isEmpty() || !treatAsEmptyValues.contains(value)) {
+			if (value == null || value.isEmpty() || treatAsEmptyValues.contains(value)) {
 				continue;
 			}
+			hasParsed = true;
 			if (!CONTINUOUS_PATTERN.matcher(value).matches()) {
 				isContinuous = false;
-				hasParsed = true;
 				break;
 			}
 		}
