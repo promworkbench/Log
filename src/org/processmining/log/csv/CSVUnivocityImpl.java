@@ -24,6 +24,7 @@ public class CSVUnivocityImpl implements ICSV {
 	private static CsvParser createCSVReader(InputStream is, CSVConfig importConfig) throws UnsupportedEncodingException{
 		CsvParserSettings settings = new CsvParserSettings();
 		settings.setMaxCharsPerColumn(MAX_CHARS_PER_COLUMN);
+		settings.setLineSeparatorDetectionEnabled(true);
 		settings.getFormat().setDelimiter(importConfig.getSeparator().getSeperatorChar());
 		settings.getFormat().setQuote(importConfig.getQuoteChar().getQuoteChar());
 		settings.getFormat().setCharToEscapeQuoteEscaping(importConfig.getEscapeChar().getEscapeChar());

@@ -33,12 +33,12 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
-import org.deckfour.xes.extension.XExtension;
 import org.processmining.framework.util.ui.widgets.ProMScrollPane;
 import org.processmining.framework.util.ui.widgets.ProMTableWithoutPanel;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVMapping;
 import org.processmining.log.csvimport.config.CSVConversionConfig.Datatype;
+import org.processmining.log.csvimport.config.CSVConversionConfig.ExtensionAttribute;
 
 /**
  * Frame showing a part of the CSV file.
@@ -66,8 +66,9 @@ public final class CSVPreviewFrame extends JFrame {
 				editor = new DefaultCellEditor(new JComboBox<>(new DefaultComboBoxModel<>(Datatype.values())));
 			} else if (value instanceof String) {
 				editor = new DefaultCellEditor(new JTextField());
-			} else if (value instanceof XExtension || value == null) {
-				editor = new DefaultCellEditor(new JComboBox<>(CSVMapping.AVAILABLE_EXTENSIONS));
+			} else if (value instanceof ExtensionAttribute) {
+				editor = new DefaultCellEditor(new JComboBox<ExtensionAttribute>(
+						CSVConversionConfig.AVAILABLE_EVENT_EXTENSIONS_ATTRIBUTES));
 			} else {
 				throw new RuntimeException("Unkown value type " + value.getClass().getSimpleName());
 			}
@@ -126,21 +127,32 @@ public final class CSVPreviewFrame extends JFrame {
 					csvMapping.setPattern((String) aValue);
 					break;
 				case 2 :
-					if (aValue != null) {
-						csvMapping.setExtension((XExtension) aValue);
-					} else {
-						csvMapping.setExtension(null);
-					}
+					csvMapping.setTraceAttributeName((String) aValue);
 					break;
 				case 3 :
-					throw new IllegalStateException("Should not be able to edit this column!");
+					if (aValue != null) {
+						ExtensionAttribute extAttr = (ExtensionAttribute) aValue;
+						if (extAttr != CSVConversionConfig.NO_EXTENSION_ATTRIBUTE) {
+							csvMapping.setEventExtensionAttribute(extAttr);
+							csvMapping.setEventAttributeName(extAttr.key);							
+						} else {
+							csvMapping.setEventExtensionAttribute(CSVConversionConfig.NO_EXTENSION_ATTRIBUTE);
+							csvMapping.setEventAttributeName(columnHeader);							
+						}
+					} else {
+						csvMapping.setEventExtensionAttribute(null);
+						csvMapping.setEventAttributeName(columnHeader);
+					}
+					fireTableCellUpdated(4, columnIndex);
+					break;
 				case 4 :
-					throw new IllegalStateException("Should not be able to edit this column!");
+					csvMapping.setEventAttributeName((String) aValue);
+					break;
 				default :
 					throw new IllegalStateException("Could not find value at row " + rowIndex + " column "
 							+ columnIndex);
 			}
-			conversionConfig.getConversionMap().put(columnHeader, csvMapping);
+			conversionConfig.getConversionMap().put(columnHeader, csvMapping);			
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -152,9 +164,9 @@ public final class CSVPreviewFrame extends JFrame {
 				case 1 :
 					return csvMapping.getPattern();
 				case 2 :
-					return csvMapping.getExtension();
-				case 3 :
 					return csvMapping.getTraceAttributeName();
+				case 3 :
+					return csvMapping.getEventExtensionAttribute();
 				case 4 :
 					return csvMapping.getEventAttributeName();
 			}
@@ -174,7 +186,7 @@ public final class CSVPreviewFrame extends JFrame {
 		}
 
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			return rowIndex < 3 ? true : false;
+			return rowIndex == 2 ? false : true;
 		}
 
 	}
@@ -251,7 +263,7 @@ public final class CSVPreviewFrame extends JFrame {
 				public Dimension getMaximumSize() {
 					return getPreferredSize();
 				}
-				
+
 			};
 			dataTypeScrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 			getMainScrollPane().setHorizontalScrollBar(dataTypeScrollpane.getHorizontalScrollBar());
@@ -287,17 +299,21 @@ public final class CSVPreviewFrame extends JFrame {
 
 			JPanel leftPanel = new JPanel();
 			leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-			leftPanel.add(new JLabel("Data Type"));
-			leftPanel.add(new JLabel("Data Pattern"));
-			leftPanel.add(new JLabel("XES Extension"));
-			leftPanel.add(new JLabel("Trace Attribute"));
-			leftPanel.add(new JLabel("Event Attribute"));
+			JLabel dataType = new JLabel("Data Type");
+			leftPanel.add(dataType);
+			JLabel dataPattern = new JLabel("Data Pattern");
+			leftPanel.add(dataPattern);
+			JLabel traceAttribute = new JLabel("Trace Attribute");
+			leftPanel.add(traceAttribute);
+			JLabel extensionAttribute = new JLabel("XES Extension Attribute");
+			leftPanel.add(extensionAttribute);			
+			JLabel eventAttribute = new JLabel("Event Attribute");
+			leftPanel.add(eventAttribute);
 			leftPanel.add(Box.createVerticalGlue());
 			mainPanel.add(leftPanel);
 
 			rightPanel.add(dataTypeScrollpane);
 		}
-
 
 		rightPanel.add(mainScrollPane);
 		mainPanel.add(rightPanel);

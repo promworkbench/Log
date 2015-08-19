@@ -23,6 +23,8 @@ import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csv.config.CSVConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVErrorHandlingMode;
+import org.processmining.log.csvimport.config.CSVConversionConfig.CSVMapping;
+import org.processmining.log.csvimport.config.CSVConversionConfig.ExtensionAttribute;
 import org.processmining.log.csvimport.exception.CSVConversionException;
 import org.processmining.log.utils.XUtils;
 
@@ -161,40 +163,60 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	@Override
 	public void startAttribute(String name, String value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeLiteral(name, value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent, factory.createAttributeLiteral(getNameFromConfig(name), value, getExtensionFromConfig(name)));
 		}
 	}
 
 	@Override
 	public void startAttribute(String name, long value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeDiscrete(name, value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent, factory.createAttributeDiscrete(getNameFromConfig(name), value, getExtensionFromConfig(name)));
 		}
 	}
 
 	@Override
 	public void startAttribute(String name, double value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeContinuous(name, value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent, factory.createAttributeContinuous(getNameFromConfig(name), value, getExtensionFromConfig(name)));
 		}
 	}
 
 	@Override
 	public void startAttribute(String name, Date value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeTimestamp(name, value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent, factory.createAttributeTimestamp(getNameFromConfig(name), value, getExtensionFromConfig(name)));
 		}
 	}
 
 	@Override
 	public void startAttribute(String name, boolean value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeBoolean(name, value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent, factory.createAttributeBoolean(getNameFromConfig(name), value, getExtensionFromConfig(name)));
 		}
 	}
 
 	private XExtension getExtensionFromConfig(String name) {
-		return conversionConfig.getConversionMap().get(name).getExtension();
+		ExtensionAttribute extensionAttribute = getExtensionAttribute(name);
+		return extensionAttribute == null ? null : extensionAttribute.extension;
+	}
+	
+	private String getNameFromConfig(String columnName) {
+		CSVMapping csvMapping = getMapping(columnName);
+		if (csvMapping.getEventExtensionAttribute() != null && csvMapping.getEventExtensionAttribute() != CSVConversionConfig.NO_EXTENSION_ATTRIBUTE) {
+			return csvMapping.getEventExtensionAttribute().key;
+		} else if (csvMapping.getEventAttributeName() != null && !csvMapping.getEventAttributeName().isEmpty()) {
+			return csvMapping.getEventAttributeName();
+		} else {
+			return columnName;
+		}
+	}
+
+	private ExtensionAttribute getExtensionAttribute(String name) {
+		return getMapping(name).getEventExtensionAttribute();
+	}
+
+	private CSVMapping getMapping(String name) {
+		return conversionConfig.getConversionMap().get(name);
 	}
 
 	@Override
@@ -283,9 +305,11 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		}
 	}
 
-	private static boolean specialColumn(String columnName) {
-		return columnName == null || XConceptExtension.KEY_NAME.equals(columnName)
-				|| XTimeExtension.KEY_TIMESTAMP.equals(columnName) || XConceptExtension.KEY_INSTANCE.equals(columnName);
+	private boolean specialColumn(String columnName) {
+		return columnName == null || 
+				(XConceptExtension.KEY_NAME.equals(columnName) && !conversionConfig.getEventNameColumns().isEmpty()) || 
+				(XTimeExtension.KEY_TIMESTAMP.equals(columnName) && conversionConfig.getCompletionTimeColumn() != null) ||
+				(XConceptExtension.KEY_INSTANCE.equals(columnName) && conversionConfig.getStartTimeColumn() != null);
 	}
 
 }

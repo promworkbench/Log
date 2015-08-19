@@ -361,7 +361,9 @@ public final class CSVConversion {
 	private <R> void parseAttributes(ProgressListener progress, CSVConversionConfig conversionConfig,
 			CSVConversionHandler<R> conversionHandler, CSVMapping csvMapping, int lineIndex, int columnIndex,
 			String name, String[] line) throws CSVConversionException {
+		
 		String value = line[columnIndex];
+		
 		if (csvMapping.getDataType() == null) {
 			conversionHandler.startAttribute(name, value);
 		} else {

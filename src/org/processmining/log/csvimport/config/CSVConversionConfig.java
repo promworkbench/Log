@@ -8,6 +8,7 @@ import java.text.MessageFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import org.deckfour.xes.extension.std.XOrganizationalExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.model.XAttribute;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csv.ICSVReader;
 import org.processmining.log.csv.config.CSVConfig;
@@ -40,11 +42,11 @@ import com.google.common.collect.ImmutableList;
  * 
  */
 public final class CSVConversionConfig {
-	
+
 	private static final int DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES = 100;
-	
+
 	@SuppressWarnings("serial")
-	public static final Set<DateFormat> STANDARD_DATE_FORMATTERS = new LinkedHashSet<DateFormat>() {
+	public static final Set<SimpleDateFormat> STANDARD_DATE_FORMATTERS = new LinkedHashSet<SimpleDateFormat>() {
 		{
 			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
 			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS"));
@@ -76,52 +78,129 @@ public final class CSVConversionConfig {
 		}
 	}
 
-	
 	private static final Set<String> CASE_COLUMN_IDS = new HashSet<String>() {
 		private static final long serialVersionUID = 1113995381788343439L;
-	{
-		add("case");
-		add("trace");
-		add("traceid");
-		add("caseid");
-	}};
-	
+		{
+			add("case");
+			add("trace");
+			add("traceid");
+			add("caseid");
+		}
+	};
+
 	private static final Set<String> EVENT_COLUMN_IDS = new HashSet<String>() {
 		private static final long serialVersionUID = -4218883319932959922L;
-	{
-		add("event");
-		add("eventname");
-		add("activity");
-		add("eventid");
-		add("activityid");
-	}};
-	
+		{
+			add("event");
+			add("eventname");
+			add("activity");
+			add("eventid");
+			add("activityid");
+			add("task");
+			add("action");
+			add("actie");
+		}
+	};
+
 	private static final Set<String> START_TIME_COLUMN_IDS = new HashSet<String>() {
 		private static final long serialVersionUID = 6419129336151793063L;
-	{
-		add("starttime");
-		add("startdate");
-		add("datumtijdbegin");
-	}};
+		{
+			add("starttime");
+			add("startdate");
+			add("datumtijdbegin");
+		}
+	};
 
-	
 	private static final Set<String> COMPLETION_TIME_COLUMN_IDS = new HashSet<String>() {
 		private static final long serialVersionUID = 6419129336151793063L;
-	{
-		add("completiontime");
-		add("time");
-		add("date");
-		add("enddate");
-		add("endtime");
-		add("timestamp");
-		add("datetime");
-		add("date");
-		add("eventtime");
-		add("eindtijd");
-		add("tijd");
-		add("datum");
-		add("datumtijdeind");
-	}};
+		{
+			add("completiontime");
+			add("time");
+			add("date");
+			add("enddate");
+			add("endtime");
+			add("timestamp");
+			add("datetime");
+			add("date");
+			add("eventtime");
+			add("eindtijd");
+			add("tijd");
+			add("datum");
+			add("datumtijdeind");
+		}
+	};
+
+	public static final class ExtensionAttribute {
+		
+		public ExtensionAttribute(String key, XExtension extension) {
+			this.key = key;
+			this.extension = extension;
+		}
+
+		public XExtension extension;
+		public String key;
+		
+		public String toString() {
+			if (key != null) {
+				return String.format("%s (%s)", key, extension.getName());	
+			} else {
+				return "";
+			}
+		}
+
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((extension == null) ? 0 : extension.hashCode());
+			result = prime * result + ((key == null) ? 0 : key.hashCode());
+			return result;
+		}
+
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			ExtensionAttribute other = (ExtensionAttribute) obj;
+			if (extension == null) {
+				if (other.extension != null)
+					return false;
+			} else if (!extension.equals(other.extension))
+				return false;
+			if (key == null) {
+				if (other.key != null)
+					return false;
+			} else if (!key.equals(other.key))
+				return false;
+			return true;
+		}
+		
+	}
+
+	public static final ExtensionAttribute NO_EXTENSION_ATTRIBUTE = new ExtensionAttribute(null, null);
+	public static final ExtensionAttribute[] AVAILABLE_EVENT_EXTENSIONS_ATTRIBUTES;
+	static {
+		List<ExtensionAttribute> list = new ArrayList<>();		
+		list.add(NO_EXTENSION_ATTRIBUTE);
+		addAttributesFromExtension(XConceptExtension.instance(), XConceptExtension.instance().getEventAttributes(),
+				list);
+		addAttributesFromExtension(XConceptExtension.instance(), XOrganizationalExtension.instance()
+				.getEventAttributes(), list);
+		addAttributesFromExtension(XConceptExtension.instance(), XTimeExtension.instance().getEventAttributes(), list);
+		addAttributesFromExtension(XConceptExtension.instance(), XLifecycleExtension.instance().getEventAttributes(),
+				list);
+		addAttributesFromExtension(XConceptExtension.instance(), XCostExtension.instance().getEventAttributes(), list);
+		AVAILABLE_EVENT_EXTENSIONS_ATTRIBUTES = list.toArray(new ExtensionAttribute[list.size()]);
+	}
+
+	private static void addAttributesFromExtension(XExtension extension, Collection<XAttribute> attributes,
+			List<ExtensionAttribute> list) {
+		for (XAttribute attr : attributes) {
+			list.add(new ExtensionAttribute(attr.getKey(), extension));
+		}
+	}
 
 	public enum CSVErrorHandlingMode {
 		ABORT_ON_ERROR("Stop on Error"), OMIT_TRACE_ON_ERROR("Omit Trace on Error"), OMIT_EVENT_ON_ERROR(
@@ -166,15 +245,11 @@ public final class CSVConversionConfig {
 		public static final String DEFAULT_CONTINUOUS_PATTERN = "";
 		public static final String DEFAULT_LITERAL_PATTERN = "";
 
-		public static final XExtension[] AVAILABLE_EXTENSIONS = new XExtension[] { XConceptExtension.instance(),
-				XTimeExtension.instance(), XLifecycleExtension.instance(), XCostExtension.instance(),
-				XOrganizationalExtension.instance() };
-
-		private XExtension extension = null;
 		private Datatype dataType = Datatype.LITERAL;
 		private String dataPattern = "";
 		private String traceAttributeName = "";
 		private String eventAttributeName = "";
+		private ExtensionAttribute eventExtensionAttribute = NO_EXTENSION_ATTRIBUTE;
 
 		public Datatype getDataType() {
 			return dataType;
@@ -228,14 +303,6 @@ public final class CSVConversionConfig {
 			this.dataPattern = dataPattern;
 		}
 
-		public void setExtension(XExtension extension) {
-			this.extension = extension;
-		}
-
-		public XExtension getExtension() {
-			return extension;
-		}
-
 		public String getTraceAttributeName() {
 			return traceAttributeName;
 		}
@@ -250,6 +317,14 @@ public final class CSVConversionConfig {
 
 		public void setEventAttributeName(String eventAttributeName) {
 			this.eventAttributeName = eventAttributeName;
+		}
+
+		public void setEventExtensionAttribute(ExtensionAttribute extensionAttribute) {
+			this.eventExtensionAttribute = extensionAttribute;
+		}
+
+		public ExtensionAttribute getEventExtensionAttribute() {
+			return eventExtensionAttribute;
 		}
 
 	}
@@ -283,7 +358,7 @@ public final class CSVConversionConfig {
 	public CSVConversionConfig(CSVFile csvFile, CSVConfig csvConfig) throws IOException {
 		this.csvFile = csvFile;
 		this.csvConfig = csvConfig;
-		
+
 		String[] headers = csvFile.readHeader(csvConfig);
 		for (String columnHeader : headers) {
 			if (columnHeader != null) {
@@ -292,7 +367,7 @@ public final class CSVConversionConfig {
 				conversionMap.put(columnHeader, mapping);
 			}
 		}
-		
+
 		// Standard settings for empty/NULL or N/A values
 		treatAsEmptyValues.add("");
 		treatAsEmptyValues.add("NULL");
@@ -304,21 +379,21 @@ public final class CSVConversionConfig {
 
 	public void autoDetect() throws IOException {
 		String[] headers = csvFile.readHeader(csvConfig);
+		//TODO put those auto detection methods in a new class
 		autoDetectCaseColumn(headers);
 		autoDetectEventColumn(headers);
 		autoDetectCompletionTimeColumn(headers);
 		autoDetectStartTimeColumn(headers);
 		autoDetectDataTypes(csvFile, getConversionMap(), csvConfig);
 	}
-	
+
 	private void autoDetectCaseColumn(String[] headers) {
 		List<String> caseColumns = new ArrayList<>();
 		for (int i = 0; i < headers.length; i++) {
 			String header = headers[i];
-						
+
 			if (CASE_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
 				caseColumns.add(header);
-				return;
 			}
 		}
 		setCaseColumns(caseColumns);
@@ -331,7 +406,6 @@ public final class CSVConversionConfig {
 
 			if (EVENT_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
 				eventColumns.add(header);
-				return;
 			}
 		}
 		setEventNameColumns(eventColumns);
@@ -347,7 +421,7 @@ public final class CSVConversionConfig {
 			}
 		}
 	}
-	
+
 	private void autoDetectStartTimeColumn(String[] headers) {
 		for (int i = 0; i < headers.length; i++) {
 			String header = headers[i];
@@ -359,7 +433,8 @@ public final class CSVConversionConfig {
 		}
 	}
 
-	private void autoDetectDataTypes(CSVFile csv, Map<String, CSVMapping> conversionMap, CSVConfig csvConfig) throws IOException {
+	private void autoDetectDataTypes(CSVFile csv, Map<String, CSVMapping> conversionMap, CSVConfig csvConfig)
+			throws IOException {
 		try (ICSVReader reader = csv.createReader(csvConfig)) {
 			String[] header = reader.readNext();
 			Map<String, List<String>> valuesPerColumn = new HashMap<>();
@@ -381,99 +456,175 @@ public final class CSVConversionConfig {
 			// now we can guess the data type
 			for (String column : header) {
 				List<String> values = valuesPerColumn.get(column);
-				Datatype inferred = inferDataType(values);
-				getConversionMap().get(column).setDataType(inferred);
+				DatatypeWithPattern inferred = inferDataType(values);
+				getConversionMap().get(column).setDataType(inferred.getType());
+				getConversionMap().get(column).setPattern(inferred.getPattern());
 			}
 		}
 	}
-	
+
 	private static boolean isInteger(String s) {
-	    return isInteger(s,19);
+		return isInteger(s, 19);
 	}
 
 	private static boolean isInteger(String s, int radix) {
-	    if(s.isEmpty()) return false;
-	    for(int i = 0; i < s.length(); i++) {
-	        if(i == 0 && s.charAt(i) == '-') {
-	            if(s.length() == 1) return false;
-	            else continue;
-	        }
-	        if(Character.digit(s.charAt(i),radix) < 0) return false;
-	    }
-	    return true;
+		if (s.isEmpty())
+			return false;
+		for (int i = 0; i < s.length(); i++) {
+			if (i == 0 && s.charAt(i) == '-') {
+				if (s.length() == 1)
+					return false;
+				else
+					continue;
+			}
+			if (Character.digit(s.charAt(i), radix) < 0)
+				return false;
+		}
+		return true;
 	}
 	
-	private Datatype inferDataType(List<String> values){
+	public interface DatatypeWithPattern {
+		Datatype getType();
+		String getPattern();
+	}
+
+	private DatatypeWithPattern inferDataType(List<String> values) {
 		boolean allEmpty = true;
-		for(String value : values){
-			if(value != null && !value.isEmpty()){
+		for (String value : values) {
+			if (value != null && !value.isEmpty()) {
 				allEmpty = false;
 				break;
 			}
 		}
-		if(allEmpty)
-			return Datatype.LITERAL;
-		
+		if (allEmpty)
+			return new DatatypeWithPattern() {
+				
+				public Datatype getType() {
+					return Datatype.LITERAL;
+				}
+				
+				public String getPattern() {
+					return "";
+				}
+			};
+
 		// check whether type is boolean
 		boolean isBoolean = true;
-		for (String value : values){
-			if(value!=null && !value.isEmpty() && !(value.toLowerCase().equals("true".toLowerCase()) || value.toLowerCase().equals("false".toLowerCase()))){
+		for (String value : values) {
+			if (value != null
+					&& !value.isEmpty()
+					&& !(value.toLowerCase().equals("true".toLowerCase()) || value.toLowerCase().equals(
+							"false".toLowerCase()))) {
 				isBoolean = false;
 				break;
 			}
 		}
-		if(isBoolean)
-			return Datatype.BOOLEAN;
-		
+		if (isBoolean)
+			return new DatatypeWithPattern() {
+				
+				public Datatype getType() {
+					return Datatype.BOOLEAN;
+				}
+				
+				public String getPattern() {
+					return "";
+				}
+			};
+
 		// check whether type is discrete
 		boolean isDiscrete = true;
-		for (String value : values){
-			if(value!=null && !value.isEmpty() && !isInteger(value)){
+		for (String value : values) {
+			if (value != null && !value.isEmpty() && !isInteger(value)) {
 				isDiscrete = false;
 				break;
 			}
 		}
-		if(isDiscrete)
-			return Datatype.DISCRETE;
-		
+		if (isDiscrete)
+			return new DatatypeWithPattern() {
+				
+				public Datatype getType() {
+					return Datatype.DISCRETE;
+				}
+				
+				public String getPattern() {
+					return "";
+				}
+			};
+
 		// check whether type is continuous
-		final Pattern CONTINUOUS_PATTERN = Pattern.compile("((-)?[0-9]*\\.[0-9]+)|((-)?[0-9]+(\\.[0-9]+)?(e|E)\\+[0-9]+)");
+		final Pattern CONTINUOUS_PATTERN = Pattern
+				.compile("((-)?[0-9]*\\.[0-9]+)|((-)?[0-9]+(\\.[0-9]+)?(e|E)\\+[0-9]+)");
 		boolean isContinuous = true;
-		for (String value : values){
-			if(value!=null && !value.isEmpty() && !CONTINUOUS_PATTERN.matcher(value).matches()){
+		for (String value : values) {
+			if (value != null && !value.isEmpty() && !CONTINUOUS_PATTERN.matcher(value).matches()) {
 				isContinuous = false;
 				break;
 			}
 		}
-		if(isContinuous)
-			return Datatype.CONTINUOUS;
+		if (isContinuous)
+			return new DatatypeWithPattern() {
+				
+				public Datatype getType() {
+					return Datatype.CONTINUOUS;
+				}
+				
+				public String getPattern() {
+					return "";
+				}
+			};
 
 		// check whether type is date
 		boolean isConsistentDateFormat = true;
-		DateFormat globalFormatter = null;
 		final Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*");
-		for (String value : values){
-			if(value==null || value.isEmpty())
-				continue;
-			ParsePosition pos = new ParsePosition(0);
-			String fixedValue = INVALID_MS_PATTERN.matcher(value).replaceFirst("$1");
-			for (DateFormat formatter : STANDARD_DATE_FORMATTERS) {
-				pos.setIndex(0);
-				Date date = formatter.parse(fixedValue, pos);
-				if (date != null && globalFormatter==null){
-					globalFormatter = formatter;
-				}
-				// check whether date is not parsable, or date format for parsing is inconsistent
-				if (date != null && (globalFormatter!=null && !globalFormatter.equals(formatter))) {
-					isConsistentDateFormat = false;
-					break;
-				}
+		for (SimpleDateFormat formatter : STANDARD_DATE_FORMATTERS) {
+			if (canParseAllValues(values, isConsistentDateFormat, INVALID_MS_PATTERN, formatter)) {
+				final String pattern = formatter.toPattern();
+				return new DatatypeWithPattern() {
+					
+					public Datatype getType() {
+						return Datatype.TIME;
+					}
+					
+					public String getPattern() {
+						return pattern;
+					}
+				};
 			}
 		}
-		if(isConsistentDateFormat && globalFormatter != null)
-			return Datatype.TIME;
-		
-		return Datatype.LITERAL;
+
+		return new DatatypeWithPattern() {
+			
+			public Datatype getType() {
+				return Datatype.LITERAL;
+			}
+			
+			public String getPattern() {
+				return "";
+			}
+		};
+	}
+
+	private boolean canParseAllValues(List<String> values, boolean isConsistentDateFormat, final Pattern INVALID_MS_PATTERN,
+			DateFormat formatter) {
+		for (String value : values) {
+			if (value == null || value.isEmpty() || treatAsEmptyValues.contains(value))
+				continue;
+			
+			// Millisecond fix for Java SimpleDateFormat in case of a date like this 14:08:09.100000 
+			// where the milliseconds would be treated as 100000 ms instead of 100ms
+			String fixedValue = INVALID_MS_PATTERN.matcher(value).replaceFirst("$1");
+
+			ParsePosition pos = new ParsePosition(0);
+			pos.setIndex(0);
+			Date date = formatter.parse(fixedValue, pos);
+			
+			// check whether date is not parsable, or date format for parsing is inconsistent
+			if (date == null) {
+				return false;
+			}
+			
+		}
+		return true;
 	}
 
 	public XFactory getFactory() {
@@ -489,10 +640,15 @@ public final class CSVConversionConfig {
 	}
 
 	public void setCaseColumns(List<String> caseColumns) {
-		this.caseColumns = caseColumns;
-		for (String caseColumn : caseColumns) {
+		// Remove old mapping
+		for (String caseColumn : this.caseColumns) {			
+			getConversionMap().get(caseColumn).traceAttributeName = "";
+		}
+		// Set new mapping
+		for (String caseColumn : caseColumns) {			
 			getConversionMap().get(caseColumn).traceAttributeName = "concept:name";
 		}
+		this.caseColumns = caseColumns;
 	}
 
 	public List<String> getEventNameColumns() {
@@ -500,10 +656,17 @@ public final class CSVConversionConfig {
 	}
 
 	public void setEventNameColumns(List<String> eventNameColumns) {
-		this.eventNameColumns = eventNameColumns;
+		// Remove old mapping
+		for (String eventColumn : this.eventNameColumns) {
+			getConversionMap().get(eventColumn).setEventExtensionAttribute(NO_EXTENSION_ATTRIBUTE);
+			getConversionMap().get(eventColumn).eventAttributeName = eventColumn;
+		}
+		// Set new mapping
 		for (String eventColumn : eventNameColumns) {
+			getConversionMap().get(eventColumn).setEventExtensionAttribute(new ExtensionAttribute("concept:name", XConceptExtension.instance()));
 			getConversionMap().get(eventColumn).eventAttributeName = "concept:name";
 		}
+		this.eventNameColumns = eventNameColumns;
 	}
 
 	public String getCompletionTimeColumn() {
@@ -511,9 +674,14 @@ public final class CSVConversionConfig {
 	}
 
 	public void setCompletionTimeColumn(String completionTimeColumn) {
+		if (this.completionTimeColumn != null && !this.completionTimeColumn.isEmpty()) {
+			// Reset mapping for old column
+			getConversionMap().get(this.completionTimeColumn).setEventExtensionAttribute(NO_EXTENSION_ATTRIBUTE);
+			getConversionMap().get(this.completionTimeColumn).eventAttributeName = this.completionTimeColumn;
+		}
 		if (completionTimeColumn != null && !completionTimeColumn.isEmpty()) {
 			getConversionMap().get(completionTimeColumn).setDataType(Datatype.TIME);
-			getConversionMap().get(completionTimeColumn).setPattern(CSVMapping.DEFAULT_DATE_PATTERN);
+			getConversionMap().get(completionTimeColumn).setEventExtensionAttribute(new ExtensionAttribute("time:timestamp", XTimeExtension.instance()));
 			getConversionMap().get(completionTimeColumn).eventAttributeName = "time:timestamp";
 		}
 		this.completionTimeColumn = completionTimeColumn;
@@ -524,9 +692,14 @@ public final class CSVConversionConfig {
 	}
 
 	public void setStartTimeColumn(String startTimeColumn) {
+		if (this.startTimeColumn != null && !this.startTimeColumn.isEmpty()) {
+			// Reset mapping for old column
+			getConversionMap().get(this.startTimeColumn).setEventExtensionAttribute(NO_EXTENSION_ATTRIBUTE);
+			getConversionMap().get(this.startTimeColumn).eventAttributeName = this.startTimeColumn;
+		}
 		if (startTimeColumn != null && !startTimeColumn.isEmpty()) {
 			getConversionMap().get(startTimeColumn).setDataType(Datatype.TIME);
-			getConversionMap().get(startTimeColumn).setPattern(CSVMapping.DEFAULT_DATE_PATTERN);
+			getConversionMap().get(startTimeColumn).setEventExtensionAttribute(new ExtensionAttribute("time:timestamp", XTimeExtension.instance()));
 			getConversionMap().get(startTimeColumn).eventAttributeName = "time:timestamp";
 		}
 		this.startTimeColumn = startTimeColumn;

@@ -64,13 +64,8 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 
 		JLabel header = new JLabel("<HTML><H2>CSV Parsing Parameters</H2></HTML>");
 		header.setAlignmentX(CENTER_ALIGNMENT);
-		header.setAlignmentY(TOP_ALIGNMENT);
 		
-		JPanel headerPanel = new JPanel();
-		headerPanel.setOpaque(false);
-		headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.X_AXIS));
-		headerPanel.add(header);
-		add(headerPanel);
+		add(header);
 
 		add(Box.createVerticalStrut(10));
 
@@ -165,7 +160,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		layout.setHorizontalGroup(horizontalGroup);
 		
 		add(topPanel);
-		previewPanel.setMaximumSize(new Dimension(720, 350));
+		previewPanel.setMaximumSize(new Dimension(725, 350));
 		add(previewPanel);
 	}
 
