@@ -380,4 +380,10 @@ public final class CSVPreviewFrame extends JFrame {
 		return mainScrollPane;
 	}
 
+	public void save() {
+		if (datatypeTable.isEditing()) {
+			datatypeTable.getCellEditor().stopCellEditing();
+		}
+	}
+
 }

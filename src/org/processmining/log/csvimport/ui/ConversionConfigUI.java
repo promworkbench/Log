@@ -321,6 +321,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 	@Override
 	public void removeNotify() {
 		super.removeNotify();
+		previewFrame.save();
 		previewFrame.setVisible(false);
 	}
 

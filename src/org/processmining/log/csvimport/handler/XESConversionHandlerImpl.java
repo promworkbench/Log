@@ -273,20 +273,20 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		switch (errorMode) {
 			case BEST_EFFORT :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ": Skipping attribute " + nullSafeToString(content)
-							+ " Error: " + e + "\n");
+					conversionErrors.append("Line: " + line + ":\nSkipping attribute " + nullSafeToString(content)
+							+ "\nError: " + e + "\n");
 				}
 				break;
 			case OMIT_EVENT_ON_ERROR :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ": Skipping event, could not convert "
-							+ nullSafeToString(content) + " Error: " + e + "\n");
+					conversionErrors.append("Line: " + line + ":\nSkipping event, could not convert "
+							+ nullSafeToString(content) + "\nError: " + e + "\n");
 				}
 				break;
 			case OMIT_TRACE_ON_ERROR :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ": Skipping trace " + XUtils.getConceptName(currentTrace)
-							+ ", could not convert" + nullSafeToString(content) + " Error: " + e + "\n");
+					conversionErrors.append("Line: " + line + ":\nSkipping trace " + XUtils.getConceptName(currentTrace)
+							+ ", could not convert" + nullSafeToString(content) + "\nError: " + e + "\n\n");
 				}
 				break;
 			default :
