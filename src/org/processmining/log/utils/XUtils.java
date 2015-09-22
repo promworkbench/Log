@@ -19,10 +19,15 @@
  */
 package org.processmining.log.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -42,6 +47,7 @@ import org.deckfour.xes.extension.std.XOrganizationalExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XAttributable;
 import org.deckfour.xes.model.XAttribute;
@@ -60,6 +66,8 @@ import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.out.XSerializer;
 import org.deckfour.xes.out.XesXmlGZIPSerializer;
 import org.deckfour.xes.out.XesXmlSerializer;
+
+import com.google.common.collect.Iterables;
 
 /**
  * Commonly used methods for handling XES logs
@@ -141,6 +149,8 @@ public class XUtils {
 	}
 
 	/**
+	 * Returns the event name.
+	 * 
 	 * @param element
 	 * @return the value of the "concept:name" attribute or "null"
 	 */
@@ -149,13 +159,28 @@ public class XUtils {
 	}
 
 	/**
+	 * Returns the event time.
+	 * 
 	 * @param event
 	 * @return the value of the "time:timestamp" attribute or "null"
 	 */
 	public static Date getTimestamp(XEvent event) {
 		return XTimeExtension.instance().extractTimestamp(event);
 	}
-
+	
+	public static XLog loadLog(String string) throws UnsupportedEncodingException, Exception {
+		return loadLog(new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8)));
+	}
+	
+	public static XLog loadLog(File file) throws FileNotFoundException, Exception {
+		return loadLog(new FileInputStream(file));
+	}
+	
+	public static XLog loadLog(InputStream is) throws Exception {
+		XesXmlParser xmlParser = new XesXmlParser();
+		return Iterables.getFirst(xmlParser.parse(is), null);
+	}
+	
 	public static void saveLog(XLog log, File file) throws FileNotFoundException, IOException {
 		saveLogPlain(log, file);
 	}
@@ -410,7 +435,7 @@ public class XUtils {
 	}
 
 	/**
-	 * 
+	 * Adds multiple {@link XAttribute} to the supplied {@link XAttributable}.
 	 * 
 	 * @param attributable
 	 * @param attributes
