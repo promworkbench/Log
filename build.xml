@@ -164,7 +164,10 @@
 	<target name="resolve">
 		<ivy:retrieve sync="true" />
 		<delete>
-			<fileset dir="lib" includes="*" />
+			<fileset dir="lib">
+				<include name="*" />
+				<exclude name="OpenXES*.jar" />
+			</fileset>
 		</delete>
 		<copy todir="lib" overwrite="true">
 			<fileset dir="ivy">
