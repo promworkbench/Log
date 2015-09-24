@@ -48,21 +48,63 @@ public final class CSVConversionConfig {
 	@SuppressWarnings("serial")
 	public static final Set<SimpleDateFormat> STANDARD_DATE_FORMATTERS = new LinkedHashSet<SimpleDateFormat>() {
 		{
+			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSz"));
 			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ssz"));
 			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
-			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"));
 			add(new SimpleDateFormat("yyyy-MM-dd HH:mm"));
+			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSz"));
+			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz"));
+			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
+			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm"));
+
+			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSSz"));
+			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ssz"));
+			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
+			add(new SimpleDateFormat("yyyy/MM/dd HH:mm"));
+			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss.SSSz"));
+			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ssz"));
+			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss"));
+			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm"));
 			add(new SimpleDateFormat("yyyy-MM-dd"));
+
+			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSSz"));
+			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ssXXX"));
+			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ssz"));
+			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss"));
 			add(new SimpleDateFormat("MM/dd/yyyy HH:mm"));
+			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ss.SSSz"));
+			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ssXXX"));
+			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ssz"));
+			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ss"));
+			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm"));
 			add(new SimpleDateFormat("MM/dd/yyyy"));
+
+			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSSz"));
+			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ssz"));
+			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
+			add(new SimpleDateFormat("yyyy.MM.dd HH:mm"));
+
 			add(new SimpleDateFormat("dd-MM-yyyy:HH:mm:ss"));
 			add(new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz"));
 			add(new SimpleDateFormat("MM-dd-yyyy HH:mm:ss"));
 			add(new SimpleDateFormat("MM-dd-yyyy HH:mm"));
 			add(new SimpleDateFormat("MM-dd-yyyy"));
