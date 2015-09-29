@@ -442,8 +442,18 @@ public class XUtils {
 	 */
 	public static void putAttributes(XAttributable attributable, Iterable<XAttribute> attributes) {
 		for (XAttribute a : attributes) {
-			attributable.getAttributes().put(a.getKey(), a);
+			putAttribute(attributable, a);
 		}
+	}
+	
+	/**
+	 * Adds a single {@link XAttribute} to the supplied {@link XAttributable}.
+	 * 
+	 * @param attributable
+	 * @param attribute
+	 */
+	public static void putAttribute(XAttributable attributable, XAttribute attribute) {
+		attributable.getAttributes().put(attribute.getKey(), attribute);
 	}
 
 }
