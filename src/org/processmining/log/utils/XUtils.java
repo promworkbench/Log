@@ -82,7 +82,7 @@ public class XUtils {
 
 	/**
 	 * Returns whether the attribute key matches one of the registered standard
-	 * extensions of XES. 
+	 * extensions of XES.
 	 * 
 	 * @param attribute
 	 * @return whether the attribute is one of the standard extension attributes
@@ -90,22 +90,22 @@ public class XUtils {
 	public static boolean isStandardExtensionAttribute(XAttribute attribute) {
 		// Lets hope that the JIT is clever enough to transform this to a hash table
 		switch (attribute.getKey()) {
-			case XConceptExtension.KEY_NAME:
-			case XConceptExtension.KEY_INSTANCE:
-			case XTimeExtension.KEY_TIMESTAMP:
-			case XLifecycleExtension.KEY_MODEL:
-			case XLifecycleExtension.KEY_TRANSITION:
-			case XOrganizationalExtension.KEY_GROUP:
-			case XOrganizationalExtension.KEY_RESOURCE:
-			case XOrganizationalExtension.KEY_ROLE:
-			case XCostExtension.KEY_AMOUNT:
-			case XCostExtension.KEY_CURRENCY:
-			case XCostExtension.KEY_DRIVER:
-			case XCostExtension.KEY_TOTAL:
-			case XCostExtension.KEY_TYPE:
+			case XConceptExtension.KEY_NAME :
+			case XConceptExtension.KEY_INSTANCE :
+			case XTimeExtension.KEY_TIMESTAMP :
+			case XLifecycleExtension.KEY_MODEL :
+			case XLifecycleExtension.KEY_TRANSITION :
+			case XOrganizationalExtension.KEY_GROUP :
+			case XOrganizationalExtension.KEY_RESOURCE :
+			case XOrganizationalExtension.KEY_ROLE :
+			case XCostExtension.KEY_AMOUNT :
+			case XCostExtension.KEY_CURRENCY :
+			case XCostExtension.KEY_DRIVER :
+			case XCostExtension.KEY_TOTAL :
+			case XCostExtension.KEY_TYPE :
 				return true;
 		}
-		return false;		
+		return false;
 	}
 
 	/**
@@ -167,20 +167,20 @@ public class XUtils {
 	public static Date getTimestamp(XEvent event) {
 		return XTimeExtension.instance().extractTimestamp(event);
 	}
-	
+
 	public static XLog loadLog(String string) throws UnsupportedEncodingException, Exception {
 		return loadLog(new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8)));
 	}
-	
+
 	public static XLog loadLog(File file) throws FileNotFoundException, Exception {
 		return loadLog(new FileInputStream(file));
 	}
-	
+
 	public static XLog loadLog(InputStream is) throws Exception {
 		XesXmlParser xmlParser = new XesXmlParser();
 		return Iterables.getFirst(xmlParser.parse(is), null);
 	}
-	
+
 	public static void saveLog(XLog log, File file) throws FileNotFoundException, IOException {
 		saveLogPlain(log, file);
 	}
@@ -294,7 +294,20 @@ public class XUtils {
 	 * @return copy of the supplied attribute
 	 */
 	public static XAttribute cloneAttributeWithChangedKey(XAttribute oldAttribute, String newKey) {
-		XFactory factory = XFactoryRegistry.instance().currentDefault();
+		return cloneAttributeWithChangedKeyWithFactory(oldAttribute, newKey, XFactoryRegistry.instance().currentDefault());
+	}
+
+	/**
+	 * Creates a deep clone of the {@link XAttribute} with the same value, but a
+	 * changed key.
+	 * 
+	 * @param oldAttribute
+	 * @param newKey
+	 * @param factory
+	 * @return copy of the supplied attribute
+	 */
+	public static XAttribute cloneAttributeWithChangedKeyWithFactory(XAttribute oldAttribute, String newKey,
+			XFactory factory) {
 		if (oldAttribute instanceof XAttributeList) {
 			XAttributeList newAttribute = factory.createAttributeList(newKey, oldAttribute.getExtension());
 			for (XAttribute a : ((XAttributeList) oldAttribute).getCollection()) {
@@ -407,7 +420,20 @@ public class XUtils {
 	 * @return
 	 */
 	public static XAttribute createAttribute(String attributeName, Object attributeValue) {
-		return createAttribute(attributeName, attributeValue, null);
+		return createAttributeWithFactory(attributeName, attributeValue, null);
+	}
+
+	/**
+	 * Creates an appropriate {@link XAttribute}, decided on the type of the
+	 * parameter atttributeValue.
+	 * 
+	 * @param attributeName
+	 * @param attributeValue
+	 * @param factory
+	 * @return
+	 */
+	public static XAttribute createAttributeWithFactory(String attributeName, Object attributeValue, XFactory factory) {
+		return createAttributeWithFactory(attributeName, attributeValue, null, factory);
 	}
 
 	/**
@@ -420,17 +446,32 @@ public class XUtils {
 	 * @return a {@link XAttribute} with correct type
 	 */
 	public static XAttribute createAttribute(String attributeName, Object attributeValue, XExtension extension) {
-		XFactory f = XFactoryRegistry.instance().currentDefault();
+		return createAttributeWithFactory(attributeName, attributeValue, extension, XFactoryRegistry.instance()
+				.currentDefault());
+	}
+
+	/**
+	 * Creates an appropriate {@link XAttribute}, deciding by the type of the
+	 * parameter atttributeValue.
+	 * 
+	 * @param attributeName
+	 * @param attributeValue
+	 * @param extension
+	 * @param factory
+	 * @return a {@link XAttribute} with correct type
+	 */
+	private static XAttribute createAttributeWithFactory(String attributeName, Object attributeValue,
+			XExtension extension, XFactory factory) {
 		if (attributeValue instanceof Double || attributeValue instanceof Float) {
-			return f.createAttributeContinuous(attributeName, ((Number) attributeValue).doubleValue(), extension);
+			return factory.createAttributeContinuous(attributeName, ((Number) attributeValue).doubleValue(), extension);
 		} else if (attributeValue instanceof Integer || attributeValue instanceof Long) {
-			return f.createAttributeDiscrete(attributeName, ((Number) attributeValue).longValue(), extension);
+			return factory.createAttributeDiscrete(attributeName, ((Number) attributeValue).longValue(), extension);
 		} else if (attributeValue instanceof Date) {
-			return f.createAttributeTimestamp(attributeName, ((Date) attributeValue), extension);
+			return factory.createAttributeTimestamp(attributeName, ((Date) attributeValue), extension);
 		} else if (attributeValue instanceof Boolean) {
-			return f.createAttributeBoolean(attributeName, ((Boolean) attributeValue), extension);
+			return factory.createAttributeBoolean(attributeName, ((Boolean) attributeValue), extension);
 		} else {
-			return f.createAttributeLiteral(attributeName, attributeValue.toString(), extension);
+			return factory.createAttributeLiteral(attributeName, attributeValue.toString(), extension);
 		}
 	}
 
@@ -445,7 +486,7 @@ public class XUtils {
 			putAttribute(attributable, a);
 		}
 	}
-	
+
 	/**
 	 * Adds a single {@link XAttribute} to the supplied {@link XAttributable}.
 	 * 
