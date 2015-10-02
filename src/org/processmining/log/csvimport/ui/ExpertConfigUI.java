@@ -88,7 +88,7 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 		setMaximumSize(new Dimension(COLUMN_WIDTH * 2, Short.MAX_VALUE));
 
 		JLabel conversionOptionsLabel = SlickerFactory.instance().createLabel(
-				"Expert Conversion Options (Defaults are a good guess)");
+				"Additional Conversion Options (Defaults are a good guess)");
 		conversionOptionsLabel.setFont(conversionOptionsLabel.getFont().deriveFont(Font.BOLD, 20));
 
 		xFactoryChoice = new ProMComboBox<>(Iterables.transform(getAvailableXFactories(),
@@ -100,7 +100,9 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 
 				}));
 		xFactoryChoice.setSelectedItem(new XFactoryUI(conversionConfig.getFactory()));
-		JLabel xFactoryLabel = createLabel("XFactory", "Implementation that is be used to create the Log.");
+		JLabel xFactoryLabel = createLabel(
+				"XFactory",
+				"XFactory implementation that is be used to create the log. Some implementations might be more memory efficient, consider changing this in case you import a huge log.");
 
 		xFactoryChoice.addActionListener(new ActionListener() {
 
@@ -125,8 +127,8 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 		JLabel emptyCellHandlingModeLabel = createLabel(
 				"Sparse / Dense Log",
 				"Exclude (sparse) or include (dense) empty cells in the conversion. This affects how empty cells in the CSV are handled. "
-				+ "Some plug-ins require the log to be dense, i.e., all attributes are defined for each event. "
-				+ "In other cases it might be more efficient or even required to only add attributes to events if the attributes actually contain data.");
+						+ "Some plug-ins require the log to be dense, i.e., all attributes are defined for each event. "
+						+ "In other cases it might be more efficient or even required to only add attributes to events if the attributes actually contain data.");
 		emptyCellHandlingModeCbx.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
@@ -142,32 +144,30 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 						layout.createSequentialGroup().addComponent(errorHandlingModeLabel)
 								.addComponent(errorHandlingModeCbx))
 				.addGroup(layout.createSequentialGroup().addComponent(xFactoryLabel).addComponent(xFactoryChoice)));
-		verticalGroup.addGroup(layout
-				.createParallelGroup()
-				.addGroup(
-						layout.createSequentialGroup().addComponent(emptyCellHandlingModeLabel)
-								.addComponent(emptyCellHandlingModeCbx)));
+		verticalGroup.addGroup(layout.createParallelGroup().addGroup(
+				layout.createSequentialGroup().addComponent(emptyCellHandlingModeLabel)
+						.addComponent(emptyCellHandlingModeCbx)));
 
 		ParallelGroup horizontalGroup = layout.createParallelGroup();
 		horizontalGroup.addGroup(layout
 				.createSequentialGroup()
 				.addGroup(
 						layout.createParallelGroup()
-								.addComponent(errorHandlingModeLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
+								.addComponent(errorHandlingModeLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH,
+										COLUMN_WIDTH)
 								.addComponent(errorHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH))
 				.addGroup(
 						layout.createParallelGroup()
 								.addComponent(xFactoryLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
 								.addComponent(xFactoryChoice, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
-		horizontalGroup.addGroup(layout
-				.createSequentialGroup()
-				.addGroup(
-						layout.createParallelGroup()
-								.addComponent(emptyCellHandlingModeLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
-								.addComponent(emptyCellHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
+		horizontalGroup.addGroup(layout.createSequentialGroup().addGroup(
+				layout.createParallelGroup()
+						.addComponent(emptyCellHandlingModeLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH,
+								COLUMN_WIDTH)
+						.addComponent(emptyCellHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
 
 		layout.linkSize(errorHandlingModeLabel, xFactoryLabel, emptyCellHandlingModeLabel);
-		
+
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 

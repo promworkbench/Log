@@ -1,11 +1,13 @@
 package org.processmining.log.csvimport.ui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
@@ -17,6 +19,9 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
+import javax.swing.Timer;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
@@ -55,18 +60,29 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 			conversionConfig.setStartTimeColumn(startTimeColumnCbx.getSelectedItem().toString());
 			conversionConfig.setCompletionTimeColumn(completionTimeColumnCbx.getSelectedItem().toString());
 			if (!conversionConfig.getStartTimeColumn().isEmpty() && !startTimeFormat.getText().isEmpty()) {
-				conversionConfig.getConversionMap().get(conversionConfig.getStartTimeColumn()).setPattern(startTimeFormat.getText());
+				startTimeFormat.setEnabled(true);
+				conversionConfig.getConversionMap().get(conversionConfig.getStartTimeColumn())
+						.setPattern(startTimeFormat.getText());
 			} else if (!conversionConfig.getStartTimeColumn().isEmpty() && startTimeFormat.getText().isEmpty()) {
-				startTimeFormat.setText(conversionConfig.getConversionMap().get(conversionConfig.getStartTimeColumn()).getPattern());
+				startTimeFormat.setEnabled(true);
+				startTimeFormat.setText(conversionConfig.getConversionMap().get(conversionConfig.getStartTimeColumn())
+						.getPattern());
 			} else {
 				startTimeFormat.setText("");
+				startTimeFormat.setEnabled(false);
 			}
 			if (!conversionConfig.getCompletionTimeColumn().isEmpty() && !completionTimeFormat.getText().isEmpty()) {
-				conversionConfig.getConversionMap().get(conversionConfig.getCompletionTimeColumn()).setPattern(completionTimeFormat.getText());	
-			} else if (!conversionConfig.getCompletionTimeColumn().isEmpty() && completionTimeFormat.getText().isEmpty()) {
-				completionTimeFormat.setText(conversionConfig.getConversionMap().get(conversionConfig.getCompletionTimeColumn()).getPattern());
+				completionTimeFormat.setEnabled(true);
+				conversionConfig.getConversionMap().get(conversionConfig.getCompletionTimeColumn())
+						.setPattern(completionTimeFormat.getText());
+			} else if (!conversionConfig.getCompletionTimeColumn().isEmpty()
+					&& completionTimeFormat.getText().isEmpty()) {
+				completionTimeFormat.setEnabled(true);
+				completionTimeFormat.setText(conversionConfig.getConversionMap()
+						.get(conversionConfig.getCompletionTimeColumn()).getPattern());
 			} else {
 				completionTimeFormat.setText("");
+				completionTimeFormat.setEnabled(false);
 			}
 			previewFrame.refresh();
 		}
@@ -78,10 +94,11 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 			String[] oldLine = null;
 			String[] nextLine;
 			int i = 0;
-			while ((nextLine = reader.readNext()) != null && i < maxLoad) {				
+			while ((nextLine = reader.readNext()) != null && i < maxLoad) {
 				if (oldLine != null) {
 					if (oldLine.length != nextLine.length) {
-						throw new IllegalArgumentException("CSV file has inconsistent number of columns, please check CSV config.");
+						throw new IllegalArgumentException(
+								"CSV file has inconsistent number of columns, please check CSV config.");
 					}
 				}
 				publish(nextLine);
@@ -100,6 +117,8 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 	private static final long serialVersionUID = 2L;
 
+	private static final int ACTION_DELAY = 500;
+
 	private final CSVConversionConfig conversionConfig;
 
 	private final String[] headers;
@@ -111,7 +130,8 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 	private final ProMComboBox<String> startTimeColumnCbx;
 
 	private final ChangeListenerImpl changeListener;
-	
+	private final Timer updateTimer;
+
 	private final ICSVReader reader;
 	private final CSVPreviewFrame previewFrame;
 	private int maxLoad = 1000;
@@ -122,12 +142,18 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 	public ConversionConfigUI(final CSVFile csv, final CSVConfig importConfig, CSVConversionConfig conversionConfig)
 			throws IOException {
 		this.conversionConfig = conversionConfig;
-		
+
 		reader = csv.createReader(importConfig);
 		headers = reader.readNext();
-		headersInclEmpty = Lists.asList("", headers).toArray(new String[headers.length + 1]);		
+		headersInclEmpty = Lists.asList("", headers).toArray(new String[headers.length + 1]);
 		changeListener = new ChangeListenerImpl();
-		
+		updateTimer = new Timer(ACTION_DELAY, new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				changeListener.updateSettings();
+			}
+		});
+
 		GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
 		setMaximumSize(new Dimension(COLUMN_WIDTH * 2, Short.MAX_VALUE));
@@ -148,9 +174,9 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		JLabel caseLabel = createLabel(
 				"Case Column (Optional)",
 				"Groups events into traces, and is mapped to 'concept:name' of the trace. Select one or more columns, re-order by drag & drop.");
-		for (String caseColumn: conversionConfig.getCaseColumns()) {
-			caseComboBox.addElement(caseColumn);	
-		}		
+		for (String caseColumn : conversionConfig.getCaseColumns()) {
+			caseComboBox.addElement(caseColumn);
+		}
 		caseComboBox.getListModel().addListDataListener(new ListDataListener() {
 
 			public void intervalRemoved(ListDataEvent e) {
@@ -169,8 +195,8 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		eventComboBox = new ProMListSortableWithComboBox<>(new DefaultComboBoxModel<>(headers));
 		JLabel eventLabel = createLabel("Event Column (Optional)",
 				"Mapped to 'concept:name' of the event. Select one or more columns, re-order by drag & drop.");
-		for (String eventColumn: conversionConfig.getEventNameColumns()) {
-			eventComboBox.addElement(eventColumn);	
+		for (String eventColumn : conversionConfig.getEventNameColumns()) {
+			eventComboBox.addElement(eventColumn);
 		}
 		eventComboBox.getListModel().addListDataListener(new ListDataListener() {
 
@@ -188,38 +214,92 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		});
 
 		completionTimeColumnCbx = new ProMComboBox<>(headersInclEmpty);
-		completionTimeColumnCbx.setToolTipText("Mapped to 'time:timestamp' of the main event that is created for each row in the CSV file.");
-		JLabel completionTimeLabel = createLabel("Completion Time (Optional)", "Mapped to 'time:timestamp'");		
+		completionTimeColumnCbx
+				.setToolTipText("Mapped to 'time:timestamp' of the main event that is created for each row in the CSV file.");
+		JLabel completionTimeLabel = createLabel("Completion Time (Optional)", "Mapped to 'time:timestamp'");
 		if (conversionConfig.getCompletionTimeColumn() != null) {
 			completionTimeColumnCbx.setSelectedItem(conversionConfig.getCompletionTimeColumn());
 		} else {
 			completionTimeColumnCbx.setSelectedItem("");
 		}
 		completionTimeColumnCbx.addActionListener(changeListener);
-		
-		completionTimeFormat = new ProMTextField("", "Date Format ()");
+
+		completionTimeFormat = new ProMTextField("",
+				"Could not auto-detect the used date format. Please provide a SimpleDateFormat pattern!");
 		if (conversionConfig.getCompletionTimeColumn() != null && !conversionConfig.getCompletionTimeColumn().isEmpty()) {
-			completionTimeFormat.setText(conversionConfig.getConversionMap().get(conversionConfig.getCompletionTimeColumn()).getPattern());
+			completionTimeFormat.setText(conversionConfig.getConversionMap()
+					.get(conversionConfig.getCompletionTimeColumn()).getPattern());
 		}
-		completionTimeFormat.addActionListener(changeListener);
+		completionTimeFormat.getDocument().addDocumentListener(new DocumentListener() {
+
+			public void removeUpdate(DocumentEvent e) {
+				update();
+			}
+
+			public void insertUpdate(DocumentEvent e) {
+				update();
+			}
+
+			public void changedUpdate(DocumentEvent e) {
+				update();
+			}
+
+			private void update() {
+				try {
+					new SimpleDateFormat(completionTimeFormat.getText());
+					updateTimer.restart();
+					completionTimeFormat.getTextField().setForeground(Color.WHITE);
+				} catch (IllegalArgumentException e) {
+					completionTimeFormat.getTextField().setForeground(Color.RED);
+				}
+			}
+
+		});
 
 		startTimeColumnCbx = new ProMComboBox<>(headersInclEmpty);
-		startTimeColumnCbx.setToolTipText("<HTML>Mapped to 'time:timestamp' of an extra 'start' event that is created for each row in the CSV file. "
-				+ "<BR/>In case your lifecycle events such as 'start' are already separate row in the CSV file, please leave this empty and use the 'Expert Mode' to configure an appropriate mapping.</HTML>");
+		startTimeColumnCbx
+				.setToolTipText("<HTML>Mapped to 'time:timestamp' of an extra 'start' event that is created for each row in the CSV file. "
+						+ "<BR/>In case your lifecycle events such as 'start' are already separate row in the CSV file, please leave this empty and use the 'Expert Mode' to configure an appropriate mapping.</HTML>");
 		JLabel startTimeLabel = createLabel("Start Time (Optional)",
-				"Mapped to 'time:timestamp' of a separate start event");		
+				"Mapped to 'time:timestamp' of a separate start event");
 		if (conversionConfig.getStartTimeColumn() != null) {
 			startTimeColumnCbx.setSelectedItem(conversionConfig.getStartTimeColumn());
 		} else {
 			startTimeColumnCbx.setSelectedItem("");
 		}
 		startTimeColumnCbx.addActionListener(changeListener);
-		
-		startTimeFormat = new ProMTextField("", "Date Format ()");
+
+		startTimeFormat = new ProMTextField("",
+				"Could not auto-detect the used date format. Please provide a SimpleDateFormat pattern!");
 		if (conversionConfig.getStartTimeColumn() != null && !conversionConfig.getStartTimeColumn().isEmpty()) {
-			startTimeFormat.setText(conversionConfig.getConversionMap().get(conversionConfig.getStartTimeColumn()).getPattern());
+			startTimeFormat.setText(conversionConfig.getConversionMap().get(conversionConfig.getStartTimeColumn())
+					.getPattern());
 		}
-		startTimeFormat.addActionListener(changeListener);
+		startTimeFormat.getDocument().addDocumentListener(new DocumentListener() {
+
+			public void removeUpdate(DocumentEvent e) {
+				update();
+			}
+
+			public void insertUpdate(DocumentEvent e) {
+				update();
+			}
+
+			public void changedUpdate(DocumentEvent e) {
+				update();
+			}
+
+			private void update() {
+				try {
+					new SimpleDateFormat(startTimeFormat.getText());
+					updateTimer.restart();
+					startTimeFormat.getTextField().setForeground(Color.WHITE);
+				} catch (IllegalArgumentException e) {
+					startTimeFormat.getTextField().setForeground(Color.RED);
+				}
+			}
+
+		});
 
 		SequentialGroup verticalGroup = layout.createSequentialGroup();
 		verticalGroup.addGroup(layout.createParallelGroup(Alignment.CENTER).addComponent(standardAttributesLabel)
@@ -227,17 +307,14 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		verticalGroup.addGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup().addComponent(caseLabel).addComponent(caseComboBox))
 				.addGroup(layout.createSequentialGroup().addComponent(eventLabel).addComponent(eventComboBox)));
-		verticalGroup
-				.addGroup(layout
-						.createParallelGroup()
-						.addGroup(
-								layout.createSequentialGroup().addComponent(startTimeLabel)
-										.addComponent(startTimeColumnCbx)
-										.addComponent(startTimeFormat))
-						.addGroup(
-								layout.createSequentialGroup().addComponent(completionTimeLabel)
-										.addComponent(completionTimeColumnCbx)
-										.addComponent(completionTimeFormat)));
+		verticalGroup.addGroup(layout
+				.createParallelGroup()
+				.addGroup(
+						layout.createSequentialGroup().addComponent(startTimeLabel).addComponent(startTimeColumnCbx)
+								.addComponent(startTimeFormat))
+				.addGroup(
+						layout.createSequentialGroup().addComponent(completionTimeLabel)
+								.addComponent(completionTimeColumnCbx).addComponent(completionTimeFormat)));
 
 		ParallelGroup horizontalGroup = layout.createParallelGroup();
 		horizontalGroup.addGroup(layout.createSequentialGroup().addComponent(standardAttributesLabel)
@@ -265,7 +342,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 		layout.linkSize(eventLabel, caseLabel);
 		layout.linkSize(completionTimeLabel, startTimeLabel);
-		
+
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 

@@ -144,12 +144,12 @@ public final class CSVConversionPlugin {
 	public static InteractionResult queryExpertConfig(UIPluginContext context, CSVFile csv, CSVConfig importConfig,
 			CSVConversionConfig converionConfig) {
 		ExpertConfigUI expertConfigUI = new ExpertConfigUI(csv, importConfig, converionConfig);
-		return context.showWizard("Configure Import of CSV", false, true, expertConfigUI);
+		return context.showWizard("Configure Additional Conversion Settings", false, true, expertConfigUI);
 	}
 
 	public static InteractionResult queryImportConfig(UIPluginContext context, CSVFile csv, CSVConfig importConfig) {
 		ImportConfigUI importConfigUI = new ImportConfigUI(csv, importConfig);
-		return context.showWizard("Configure Import of CSV", true, false, importConfigUI);
+		return context.showWizard("Configure CSV Parser Settings", true, false, importConfigUI);
 	}
 
 	public static InteractionResult queryConversionConfig(UIPluginContext context, CSVFile csv, CSVConfig importConfig,

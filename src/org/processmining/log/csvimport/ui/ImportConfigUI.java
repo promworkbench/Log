@@ -39,7 +39,6 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 	private static final long serialVersionUID = 2L;
 
 	private static final int MAX_PREVIEW = 1000;
-
 	private static final int COLUMN_WIDTH = 240;
 
 	private final CSVFile csv;
@@ -62,7 +61,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(false);		
 
-		JLabel header = new JLabel("<HTML><H2>CSV Parsing Parameters</H2></HTML>");
+		JLabel header = new JLabel("<HTML><H2>CSV Parser: Settings</H2></HTML>");
 		header.setAlignmentX(CENTER_ALIGNMENT);
 		
 		add(header);

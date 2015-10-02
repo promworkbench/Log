@@ -134,10 +134,10 @@ public final class CSVPreviewFrame extends JFrame {
 						ExtensionAttribute extAttr = (ExtensionAttribute) aValue;
 						if (extAttr != CSVConversionConfig.NO_EXTENSION_ATTRIBUTE) {
 							csvMapping.setEventExtensionAttribute(extAttr);
-							csvMapping.setEventAttributeName(extAttr.key);							
+							csvMapping.setEventAttributeName(extAttr.key);
 						} else {
 							csvMapping.setEventExtensionAttribute(CSVConversionConfig.NO_EXTENSION_ATTRIBUTE);
-							csvMapping.setEventAttributeName(columnHeader);							
+							csvMapping.setEventAttributeName(columnHeader);
 						}
 					} else {
 						csvMapping.setEventExtensionAttribute(null);
@@ -152,7 +152,7 @@ public final class CSVPreviewFrame extends JFrame {
 					throw new IllegalStateException("Could not find value at row " + rowIndex + " column "
 							+ columnIndex);
 			}
-			conversionConfig.getConversionMap().put(columnHeader, csvMapping);			
+			conversionConfig.getConversionMap().put(columnHeader, csvMapping);
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -302,12 +302,20 @@ public final class CSVPreviewFrame extends JFrame {
 			JLabel dataType = new JLabel("Data Type");
 			leftPanel.add(dataType);
 			JLabel dataPattern = new JLabel("Data Pattern");
+			dataPattern
+					.setToolTipText("<HTML>Pattern describing how to parse the value to the selected data type. </BR>"
+							+ "<ul><li>For 'DATE' this is a pattern parseable by SimpleDateFormat,</li> "
+							+ "<li>for 'DISCRETE' and 'CONTINUOUS' this is a pattern parseable by DecimalFormat, "
+							+ "<li>for 'LITERAL' this is parsed by MessageFormat whereby the first parameter {0} is the value in the column itself, and the following parameters {1}-{n} are the values in the other columns starting from the first column (including the selected column itself).<li><.HTML>");
 			leftPanel.add(dataPattern);
 			JLabel traceAttribute = new JLabel("Trace Attribute");
+			traceAttribute.setToolTipText("Attribute in the trace (Read-only)");
 			leftPanel.add(traceAttribute);
-			JLabel extensionAttribute = new JLabel("XES Extension Attribute");
-			leftPanel.add(extensionAttribute);			
+			JLabel extensionAttribute = new JLabel("XES Extension");
+			extensionAttribute.setToolTipText("XES extension that is attached to the attribute.");
+			leftPanel.add(extensionAttribute);
 			JLabel eventAttribute = new JLabel("Event Attribute");
+			eventAttribute.setToolTipText("Attribute name in the event");
 			leftPanel.add(eventAttribute);
 			leftPanel.add(Box.createVerticalGlue());
 			mainPanel.add(leftPanel);
@@ -332,14 +340,14 @@ public final class CSVPreviewFrame extends JFrame {
 					JFrame dummy = new JFrame(gs[i].getDefaultConfiguration());
 					setLocationRelativeTo(dummy);
 					setExtendedState(Frame.MAXIMIZED_BOTH);
-					setAlwaysOnTop(true);
+					setAlwaysOnTop(false);
 					dummy.dispose();
 					break;
 				}
 			}
 		} else {
 			setLocationRelativeTo(parent);
-			setAlwaysOnTop(true);
+			setAlwaysOnTop(false);
 			setPreferredSize(new Dimension(800, 800));
 		}
 		setVisible(true);

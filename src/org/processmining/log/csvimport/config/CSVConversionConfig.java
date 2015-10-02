@@ -506,7 +506,13 @@ public final class CSVConversionConfig {
 	}
 
 	private static boolean isInteger(String s) {
-		return isInteger(s, 19);
+		//return isInteger(s, 19);
+		try {
+			Long.parseLong(s);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}		
 	}
 
 	private static boolean isInteger(String s, int radix) {
@@ -710,6 +716,7 @@ public final class CSVConversionConfig {
 		// Set new mapping
 		for (String caseColumn : caseColumns) {
 			getConversionMap().get(caseColumn).traceAttributeName = "concept:name";
+			getConversionMap().get(caseColumn).setDataType(Datatype.LITERAL);
 		}
 		this.caseColumns = caseColumns;
 	}
@@ -729,6 +736,7 @@ public final class CSVConversionConfig {
 			getConversionMap().get(eventColumn).setEventExtensionAttribute(
 					new ExtensionAttribute("concept:name", XConceptExtension.instance()));
 			getConversionMap().get(eventColumn).eventAttributeName = "concept:name";
+			getConversionMap().get(eventColumn).setDataType(Datatype.LITERAL);
 		}
 		this.eventNameColumns = eventNameColumns;
 	}

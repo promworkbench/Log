@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -466,7 +467,11 @@ public final class CSVConversion {
 				if (date != null) {
 					return date;
 				} else {
-					throw new ParseException("Could not parse " + value, pos.getErrorIndex());
+					String pattern = "unkown";
+					if (customDateFormat instanceof SimpleDateFormat) {
+						pattern = ((SimpleDateFormat) customDateFormat).toPattern();
+					}
+					throw new ParseException("Could not parse " + value+ " using pattern '"+pattern + "'", pos.getErrorIndex());
 				}
 			}
 		}
