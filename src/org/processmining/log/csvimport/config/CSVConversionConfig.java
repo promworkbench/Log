@@ -506,13 +506,7 @@ public final class CSVConversionConfig {
 	}
 
 	private static boolean isInteger(String s) {
-		//return isInteger(s, 19);
-		try {
-			Long.parseLong(s);
-			return true;
-		} catch (NumberFormatException e) {
-			return false;
-		}		
+		return isInteger(s, 10); // check for base-10 number (plus optional minus sign)
 	}
 
 	private static boolean isInteger(String s, int radix) {
