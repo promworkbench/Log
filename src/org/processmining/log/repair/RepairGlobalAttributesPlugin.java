@@ -3,13 +3,16 @@ package org.processmining.log.repair;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
 import org.deckfour.xes.classification.XEventAttributeClassifier;
+import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XCostExtension;
 import org.deckfour.xes.extension.std.XLifecycleExtension;
+import org.deckfour.xes.extension.std.XOrganizationalExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XEvent;
@@ -39,8 +42,8 @@ public final class RepairGlobalAttributesPlugin {
 		Collection<XAttribute> getTraceAttributes();
 	}
 
-	@Plugin(name = "Repair Global Attributes (In Place)", parameterLabels = { "Event Log" }, returnLabels = {}, returnTypes = {}, userAccessible = true, mostSignificantResult = -1, categories = { PluginCategory.Enhancement }, //
-	help = "Repairs the Event Log by detecting which attributes are global and updating the information about global attributes.")
+	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions (In Place)", parameterLabels = { "Event Log" }, returnLabels = {}, returnTypes = {}, userAccessible = true, mostSignificantResult = -1, categories = { PluginCategory.Enhancement }, //
+	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc). This plug-ins changes the input event log to be able to deal with large event logs!")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
 	public void repairLogInPlace(PluginContext context, XLog log) {
 
@@ -49,8 +52,8 @@ public final class RepairGlobalAttributesPlugin {
 		doRepairLog(log);
 	}
 
-	@Plugin(name = "Repair Global Attributes", parameterLabels = { "Event Log" }, returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
-	help = "Repairs the Event Log by detecting which attributes are global and updating the information about global attributes.")
+	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions", parameterLabels = { "Event Log" }, returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
+	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc).")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
 	public XLog repairLog(PluginContext context, XLog log) {
 
@@ -69,12 +72,75 @@ public final class RepairGlobalAttributesPlugin {
 
 		for (XAttribute attr : info.getEventAttributes()) {
 			if (isClassifierAttribute(attr)) {
-				log.getClassifiers().add(new XEventAttributeClassifier(attr.getKey(), attr.getKey()));
+				if (!hasClassifier(attr, log.getClassifiers())) {
+					log.getClassifiers().add(new XEventAttributeClassifier(attr.getKey(), attr.getKey()));
+				}
 			}
-			log.getGlobalEventAttributes().add(attr);
+			switch (attr.getKey()) {
+				case XConceptExtension.KEY_NAME :
+				case XConceptExtension.KEY_INSTANCE :
+					if (!log.getExtensions().contains(XConceptExtension.instance())) {
+						log.getExtensions().add(XConceptExtension.instance());
+					}
+					break;
+				case XTimeExtension.KEY_TIMESTAMP :
+					if (!log.getExtensions().contains(XTimeExtension.instance())) {
+						log.getExtensions().add(XTimeExtension.instance());
+					}
+					break;
+				case XLifecycleExtension.KEY_MODEL :
+				case XLifecycleExtension.KEY_TRANSITION :
+					if (!log.getExtensions().contains(XLifecycleExtension.instance())) {
+						log.getExtensions().add(XLifecycleExtension.instance());
+					}
+					break;
+				case XOrganizationalExtension.KEY_GROUP :
+				case XOrganizationalExtension.KEY_RESOURCE :
+				case XOrganizationalExtension.KEY_ROLE :
+					if (!log.getExtensions().contains(XOrganizationalExtension.instance())) {
+						log.getExtensions().add(XOrganizationalExtension.instance());
+					}
+					break;
+				case XCostExtension.KEY_AMOUNT :
+				case XCostExtension.KEY_CURRENCY :
+				case XCostExtension.KEY_DRIVER :
+				case XCostExtension.KEY_TOTAL :
+				case XCostExtension.KEY_TYPE :
+					if (!log.getExtensions().contains(XCostExtension.instance())) {
+						log.getExtensions().add(XCostExtension.instance());
+					}
+					break;
+			}
+			if (!hasGlobalAttribute(attr, log.getGlobalEventAttributes())) {
+				log.getGlobalEventAttributes().add(attr);
+			}
 		}
 
-		log.getGlobalTraceAttributes().addAll(info.getTraceAttributes());
+		for (XAttribute attr : info.getTraceAttributes()) {
+			if (!hasGlobalAttribute(attr, log.getGlobalTraceAttributes())) {
+				log.getGlobalTraceAttributes().add(attr);
+			}
+		}
+	}
+
+	private static boolean hasGlobalAttribute(XAttribute attribute, List<XAttribute> globalAttributes) {
+		for (XAttribute globalAttribute : globalAttributes) {
+			if (globalAttribute.getKey().equals(attribute.getKey())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean hasClassifier(XAttribute attrribute, List<XEventClassifier> classifierList) {
+		for (XEventClassifier classifier : classifierList) {
+			for (String key : classifier.getDefiningAttributeKeys()) {
+				if (key.equals(attrribute.getKey())) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private static boolean isClassifierAttribute(XAttribute attribute) {
