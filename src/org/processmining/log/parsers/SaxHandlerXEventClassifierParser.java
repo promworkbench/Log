@@ -1,6 +1,7 @@
 package org.processmining.log.parsers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class SaxHandlerXEventClassifierParser extends DefaultHandler {
 	private XEventClassifier current = null;
 
 	public SaxHandlerXEventClassifierParser(List<String> globalEventAttributes) {
-		globalEventAttributes.sort(new Comparator<String>() {
+		Collections.sort(globalEventAttributes, new Comparator<String>() {
 			public int compare(String o1, String o2) {
 				return o2.length() - o1.length();
 			}
