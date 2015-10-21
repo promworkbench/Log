@@ -7,27 +7,18 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginVariant;
-import org.processmining.plugins.logfilters.AddIdentityFilter;
+import org.processmining.log.filters.AddIdentityFilter;
 
-@Plugin(
-		name = "Add identity attribute",
-		returnLabels = { "Log with identities" },
-		returnTypes = {XLog.class },
-		parameterLabels = { "Log" }
-)
+@Plugin(name = "Add identity attribute", returnLabels = { "Log with identities" }, returnTypes = {
+		XLog.class }, parameterLabels = { "Log" })
 public class AddIdentityFilterUI {
-	
-	
-	@UITopiaVariant(uiLabel = "Add identities to log" , 
-			affiliation = UITopiaVariant.EHV, 
-			author = "J.M.E.M. van der Werf", 
-			email = "j.m.e.m.v.d.werf@tue.nl",
-			pack = "Ontologies")
+
+	@UITopiaVariant(uiLabel = "Add identities to log", affiliation = UITopiaVariant.EHV, author = "J.M.E.M. van der Werf", email = "j.m.e.m.v.d.werf@tue.nl", pack = "Ontologies")
 	@PluginVariant(variantLabel = "Add identities to log", requiredParameterLabels = { 0 })
 	public XLog addIdentitiesUI(UIPluginContext context, XLog log) {
 		return addIdentities(context, log);
 	}
-	
+
 	@PluginVariant(variantLabel = "Add identities to log", requiredParameterLabels = { 0 })
 	public XLog addIdentities(PluginContext context, XLog log) {
 		XLog filtered = AddIdentityFilter.addIdentities(context, log);
