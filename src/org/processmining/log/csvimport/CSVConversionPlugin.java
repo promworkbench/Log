@@ -38,7 +38,7 @@ public final class CSVConversionPlugin {
 	returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,// 
 	keywords = { "CSV", "OpenXES", "Conversion", "Import" }, help = "Converts the CSV file to a OpenXES XLog object.")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt, N. Tax, D.M.M. Schunselaar", // 
-	email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl")
+	email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl", pack="Log")
 	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csvFile) {
 
 		InteractionResult result = InteractionResult.CONTINUE;

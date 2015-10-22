@@ -17,7 +17,7 @@ import org.processmining.log.parameters.HighFrequencyFilterParameters;
 @Plugin(name = "Filter In High-Frequency Traces (Multiple Logs)", categories = { PluginCategory.Filtering }, parameterLabels = { "Event Logs" }, returnLabels = { "Filtered Logs" }, returnTypes = { EventLogArray.class }, userAccessible = true, help = HighFrequencyFilterArrayHelp.TEXT)
 public class HighFrequencyFilterArrayPlugin {
 
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org", pack="Log")
 	@PluginVariant(variantLabel = "Filter In High-Frequency Traces (Multiple Logs), UI", requiredParameterLabels = { 0 })
 	public EventLogArray runUI(UIPluginContext context, EventLogArray logs) {
 		if (logs.getSize() > 0) {
@@ -71,7 +71,7 @@ public class HighFrequencyFilterArrayPlugin {
 		return run(context, logs, parameters);
 	}
 	
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org", pack="Log")
 	@PluginVariant(variantLabel = "Filter In High-Frequency Traces (Multiple Logs), Default", requiredParameterLabels = { 0 })
 	public EventLogArray runDefault(PluginContext context, EventLogArray logs) {
 		if (logs.getSize() > 0) {

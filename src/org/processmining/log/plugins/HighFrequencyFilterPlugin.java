@@ -17,10 +17,10 @@ import org.processmining.log.dialogs.HighFrequencyFilterDialog;
 import org.processmining.log.help.HighFrequencyFilterHelp;
 import org.processmining.log.parameters.HighFrequencyFilterParameters;
 
-@Plugin(name = "Filter In High-Frequency Traces (Single Log)", categories = { PluginCategory.Discovery }, parameterLabels = { "Event Log" }, returnLabels = { "Filtered Log" }, returnTypes = { XLog.class }, userAccessible = true, help = HighFrequencyFilterHelp.TEXT)
+@Plugin(name = "Filter In High-Frequency Traces (Single Log)", categories = { PluginCategory.Filtering }, parameterLabels = { "Event Log" }, returnLabels = { "Filtered Log" }, returnTypes = { XLog.class }, userAccessible = true, help = HighFrequencyFilterHelp.TEXT)
 public class HighFrequencyFilterPlugin {
 
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org", pack="Log")
 	@PluginVariant(variantLabel = "Filter In High-Frequency Traces (Single Log), UI", requiredParameterLabels = { 0 })
 	public XLog runUI(UIPluginContext context, XLog log) {
 		HighFrequencyFilterParameters parameters = new HighFrequencyFilterParameters(log);
@@ -53,7 +53,7 @@ public class HighFrequencyFilterPlugin {
 		return run(context, log, parameters);
 	}
 
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org", pack="Log")
 	@PluginVariant(variantLabel = "Filter In High-Frequency Traces (Single Log), Default", requiredParameterLabels = { 0 })
 	public XLog runDefault(PluginContext context, XLog log) {
 		HighFrequencyFilterParameters parameters = new HighFrequencyFilterParameters(log);

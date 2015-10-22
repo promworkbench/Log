@@ -9,6 +9,7 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.connections.ConnectionCannotBeObtained;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginCategory;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.log.algorithms.LogCentralityAlgorithm;
 import org.processmining.log.connections.LogCentralityConnection;
@@ -17,10 +18,10 @@ import org.processmining.log.help.LogCentralityHelp;
 import org.processmining.log.models.LogCentrality;
 import org.processmining.log.parameters.LogCentralityParameters;
 
-@Plugin(name = "Create Happifiable Log", parameterLabels = { "Event Log", "Parameters" }, returnLabels = { "Happifiable Log" }, returnTypes = { LogCentrality.class }, help = LogCentralityHelp.TEXT)
+@Plugin(name = "Create Happifiable Log", categories = { PluginCategory.Enhancement }, parameterLabels = { "Event Log", "Parameters" }, returnLabels = { "Happifiable Log" }, returnTypes = { LogCentrality.class }, help = LogCentralityHelp.TEXT)
 public class LogCentralityPlugin extends LogCentralityAlgorithm {
 
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl", pack="Log")
 	@PluginVariant(variantLabel = "Create Happifiable Log, UI", requiredParameterLabels = { 0 })
 	public LogCentrality runUI(UIPluginContext context, XLog log) {
 		LogCentralityParameters parameters = new LogCentralityParameters(log);
@@ -55,7 +56,7 @@ public class LogCentralityPlugin extends LogCentralityAlgorithm {
 		return run(context, log, parameters);
 	}
 	
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl", pack="Log")
 	@PluginVariant(variantLabel = "Create Happifiable Log, Default", requiredParameterLabels = { 0 })
 	public LogCentrality runDefault(PluginContext context, XLog log) {
 		LogCentralityParameters parameters = new LogCentralityParameters(log);

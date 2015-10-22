@@ -48,6 +48,22 @@ public final class CSVConversionConfig {
 	@SuppressWarnings("serial")
 	public static final Set<SimpleDateFormat> STANDARD_DATE_FORMATTERS = new LinkedHashSet<SimpleDateFormat>() {
 		{
+			add(new SimpleDateFormat("yyyy-M-d H:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy-M-d H:mm:ss.SSSz"));
+			add(new SimpleDateFormat("yyyy-M-d H:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy-M-d H:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy-M-d H:mm:ssz"));
+			add(new SimpleDateFormat("yyyy-M-d H:mm:ss"));
+			add(new SimpleDateFormat("yyyy-M-d H:mm"));
+			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ss.SSSz"));
+			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ssz"));
+			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ss"));
+			add(new SimpleDateFormat("yyyy-M-d'T'H:mm"));
+			add(new SimpleDateFormat("yyyy-M-d"));
+			
 			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSXXX"));
 			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSz"));
 			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
@@ -62,7 +78,24 @@ public final class CSVConversionConfig {
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz"));
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm"));
+			add(new SimpleDateFormat("yyyy-MM-dd"));
 
+			add(new SimpleDateFormat("yyyy/M/d H:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy/M/d H:mm:ss.SSSz"));
+			add(new SimpleDateFormat("yyyy/M/d H:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy/M/d H:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy/M/d H:mm:ssz"));
+			add(new SimpleDateFormat("yyyy/M/d H:mm:ss"));
+			add(new SimpleDateFormat("yyyy/M/d H:mm"));
+			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ss.SSSz"));
+			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ssz"));
+			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ss"));
+			add(new SimpleDateFormat("yyyy/M/d'T'H:mm"));
+			add(new SimpleDateFormat("yyyy/M/d"));
+			
 			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSSXXX"));
 			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSSz"));
 			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS"));
@@ -77,8 +110,24 @@ public final class CSVConversionConfig {
 			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ssz"));
 			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss"));
 			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm"));
-			add(new SimpleDateFormat("yyyy-MM-dd"));
-
+			add(new SimpleDateFormat("yyyy/MM/dd"));
+			
+			add(new SimpleDateFormat("M/d/yyyy H:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("M/d/yyyy H:mm:ss.SSSz"));
+			add(new SimpleDateFormat("M/d/yyyy H:mm:ss.SSS"));
+			add(new SimpleDateFormat("M/d/yyyy H:mm:ssXXX"));
+			add(new SimpleDateFormat("M/d/yyyy H:mm:ssz"));
+			add(new SimpleDateFormat("M/d/yyyy H:mm:ss"));
+			add(new SimpleDateFormat("M/d/yyyy H:mm"));
+			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ss.SSSz"));
+			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ss.SSS"));
+			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ssXXX"));
+			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ssz"));
+			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ss"));
+			add(new SimpleDateFormat("M/d/yyyy'T'H:mm"));
+			add(new SimpleDateFormat("M/d/yyyy"));
+			
 			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSSXXX"));
 			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSSz"));
 			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS"));
@@ -94,7 +143,15 @@ public final class CSVConversionConfig {
 			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ss"));
 			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm"));
 			add(new SimpleDateFormat("MM/dd/yyyy"));
-
+			
+			add(new SimpleDateFormat("yyyy.M.d H:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("yyyy.M.d H:mm:ss.SSSz"));
+			add(new SimpleDateFormat("yyyy.M.d H:mm:ss.SSS"));
+			add(new SimpleDateFormat("yyyy.M.d H:mm:ssXXX"));
+			add(new SimpleDateFormat("yyyy.M.d H:mm:ssz"));
+			add(new SimpleDateFormat("yyyy.M.d H:mm:ss"));
+			add(new SimpleDateFormat("yyyy.M.d H:mm"));
+			
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSSXXX"));
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSSz"));
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS"));
@@ -102,7 +159,16 @@ public final class CSVConversionConfig {
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ssz"));
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm"));
-
+			
+			add(new SimpleDateFormat("d-M-yyyy:H:mm:ss"));
+			add(new SimpleDateFormat("EEE, d MMM yyyy H:mm:ss z"));
+			add(new SimpleDateFormat("M-d-yyyy H:mm:ss"));
+			add(new SimpleDateFormat("M-d-yyyy H:mm"));
+			add(new SimpleDateFormat("M-d-yyyy"));
+			add(new SimpleDateFormat("d-M-yyyy H:mm:ss"));
+			add(new SimpleDateFormat("d-M-yyyy H:mm"));
+			add(new SimpleDateFormat("d-M-yyyy"));
+			
 			add(new SimpleDateFormat("dd-MM-yyyy:HH:mm:ss"));
 			add(new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z"));
 			add(new SimpleDateFormat("MM-dd-yyyy HH:mm:ss"));
@@ -111,6 +177,7 @@ public final class CSVConversionConfig {
 			add(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"));
 			add(new SimpleDateFormat("dd-MM-yyyy HH:mm"));
 			add(new SimpleDateFormat("dd-MM-yyyy"));
+			
 		}
 	};
 
@@ -433,7 +500,8 @@ public final class CSVConversionConfig {
 		List<String> caseColumns = new ArrayList<>();
 		for (int i = 0; i < headers.length; i++) {
 			String header = headers[i];
-
+			if(header==null)
+				continue;
 			if (CASE_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
 				caseColumns.add(header);
 			}
@@ -445,7 +513,8 @@ public final class CSVConversionConfig {
 		List<String> eventColumns = new ArrayList<>();
 		for (int i = 0; i < headers.length; i++) {
 			String header = headers[i];
-
+			if(header==null)
+				continue;
 			if (EVENT_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
 				eventColumns.add(header);
 			}
@@ -467,7 +536,8 @@ public final class CSVConversionConfig {
 	private void autoDetectStartTimeColumn(String[] headers) {
 		for (int i = 0; i < headers.length; i++) {
 			String header = headers[i];
-
+			if(header==null)
+				continue;
 			if (START_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
 				setStartTimeColumn(header);
 				return;
@@ -499,8 +569,10 @@ public final class CSVConversionConfig {
 			for (String column : header) {
 				List<String> values = valuesPerColumn.get(column);
 				DatatypeWithPattern inferred = inferDataType(values);
-				getConversionMap().get(column).setDataType(inferred.getType());
-				getConversionMap().get(column).setPattern(inferred.getPattern());
+				if(column!=null){
+					getConversionMap().get(column).setDataType(inferred.getType());
+					getConversionMap().get(column).setPattern(inferred.getPattern());
+				}
 			}
 		}
 	}

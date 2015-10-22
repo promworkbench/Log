@@ -364,7 +364,8 @@ public final class CSVConversion {
 			String name, String[] line) throws CSVConversionException {
 		
 		String value = line[columnIndex];
-		
+		if(name==null) // TODO: Nicer would be to create names like "unknown-1", "unknown-2", etc. instead of skipping the attribute
+			return;
 		if (csvMapping.getDataType() == null) {
 			conversionHandler.startAttribute(name, value);
 		} else {

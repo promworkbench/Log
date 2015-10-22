@@ -21,7 +21,7 @@ import org.processmining.log.parameters.LogCentralityFilterParameters;
 @Plugin(name = "Happify Log", categories = { PluginCategory.Filtering }, parameterLabels = { "Happifiable Log", "Parameters" }, returnLabels = { "Happified Log" }, returnTypes = { XLog.class }, help = LogCentralityFilterHelp.TEXT)
 public class LogCentralityFilterPlugin extends LogCentralityFilterAlgorithm {
 
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl", pack="Log")
 	@PluginVariant(variantLabel = "Happify Log, UI", requiredParameterLabels = { 0 })
 	public XLog runDialog(UIPluginContext context, LogCentrality centrality) {
 		LogCentralityFilterParameters parameters = new LogCentralityFilterParameters(centrality);
@@ -38,7 +38,7 @@ public class LogCentralityFilterPlugin extends LogCentralityFilterAlgorithm {
 		return runConnections(context, centrality, parameters);
 	}
 	
-	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl", pack="Log")
 	@PluginVariant(variantLabel = "Happify Log, Default", requiredParameterLabels = { 0 })
 	public XLog runDefault(PluginContext context, LogCentrality centrality) {
 		LogCentralityFilterParameters parameters = new LogCentralityFilterParameters(centrality);
