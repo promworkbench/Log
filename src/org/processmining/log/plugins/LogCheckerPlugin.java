@@ -14,14 +14,18 @@ import org.processmining.log.logchecks.LogCheckType;
 import org.processmining.log.models.LogCheckerReport;
 import org.processmining.log.parameters.LogCheckerParameters;
 
-@Plugin(name = "Check Log", categories = { }, parameterLabels = { "Log", "Parameters" }, returnLabels = { "Log Check Report" }, returnTypes = { HTMLToString.class }, help = LogCheckerHelp.TEXT)
+@Plugin(name = "Check Log", categories = {}, parameterLabels = { "Log", "Parameters" }, returnLabels = {
+		"Log Check Report" }, returnTypes = { HTMLToString.class }, help = LogCheckerHelp.TEXT)
 public class LogCheckerPlugin extends LogCheckerAlgorithm {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "Eric Verbeek", email = "h.m.w.verbeek@tue.nl", website = "www.processmining.org")
 	@PluginVariant(variantLabel = "Check Log, default", requiredParameterLabels = { 0 })
 	public LogCheckerReport runDefault(PluginContext context, XLog log) {
 		LogCheckerParameters parameters = new LogCheckerParameters();
-		parameters.setLogChecks(EnumSet.of(LogCheckType.LOG_CHECK_EVENT_CLASSIFIERS_GLOBAL, LogCheckType.LOG_CHECK_GLOBAL_ATTRIBUTE));
+		parameters.setLogChecks(EnumSet.of(
+				LogCheckType.LOG_CHECK_EVENT_CLASSIFIERS_GLOBAL,
+				LogCheckType.LOG_CHECK_GLOBAL_ATTRIBUTE, 
+				LogCheckType.LOG_CHECK_CONSISTENT_TYPES));
 		return apply(context, log, parameters);
 	}
 }

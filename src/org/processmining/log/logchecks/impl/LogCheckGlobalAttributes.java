@@ -75,8 +75,7 @@ public class LogCheckGlobalAttributes implements LogCheck {
 		if (!allOk) {
 			report.add("</ul>");
 		}
-		// TODO Auto-generated method stub
-		return false;
+		return allOk;
 	}
 
 }
