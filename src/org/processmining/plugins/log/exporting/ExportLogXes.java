@@ -19,6 +19,10 @@ public class ExportLogXes {
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W Verbeek", email = "h.m.w.verbeek@tue.nl")
 	@PluginVariant(requiredParameterLabels = { 0, 1 }, variantLabel = "Export Log to XES File")
 	public void export(UIPluginContext context, XLog log, File file) throws IOException {
+		export(log, file);
+	}
+	
+	public static void export(XLog log, File file) throws IOException {
 		FileOutputStream out = new FileOutputStream(file);
 		XSerializer logSerializer = new XesXmlSerializer();
 		logSerializer.serialize(log, out);
