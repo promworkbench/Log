@@ -1,15 +1,16 @@
 package org.processmining.log;
 
 /**
- * @see LogFileFormat
+ * Specifies the different possible Log File Formats. Mainly used within
+ * RapidProM.
+ *
  */
-@Deprecated
-public enum FileFormat {
+public enum LogFileFormat {
 	XES("xes"), XES_GZ("xes.gz"), MXML("mxml"), MXML_GZ("mxml.gz");
 
 	private String desc;
 
-	private FileFormat(String desc) {
+	private LogFileFormat(String desc) {
 		this.desc = desc;
 	}
 
