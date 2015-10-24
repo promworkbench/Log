@@ -55,8 +55,8 @@ public class SaxHandlerXEventClassifierParser extends DefaultHandler {
 				String name = attributes.getValue(CLASSIFIER_TAG_ATTRIBUTE_NAME) == null ? ""
 						: attributes.getValue(CLASSIFIER_TAG_ATTRIBUTE_NAME);
 
-				String keys = attributes.getValue(STRING_TAG_ATTRIBUTE_KEY) == null ? ""
-						: attributes.getValue(STRING_TAG_ATTRIBUTE_KEY);
+				String keys = attributes.getValue(CLASSIFIER_TAG_ATTRIBUTEKEY) == null ? ""
+						: attributes.getValue(CLASSIFIER_TAG_ATTRIBUTEKEY);
 
 				List<String> classifiers = getGlobalsInClassifier(globalEventAttributes, keys);
 
