@@ -10,7 +10,7 @@
        <dependency org="prom" name="Widgets" rev="latest" changing="true" transitive="true" />
        <dependency org="prom-libs" name="OpenXES" rev="20150807" transitive="false" />
        <dependency org="prom-libs" name="OpenXES-XStream" rev="20150807" transitive="false" />
+       <dependency org="prom" name="Saxon" rev="latest" changing="true" transitive="true" />
        <dependency org="com.univocity" name="univocity-parsers" rev="1.5.5" />
-       <dependency org="prom-libs" name="saxon" rev="9he" />
     </dependencies>
 </ivy-module>
