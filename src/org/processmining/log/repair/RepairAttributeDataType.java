@@ -165,11 +165,11 @@ public final class RepairAttributeDataType {
 		super();
 	}
 
-	public void doRepairEventAttributes(PluginContext context, XLog log, Iterable<DateFormat> dateFormats) {
+	public void doRepairEventAttributes(PluginContext context, XLog log, Iterable<? extends DateFormat> dateFormats) {
 		doRepairEventAttributes(context, log, dateFormats, null);
 	}
 
-	public void doRepairEventAttributes(PluginContext context, XLog log, Iterable<DateFormat> dateFormats,
+	public void doRepairEventAttributes(PluginContext context, XLog log, Iterable<? extends DateFormat> dateFormats,
 			ReviewCallback reviewCallback) {
 
 		Progress progBar = context.getProgress();
