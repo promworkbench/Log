@@ -8,12 +8,10 @@ import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.swing.DefaultCellEditor;
@@ -48,11 +46,13 @@ import org.deckfour.xes.model.XTrace;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.Progress;
-import org.processmining.framework.plugin.events.Logger.MessageLevel;
 import org.processmining.framework.util.ui.widgets.ProMScrollPane;
 import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
 import org.processmining.framework.util.ui.widgets.helper.UserCancelledException;
+import org.processmining.log.formats.StandardDateFormats;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 
 /**
@@ -155,21 +155,23 @@ public final class RepairAttributeDataType {
 		}
 
 	}
-	
+
 	public interface ReviewCallback {
-		Map<String, Class<? extends XAttribute>> reviewDataTypes(Map<String, Class<? extends XAttribute>> guessedDataTypes);
+		Map<String, Class<? extends XAttribute>> reviewDataTypes(
+				Map<String, Class<? extends XAttribute>> guessedDataTypes);
 	}
 
 	public RepairAttributeDataType() {
 		super();
 	}
-	
-	public void doRepairEventAttributes(PluginContext context, XLog log, Set<DateFormat> dateFormats) {
+
+	public void doRepairEventAttributes(PluginContext context, XLog log, Iterable<DateFormat> dateFormats) {
 		doRepairEventAttributes(context, log, dateFormats, null);
 	}
 
-	public void doRepairEventAttributes(PluginContext context, XLog log, Set<DateFormat> dateFormats, ReviewCallback reviewCallback) {
-		
+	public void doRepairEventAttributes(PluginContext context, XLog log, Iterable<DateFormat> dateFormats,
+			ReviewCallback reviewCallback) {
+
 		Progress progBar = context.getProgress();
 		progBar.setMinimum(0);
 		progBar.setMaximum(log.size() * 2); // two pass
@@ -187,25 +189,27 @@ public final class RepairAttributeDataType {
 			}
 			progBar.inc();
 		}
-		
+
+		boolean isDefinite = false;
+
 		if (reviewCallback != null) {
 			guessedDataType = reviewCallback.reviewDataTypes(guessedDataType);
+			isDefinite = true; // Always obey user input
 		}
-		
-		XFactory factory = XFactoryRegistry.instance().currentDefault();
 
+		XFactory factory = XFactoryRegistry.instance().currentDefault();
 		ListIterator<XTrace> traceIterator = log.listIterator();
 
 		while (traceIterator.hasNext()) {
 
 			XTrace trace = traceIterator.next();
 			ListIterator<XEvent> eventIterator = trace.listIterator();
-			
+
 			while (eventIterator.hasNext()) {
 				int eventIndex = eventIterator.nextIndex();
 				XEvent event = eventIterator.next();
 				XAttributeMap eventAttr = event.getAttributes();
-				repairAttributes(context, factory, eventAttr, dateFormats, guessedDataType);
+				repairAttributes(context, factory, eventAttr, dateFormats, guessedDataType, isDefinite);
 				trace.set(eventIndex, event);
 			}
 			if (progBar.isCancelled()) {
@@ -213,15 +217,16 @@ public final class RepairAttributeDataType {
 			}
 			progBar.inc();
 		}
-		
+
 	}
-	
-	public void doRepairTraceAttributes(PluginContext context, XLog log, Set<DateFormat> dateFormats) {
+
+	public void doRepairTraceAttributes(PluginContext context, XLog log, Iterable<? extends DateFormat> dateFormats) {
 		doRepairTraceAttributes(context, log, dateFormats, null);
 	}
 
-	public void doRepairTraceAttributes(PluginContext context, XLog log, Set<DateFormat> dateFormats, ReviewCallback reviewCallback) {
-		
+	public void doRepairTraceAttributes(PluginContext context, XLog log, Iterable<? extends DateFormat> dateFormats,
+			ReviewCallback reviewCallback) {
+
 		Progress progBar = context.getProgress();
 		progBar.setMinimum(0);
 		progBar.setMaximum(log.size() * 2); // two pass
@@ -231,17 +236,20 @@ public final class RepairAttributeDataType {
 
 		// Determine best datatype
 		for (XTrace trace : log) {
-			buildDataTypeMap(trace.getAttributes(), guessedDataType, dateFormats);			
+			buildDataTypeMap(trace.getAttributes(), guessedDataType, dateFormats);
 			if (progBar.isCancelled()) {
 				return;
 			}
 			progBar.inc();
 		}
-		
+
+		boolean isDefinite = false;
+
 		if (reviewCallback != null) {
 			guessedDataType = reviewCallback.reviewDataTypes(guessedDataType);
+			isDefinite = true;
 		}
-		
+
 		XFactory factory = XFactoryRegistry.instance().currentDefault();
 
 		ListIterator<XTrace> traceIterator = log.listIterator();
@@ -250,55 +258,44 @@ public final class RepairAttributeDataType {
 
 			XTrace trace = traceIterator.next();
 			XAttributeMap traceAttr = trace.getAttributes();
-			repairAttributes(context, factory, traceAttr, dateFormats, guessedDataType);
+			repairAttributes(context, factory, traceAttr, dateFormats, guessedDataType, isDefinite);
 
 			if (progBar.isCancelled()) {
 				return;
 			}
 			progBar.inc();
-		}	
-		
+		}
+
 	}
-	
+
 	/**
-	 * Shows a wizard that allows the user to specify an additional custom date format.
+	 * Shows a wizard that allows the user to specify an additional custom date
+	 * format.
 	 * 
 	 * @param context
 	 * @return a set of DateFormats including the user specified format
 	 */
-	public static Set<DateFormat> queryDateFormats(UIPluginContext context) {
-		
-		 Set<DateFormat> dateFormats = new HashSet<DateFormat>() {
+	public static Iterable<? extends DateFormat> queryDateFormats(UIPluginContext context) {
 
-			 private static final long serialVersionUID = 1L;
-
-				{
-					add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
-					add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-					add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
-					add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss"));
-					add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
-					add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
-					add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"));
-					add(new SimpleDateFormat("yyyy-MM-dd"));
-				}
-			};
-		
 		try {
-			String dateFormat = ProMUIHelper.queryForString(context,
-					"Specify a custom DateFormat pattern (Format as defined in Java SimpleDateFormat) that is used to parse literal attributes that contain dates (LEAVE BLANK OR CANCEL TO USE DEFAULTS)");
+			String dateFormat = ProMUIHelper
+					.queryForString(
+							context,
+							"Specify a custom DateFormat pattern (Format as defined in Java SimpleDateFormat) that is used to parse literal attributes that contain dates (LEAVE BLANK OR CANCEL TO USE DEFAULTS)");
+			SimpleDateFormat userDateFormat;
 			if (dateFormat != null && !dateFormat.isEmpty()) {
 				try {
-					dateFormats.add(new SimpleDateFormat(dateFormat));
+					userDateFormat = new SimpleDateFormat(dateFormat);
+					return Iterables.concat(ImmutableList.of(userDateFormat),
+							StandardDateFormats.getStandardDateFormats());
 				} catch (IllegalArgumentException e) {
-					JOptionPane.showMessageDialog(null, e.getMessage(), "Wrong Date Format",
-							JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, e.getMessage(), "Wrong Date Format", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		} catch (UserCancelledException e) {
 		}
-		
-		return dateFormats;
+
+		return StandardDateFormats.getStandardDateFormats();
 	}
 
 	/**
@@ -308,7 +305,8 @@ public final class RepairAttributeDataType {
 	 * @param attributeDataType
 	 * @return
 	 */
-	public static Map<String, Class<? extends XAttribute>> queryCustomDataTypes(UIPluginContext context, Map<String, Class<? extends XAttribute>> attributeDataType) {
+	public static Map<String, Class<? extends XAttribute>> queryCustomDataTypes(UIPluginContext context,
+			Map<String, Class<? extends XAttribute>> attributeDataType) {
 		ReviewTable reviewPanel = new ReviewTable(attributeDataType);
 		InteractionResult reviewResult = context.showConfiguration(
 				"Review/Adjust the automatically determined data types", reviewPanel.getDatatypeTable());
@@ -318,27 +316,42 @@ public final class RepairAttributeDataType {
 		return attributeDataType;
 	}
 
-	private static void repairAttributes(PluginContext context, XFactory factory, XAttributeMap attrMap, Set<DateFormat> dateFormats, Map<String, Class<? extends XAttribute>> attributeDataType) {
+	private static void repairAttributes(PluginContext context, XFactory factory, XAttributeMap attributes,
+			Iterable<? extends DateFormat> dateFormats, Map<String, Class<? extends XAttribute>> attributeDataType,
+			boolean isDefinite) {
 		// Use entrySet here, to avoid a lot of 'put' operations, maybe the underlying map can optimize the replacement operation using 'entry.setValue'
-		Iterator<Entry<String, XAttribute>> traceAttr = attrMap.entrySet().iterator();
+		Iterator<Entry<String, XAttribute>> traceAttr = attributes.entrySet().iterator();
 		while (traceAttr.hasNext()) {
 			Entry<String, XAttribute> entry = traceAttr.next();
 
 			if (!isExtensionAttribute(entry.getValue())) {
 				if (!(entry.getValue() instanceof XAttributeTimestamp)) {
 					Class<? extends XAttribute> dataType = attributeDataType.get(entry.getKey());
-					try {
-						if (dataType != null) {
-							entry.setValue(createAttribute(dataType, entry, factory, dateFormats));	
-						} else {
-							throw new RuntimeException(String.format("Could not find datatype of attribute %s. Available data types are %s", entry.getKey(), attributeDataType));
+					if (dataType != null) {
+						try {
+							XAttribute newAttribute = createAttribute(dataType, entry, factory, dateFormats);
+							if (newAttribute != null) {
+								entry.setValue(newAttribute);
+							} else {
+								throw new RuntimeException(String.format(
+										"Could convert of attribute %s to %s NULL value returned.", entry.getKey(),
+										dataType));
+							}
+						} catch (UnexpectedDataTypeException e) {
+							if (isDefinite) {
+								// remove non-matching entries
+								traceAttr.remove();
+								context.log("Removing non-matching value " + entry.getValue().toString());
+							} else {
+								throw new RuntimeException(String.format(
+										"Could convert of attribute %s to data type %s.", entry.getKey(), dataType), e);
+							}
 						}
-					} catch (NumberFormatException e) {
-						context.log("Could not convert value of attribute " + entry.getKey() + " to " + dataType,
-								MessageLevel.ERROR);
-						context.getFutureResult(0).cancel(true);
+					} else {
+						throw new RuntimeException(String.format(
+								"Could not find datatype of attribute %s. Available data types are %s.",
+								entry.getKey(), attributeDataType));
 					}
-
 				}
 			}
 		}
@@ -348,45 +361,50 @@ public final class RepairAttributeDataType {
 		return value.getExtension() != null;
 	}
 
-	private static void buildDataTypeMap(XAttributeMap attributes, Map<String, Class<? extends XAttribute>> attributeDataType, Set<DateFormat> dateFormats) {
+	private static void buildDataTypeMap(XAttributeMap attributes,
+			Map<String, Class<? extends XAttribute>> attributeDataType, Iterable<? extends DateFormat> dateFormats) {
 		for (XAttribute attribute : attributes.values()) {
 
 			if (!(attribute instanceof XAttributeTimestamp)) {
 
-				String value = getAttrAsString(attribute);
-				Class<? extends XAttribute> currentDataType = inferDataType(value, dateFormats);
-				Class<? extends XAttribute> lastDataType = attributeDataType.get(attribute.getKey());
+				try {
+					String value = getAttrAsString(attribute);
+					Class<? extends XAttribute> currentDataType = inferDataType(value, dateFormats);
+					Class<? extends XAttribute> lastDataType = attributeDataType.get(attribute.getKey());
 
-				if (lastDataType == null) {
-					// First occurrence
-					attributeDataType.put(attribute.getKey(), currentDataType);
-				} else if (!lastDataType.equals(currentDataType)) {
-					// Stored data type does not match new occurrence
+					if (lastDataType == null) {
+						// First occurrence
+						attributeDataType.put(attribute.getKey(), currentDataType);
+					} else if (!lastDataType.equals(currentDataType)) {
+						// Stored data type does not match new occurrence
 
-					if (checkChangeBothWays(currentDataType, lastDataType, XAttributeBoolean.class,
-							XAttributeDiscrete.class)) {
-						// Mixed Boolean (e.g. 0,1) & Integer -> XAttributeDiscrete
-						if (lastDataType != XAttributeDiscrete.class) {
-							attributeDataType.put(attribute.getKey(), XAttributeDiscrete.class);	
-						}
-					} else if (checkChangeBothWays(currentDataType, lastDataType, XAttributeBoolean.class,
-							XAttributeContinuous.class)) {
-						// Mixed Boolean  (e.g. 0,1) & Float -> XAttributeContinuous
-						if (lastDataType != XAttributeContinuous.class) {
-							attributeDataType.put(attribute.getKey(), XAttributeContinuous.class);	
-						}						
-					} else if (checkChangeBothWays(currentDataType, lastDataType, XAttributeDiscrete.class,
-							XAttributeContinuous.class)) {
-						// Mixed Integer & Float -> XAttributeContinuous
-						if (lastDataType != XAttributeContinuous.class) {
-							attributeDataType.put(attribute.getKey(), XAttributeContinuous.class);
-						}
-					} else {
-						// Fallback to Literal
-						if (lastDataType != XAttributeLiteral.class) {
-							attributeDataType.put(attribute.getKey(), XAttributeLiteral.class);	
+						if (checkChangeBothWays(currentDataType, lastDataType, XAttributeBoolean.class,
+								XAttributeDiscrete.class)) {
+							// Mixed Boolean (e.g. 0,1) & Integer -> XAttributeDiscrete
+							if (lastDataType != XAttributeDiscrete.class) {
+								attributeDataType.put(attribute.getKey(), XAttributeDiscrete.class);
+							}
+						} else if (checkChangeBothWays(currentDataType, lastDataType, XAttributeBoolean.class,
+								XAttributeContinuous.class)) {
+							// Mixed Boolean  (e.g. 0,1) & Float -> XAttributeContinuous
+							if (lastDataType != XAttributeContinuous.class) {
+								attributeDataType.put(attribute.getKey(), XAttributeContinuous.class);
+							}
+						} else if (checkChangeBothWays(currentDataType, lastDataType, XAttributeDiscrete.class,
+								XAttributeContinuous.class)) {
+							// Mixed Integer & Float -> XAttributeContinuous
+							if (lastDataType != XAttributeContinuous.class) {
+								attributeDataType.put(attribute.getKey(), XAttributeContinuous.class);
+							}
+						} else {
+							// Fallback to Literal
+							if (lastDataType != XAttributeLiteral.class) {
+								attributeDataType.put(attribute.getKey(), XAttributeLiteral.class);
+							}
 						}
 					}
+				} catch (UnexpectedDataTypeException e) {
+					// Ignore this attribute
 				}
 
 			}
@@ -394,14 +412,15 @@ public final class RepairAttributeDataType {
 		}
 	}
 
-	private static boolean checkChangeBothWays(Class<? extends XAttribute> dataType, Class<? extends XAttribute> lastDataType,
-			Class<? extends XAttribute> class1, Class<? extends XAttribute> class2) {
+	private static boolean checkChangeBothWays(Class<? extends XAttribute> dataType,
+			Class<? extends XAttribute> lastDataType, Class<? extends XAttribute> class1,
+			Class<? extends XAttribute> class2) {
 		return (class1.equals(lastDataType) && class2.equals(dataType))
 				|| (class2.equals(lastDataType) && class1.equals(dataType));
 	}
 
 	private static XAttribute createAttribute(Class<? extends XAttribute> dataType, Entry<String, XAttribute> entry,
-			XFactory factory, Set<DateFormat> dateFormats) {
+			XFactory factory, Iterable<? extends DateFormat> dateFormats) throws UnexpectedDataTypeException {
 		if (XAttributeDiscrete.class.equals(dataType)) {
 			return factory.createAttributeDiscrete(entry.getKey(), getAttrAsLong(entry.getValue()), null);
 		} else if (XAttributeContinuous.class.equals(dataType)) {
@@ -413,35 +432,37 @@ public final class RepairAttributeDataType {
 		} else if (XAttributeTimestamp.class.equals(dataType)) {
 			return factory.createAttributeTimestamp(entry.getKey(), getAttrAsDate(entry.getValue(), dateFormats), null);
 		} else {
-			throw new IllegalArgumentException(String.format("Unexpected Attribute %s: Type %s instead %s", entry.getValue(), entry.getValue().getClass().getSimpleName(), dataType.getSimpleName()));
+			throw new IllegalArgumentException(String.format("Unexpected Attribute %s: Type %s instead %s",
+					entry.getValue(), entry.getValue().getClass().getSimpleName(), dataType.getSimpleName()));
 		}
 	}
 
-	private static Date getAttrAsDate(XAttribute value, Set<DateFormat> dateFormats) {
+	private static Date getAttrAsDate(XAttribute value, Iterable<? extends DateFormat> dateFormats)
+			throws UnexpectedDataTypeException {
 		if (value instanceof XAttributeLiteral) {
-			Date date = parseDate(((XAttributeLiteral) value).getValue(), dateFormats);
+			Date date = tryParseDate(((XAttributeLiteral) value).getValue(), dateFormats);
 			if (date == null) {
-				throw new IllegalArgumentException("Unexpected Attribute " + value);
+				throw new UnexpectedDataTypeException("Unexpected date format " + value);
 			}
 			return date;
 		} else {
-			throw new IllegalArgumentException("Unexpected Attribute " + value);
+			throw new UnexpectedDataTypeException("Unexpected attribute type " + value);
 		}
 	}
 
-	private static Date parseDate(String s, Set<DateFormat> dateFormats) {
+	private static Date tryParseDate(String value, Iterable<? extends DateFormat> dateFormats) {
 		ParsePosition pos = new ParsePosition(0);
 		for (DateFormat formatter : dateFormats) {
 			pos.setIndex(0);
-			Date date = formatter.parse(s, pos);
-			if (date != null && pos.getIndex() == s.length()) {
+			Date date = formatter.parse(value, pos);
+			if (date != null && pos.getIndex() == value.length()) {
 				return date;
 			}
 		}
 		return null;
 	}
 
-	private static String getAttrAsString(XAttribute value) {
+	private static String getAttrAsString(XAttribute value) throws UnexpectedDataTypeException {
 		if (value instanceof XAttributeDiscrete) {
 			return Long.toString(((XAttributeDiscrete) value).getValue());
 		} else if (value instanceof XAttributeContinuous) {
@@ -451,11 +472,11 @@ public final class RepairAttributeDataType {
 		} else if (value instanceof XAttributeLiteral) {
 			return ((XAttributeLiteral) value).getValue();
 		} else {
-			throw new IllegalArgumentException("Unexpected Attribute " + value);
+			throw new UnexpectedDataTypeException("Unexpected attribute type " + value);
 		}
 	}
 
-	private static boolean getAttrAsBoolean(XAttribute value) {
+	private static boolean getAttrAsBoolean(XAttribute value) throws UnexpectedDataTypeException {
 		if (value instanceof XAttributeBoolean) {
 			return ((XAttributeBoolean) value).getValue();
 		} else if (value instanceof XAttributeLiteral) {
@@ -470,41 +491,50 @@ public final class RepairAttributeDataType {
 		} else if (value instanceof XAttributeDiscrete) {
 			long val = ((XAttributeDiscrete) value).getValue();
 			if (val != 0 && val != 1) {
-				throw new IllegalArgumentException("Unexpected Attribute " + value);
+				throw new UnexpectedDataTypeException("Unexpected value " + val);
 			}
 			return Boolean.valueOf(val == 0 ? true : false);
 		} else {
-			throw new IllegalArgumentException("Unexpected Attribute " + value);
+			throw new UnexpectedDataTypeException("Unexpected attribute type " + value);
 		}
 	}
 
-	private static double getAttrAsDouble(XAttribute value) {
-		if (value instanceof XAttributeDiscrete) {
-			return ((XAttributeDiscrete) value).getValue();
-		} else if (value instanceof XAttributeContinuous) {
-			return ((XAttributeContinuous) value).getValue();
-		} else if (value instanceof XAttributeLiteral) {
-			return Double.valueOf(((XAttributeLiteral) value).getValue());
-		} else {
-			throw new IllegalArgumentException("Unexpected Attribute " + value);
+	private static double getAttrAsDouble(XAttribute value) throws UnexpectedDataTypeException {
+		try {
+			if (value instanceof XAttributeDiscrete) {
+				return ((XAttributeDiscrete) value).getValue();
+			} else if (value instanceof XAttributeContinuous) {
+				return ((XAttributeContinuous) value).getValue();
+			} else if (value instanceof XAttributeLiteral) {
+				return Double.valueOf(((XAttributeLiteral) value).getValue());
+			} else {
+				throw new UnexpectedDataTypeException("Unexpected attribute type " + value);
+			}
+		} catch (NumberFormatException e) {
+			throw new UnexpectedDataTypeException(e);
 		}
 	}
 
-	private static long getAttrAsLong(XAttribute value) {
-		if (value instanceof XAttributeDiscrete) {
-			return ((XAttributeDiscrete) value).getValue();
-		} else if (value instanceof XAttributeLiteral) {
-			return Long.valueOf(((XAttributeLiteral) value).getValue());
-		} else {
-			throw new IllegalArgumentException("Unexpected Attribute " + value);
+	private static long getAttrAsLong(XAttribute value) throws UnexpectedDataTypeException {
+		try {
+			if (value instanceof XAttributeDiscrete) {
+				return ((XAttributeDiscrete) value).getValue();
+			} else if (value instanceof XAttributeLiteral) {
+				return Long.valueOf(((XAttributeLiteral) value).getValue());
+			} else {
+				throw new UnexpectedDataTypeException("Unexpected attribute type " + value);
+			}
+		} catch (NumberFormatException e) {
+			throw new UnexpectedDataTypeException(e);
 		}
 	}
 
 	private static Pattern DISCRETE_PATTERN = Pattern.compile("(-)?[0-9]{1,19}");
-	private static Pattern CONTINUOUS_PATTERN = Pattern.compile("((-)?[0-9]*\\.[0-9]+)|((-)?[0-9]+(\\.[0-9]+)?(e|E)\\+[0-9]+)");
+	private static Pattern CONTINUOUS_PATTERN = Pattern
+			.compile("((-)?[0-9]*\\.[0-9]+)|((-)?[0-9]+(\\.[0-9]+)?(e|E)\\+[0-9]+)");
 	private static Pattern BOOLEAN_PATTERN = Pattern.compile("(true)|(false)|(TRUE)|(FALSE)|(0)|(1)|(Y)|(N)|(J)");
 
-	private static Class<? extends XAttribute> inferDataType(String value, Set<DateFormat> dateFormats) {
+	private static Class<? extends XAttribute> inferDataType(String value, Iterable<? extends DateFormat> dateFormats) {
 		if (BOOLEAN_PATTERN.matcher(value).matches()) {
 			return XAttributeBoolean.class;
 		} else if (DISCRETE_PATTERN.matcher(value).matches()) {
@@ -516,7 +546,7 @@ public final class RepairAttributeDataType {
 			}
 		} else if (CONTINUOUS_PATTERN.matcher(value).matches()) {
 			return XAttributeContinuous.class;
-		} else if (parseDate(value, dateFormats) != null) {
+		} else if (tryParseDate(value, dateFormats) != null) {
 			return XAttributeTimestamp.class;
 		} else {
 			return XAttributeLiteral.class;

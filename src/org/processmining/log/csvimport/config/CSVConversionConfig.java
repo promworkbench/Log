@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -32,6 +31,7 @@ import org.deckfour.xes.model.XAttribute;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csv.ICSVReader;
 import org.processmining.log.csv.config.CSVConfig;
+import org.processmining.log.formats.StandardDateFormats;
 
 import com.google.common.collect.ImmutableList;
 
@@ -44,148 +44,6 @@ import com.google.common.collect.ImmutableList;
 public final class CSVConversionConfig {
 
 	private static final int DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES = 10000;
-
-	@SuppressWarnings("serial")
-	public static final Set<SimpleDateFormat> STANDARD_DATE_FORMATTERS = new LinkedHashSet<SimpleDateFormat>() {
-		{
-			add(new SimpleDateFormat("yyyy-M-d H:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy-M-d H:mm:ss.SSSz"));
-			add(new SimpleDateFormat("yyyy-M-d H:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy-M-d H:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy-M-d H:mm:ssz"));
-			add(new SimpleDateFormat("yyyy-M-d H:mm:ss"));
-			add(new SimpleDateFormat("yyyy-M-d H:mm"));
-			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ss.SSSz"));
-			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ssz"));
-			add(new SimpleDateFormat("yyyy-M-d'T'H:mm:ss"));
-			add(new SimpleDateFormat("yyyy-M-d'T'H:mm"));
-			add(new SimpleDateFormat("yyyy-M-d"));
-			
-			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSz"));
-			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ssz"));
-			add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy-MM-dd HH:mm"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSz"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm"));
-			add(new SimpleDateFormat("yyyy-MM-dd"));
-
-			add(new SimpleDateFormat("yyyy/M/d H:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy/M/d H:mm:ss.SSSz"));
-			add(new SimpleDateFormat("yyyy/M/d H:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy/M/d H:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy/M/d H:mm:ssz"));
-			add(new SimpleDateFormat("yyyy/M/d H:mm:ss"));
-			add(new SimpleDateFormat("yyyy/M/d H:mm"));
-			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ss.SSSz"));
-			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ssz"));
-			add(new SimpleDateFormat("yyyy/M/d'T'H:mm:ss"));
-			add(new SimpleDateFormat("yyyy/M/d'T'H:mm"));
-			add(new SimpleDateFormat("yyyy/M/d"));
-			
-			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSSz"));
-			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ssz"));
-			add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy/MM/dd HH:mm"));
-			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss.SSSz"));
-			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ssz"));
-			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy/MM/dd'T'HH:mm"));
-			add(new SimpleDateFormat("yyyy/MM/dd"));
-			
-			add(new SimpleDateFormat("M/d/yyyy H:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("M/d/yyyy H:mm:ss.SSSz"));
-			add(new SimpleDateFormat("M/d/yyyy H:mm:ss.SSS"));
-			add(new SimpleDateFormat("M/d/yyyy H:mm:ssXXX"));
-			add(new SimpleDateFormat("M/d/yyyy H:mm:ssz"));
-			add(new SimpleDateFormat("M/d/yyyy H:mm:ss"));
-			add(new SimpleDateFormat("M/d/yyyy H:mm"));
-			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ss.SSSz"));
-			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ss.SSS"));
-			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ssXXX"));
-			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ssz"));
-			add(new SimpleDateFormat("M/d/yyyy'T'H:mm:ss"));
-			add(new SimpleDateFormat("M/d/yyyy'T'H:mm"));
-			add(new SimpleDateFormat("M/d/yyyy"));
-			
-			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSSz"));
-			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS"));
-			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ssXXX"));
-			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ssz"));
-			add(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss"));
-			add(new SimpleDateFormat("MM/dd/yyyy HH:mm"));
-			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ss.SSSz"));
-			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ss.SSS"));
-			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ssXXX"));
-			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ssz"));
-			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ss"));
-			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm"));
-			add(new SimpleDateFormat("MM/dd/yyyy"));
-			
-			add(new SimpleDateFormat("yyyy.M.d H:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy.M.d H:mm:ss.SSSz"));
-			add(new SimpleDateFormat("yyyy.M.d H:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy.M.d H:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy.M.d H:mm:ssz"));
-			add(new SimpleDateFormat("yyyy.M.d H:mm:ss"));
-			add(new SimpleDateFormat("yyyy.M.d H:mm"));
-			
-			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSSXXX"));
-			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSSz"));
-			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS"));
-			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ssXXX"));
-			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ssz"));
-			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
-			add(new SimpleDateFormat("yyyy.MM.dd HH:mm"));
-			
-			add(new SimpleDateFormat("d-M-yyyy:H:mm:ss"));
-			add(new SimpleDateFormat("EEE, d MMM yyyy H:mm:ss z"));
-			add(new SimpleDateFormat("M-d-yyyy H:mm:ss"));
-			add(new SimpleDateFormat("M-d-yyyy H:mm"));
-			add(new SimpleDateFormat("M-d-yyyy"));
-			add(new SimpleDateFormat("d-M-yyyy H:mm:ss"));
-			add(new SimpleDateFormat("d-M-yyyy H:mm"));
-			add(new SimpleDateFormat("d-M-yyyy"));
-			
-			add(new SimpleDateFormat("dd-MM-yyyy:HH:mm:ss"));
-			add(new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z"));
-			add(new SimpleDateFormat("MM-dd-yyyy HH:mm:ss"));
-			add(new SimpleDateFormat("MM-dd-yyyy HH:mm"));
-			add(new SimpleDateFormat("MM-dd-yyyy"));
-			add(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"));
-			add(new SimpleDateFormat("dd-MM-yyyy HH:mm"));
-			add(new SimpleDateFormat("dd-MM-yyyy"));
-			
-		}
-	};
-
-	static {
-		for (DateFormat df : STANDARD_DATE_FORMATTERS) {
-			df.setLenient(false);
-		}
-	}
 
 	private static final Set<String> CASE_COLUMN_IDS = new HashSet<String>() {
 		private static final long serialVersionUID = 1113995381788343439L;
@@ -708,7 +566,7 @@ public final class CSVConversionConfig {
 		// check whether type is date
 		boolean isConsistentDateFormat = true;
 		final Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*");
-		for (SimpleDateFormat formatter : STANDARD_DATE_FORMATTERS) {
+		for (SimpleDateFormat formatter : StandardDateFormats.getStandardDateFormats()) {
 			if (canParseAllValues(values, isConsistentDateFormat, INVALID_MS_PATTERN, formatter)) {
 				final String pattern = formatter.toPattern();
 				return new DatatypeWithPattern() {
