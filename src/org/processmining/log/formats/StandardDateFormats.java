@@ -126,6 +126,14 @@ public final class StandardDateFormats {
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ssz"));
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm:ss"));
 			add(new SimpleDateFormat("yyyy.MM.dd HH:mm"));
+			
+			add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSSz"));
+			add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ssXXX"));
+			add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ssz"));
+			add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss"));
+			add(new SimpleDateFormat("dd.MM.yyyy HH:mm"));
 
 			add(new SimpleDateFormat("d-M-yyyy:H:mm:ss"));
 			add(new SimpleDateFormat("EEE, d MMM yyyy H:mm:ss z"));
