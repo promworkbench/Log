@@ -358,9 +358,7 @@ public final class CSVConversionConfig {
 		List<String> caseColumns = new ArrayList<>();
 		for (int i = 0; i < headers.length; i++) {
 			String header = headers[i];
-			if(header==null)
-				continue;
-			if (CASE_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
+			if (header != null && CASE_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
 				caseColumns.add(header);
 			}
 		}
@@ -371,9 +369,7 @@ public final class CSVConversionConfig {
 		List<String> eventColumns = new ArrayList<>();
 		for (int i = 0; i < headers.length; i++) {
 			String header = headers[i];
-			if(header==null)
-				continue;
-			if (EVENT_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
+			if (header != null && EVENT_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
 				eventColumns.add(header);
 			}
 		}
@@ -384,7 +380,7 @@ public final class CSVConversionConfig {
 		for (int i = 0; i < headers.length; i++) {
 			String header = headers[i];
 
-			if (COMPLETION_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
+			if (header != null && COMPLETION_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
 				setCompletionTimeColumn(header);
 				return;
 			}
@@ -394,9 +390,7 @@ public final class CSVConversionConfig {
 	private void autoDetectStartTimeColumn(String[] headers) {
 		for (int i = 0; i < headers.length; i++) {
 			String header = headers[i];
-			if(header==null)
-				continue;
-			if (START_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
+			if (header != null && START_TIME_COLUMN_IDS.contains(header.toLowerCase(Locale.US).trim())) {
 				setStartTimeColumn(header);
 				return;
 			}
@@ -407,29 +401,39 @@ public final class CSVConversionConfig {
 			throws IOException {
 		try (ICSVReader reader = csv.createReader(csvConfig)) {
 			String[] header = reader.readNext();
+
+			//TODO FM, can't this be done in a more streaming fashion?
 			Map<String, List<String>> valuesPerColumn = new HashMap<>();
 			for (String h : header) {
-				valuesPerColumn.put(h, new ArrayList<String>(DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES));
+				if (h != null) {
+					valuesPerColumn.put(h, new ArrayList<String>(DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES));
+				}
 			}
 			// now read some lines or so to guess the data type
 			for (int i = 0; i < DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES; i++) {
 				String[] cells = reader.readNext();
 				if (cells == null) {
+					//TODO FM, shouldn't that be a return?
 					break;
 				}
 				for (int j = 0; j < cells.length; j++) {
-					List<String> values = valuesPerColumn.get(header[j]);
-					values.add(cells[j]);
-					valuesPerColumn.put(header[j], values);
+					if (header[j] != null) {
+						List<String> values = valuesPerColumn.get(header[j]);
+						values.add(cells[j]);
+						valuesPerColumn.put(header[j], values);
+					}
 				}
 			}
 			// now we can guess the data type
 			for (String column : header) {
-				List<String> values = valuesPerColumn.get(column);
-				DatatypeWithPattern inferred = inferDataType(values);
-				if(column!=null){
-					getConversionMap().get(column).setDataType(inferred.getType());
-					getConversionMap().get(column).setPattern(inferred.getPattern());
+				if (column != null) {
+					List<String> values = valuesPerColumn.get(column);
+					if (values != null) {
+						DatatypeWithPattern inferred = inferDataType(values);
+						getConversionMap().get(column).setDataType(inferred.getType());
+						getConversionMap().get(column).setPattern(inferred.getPattern());
+					}
+
 				}
 			}
 		}
@@ -522,7 +526,7 @@ public final class CSVConversionConfig {
 			if (!isInteger(value)) {
 				isDiscrete = false;
 				break;
-			} 
+			}
 		}
 		if (hasParsed && isDiscrete)
 			return new DatatypeWithPattern() {
