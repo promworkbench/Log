@@ -19,13 +19,19 @@ import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.util.XAttributeUtils;
+import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginCategory;
+import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
+import org.processmining.framework.util.ui.widgets.helper.UserCancelledException;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 public final class RepairGlobalAttributesPlugin {
 
@@ -37,9 +43,11 @@ public final class RepairGlobalAttributesPlugin {
 	};
 
 	public interface GlobalInfo {
+		
 		Collection<XAttribute> getEventAttributes();
 
 		Collection<XAttribute> getTraceAttributes();
+		
 	}
 
 	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions (In Place)", parameterLabels = { "Event Log" }, returnLabels = {}, returnTypes = {}, userAccessible = true, mostSignificantResult = -1, categories = { PluginCategory.Enhancement }, //
@@ -67,11 +75,66 @@ public final class RepairGlobalAttributesPlugin {
 		return newLog;
 	}
 
-	public static void doRepairLog(XLog log) {
-		GlobalInfo info = detectGlobals(log);
+	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions (In Place)", parameterLabels = { "Event Log" }, returnLabels = {}, returnTypes = {}, userAccessible = true, mostSignificantResult = -1, categories = { PluginCategory.Enhancement }, //
+	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc). This plug-ins changes the input event log to be able to deal with large event logs!")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
+	public void repairLogInPlaceUI(UIPluginContext context, XLog log) throws UserCancelledException {
 
+		context.getProgress().setMinimum(0);
+		context.getProgress().setMaximum(log.size());
+
+		doRepairLogUI(context, log);
+	}
+
+	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions", parameterLabels = { "Event Log" }, returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
+	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc).")
+	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
+	public XLog repairLogUI(UIPluginContext context, XLog log) throws UserCancelledException {
+
+		context.getProgress().setMinimum(0);
+		context.getProgress().setMaximum(log.size());
+
+		XLog newLog = (XLog) log.clone();
+
+		doRepairLogUI(context, newLog);
+
+		return newLog;
+	}
+
+	public void doRepairLogUI(UIPluginContext context, XLog log) throws UserCancelledException {
+
+		GlobalInfo globals = detectGlobals(log);
+
+		final Set<String> classifierAttribute = ImmutableSet
+				.copyOf(ProMUIHelper.queryForObjects(context,
+						"Which of the following global attributes should be added as classifier?",
+						Iterables.transform(globals.getEventAttributes(), new Function<XAttribute, String>() {
+
+							public String apply(XAttribute a) {
+								return a.getKey();
+							}
+						})));
+
+		doRepairLog(log, globals, new Predicate<XAttribute>() {
+
+			public boolean apply(XAttribute a) {
+				return classifierAttribute.contains(a.getKey());
+			}
+		});
+	}
+
+	public static void doRepairLog(XLog log) {
+		doRepairLog(log, detectGlobals(log), new Predicate<XAttribute>() {
+
+			public boolean apply(XAttribute a) {
+				return isClassifierAttribute(a);
+			}
+		});
+	}
+
+	public static void doRepairLog(XLog log, GlobalInfo info, Predicate<XAttribute> useForClassifier) {
 		for (XAttribute attr : info.getEventAttributes()) {
-			if (isClassifierAttribute(attr)) {
+			if (useForClassifier.apply(attr)) {
 				if (!hasClassifier(attr, log.getClassifiers())) {
 					log.getClassifiers().add(new XEventAttributeClassifier(attr.getKey(), attr.getKey()));
 				}
