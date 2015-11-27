@@ -420,7 +420,8 @@ public class XUtils {
 	 * @return
 	 */
 	public static XAttribute createAttribute(String attributeName, Object attributeValue) {
-		return createAttributeWithFactory(attributeName, attributeValue, null);
+		return createAttributeWithFactory(attributeName, attributeValue, XFactoryRegistry.instance()
+				.currentDefault());
 	}
 
 	/**
