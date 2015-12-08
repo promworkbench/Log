@@ -152,7 +152,8 @@ public final class StandardDateFormats {
 			add(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"));
 			add(new SimpleDateFormat("dd-MM-yyyy HH:mm"));
 			add(new SimpleDateFormat("dd-MM-yyyy"));
-
+			
+			add(new SimpleDateFormat("dd.MM.yyyy HH.mm"));
 		}
 	};
 
