@@ -67,6 +67,7 @@ public final class CSVConversionPlugin {
 				} else if (result == InteractionResult.PREV) {
 					i--;
 				} else if (result == InteractionResult.CANCEL) {
+					context.getFutureResult(0).cancel(false);
 					return null;
 				}
 			}
