@@ -54,22 +54,22 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 
 	private boolean errorDetected = false;
 
-	public XESConversionHandlerImpl(CSVConfig importConfig,
-			CSVConversionConfig conversionConfig) {
+	public XESConversionHandlerImpl(CSVConfig importConfig, CSVConversionConfig conversionConfig) {
 		this.conversionConfig = conversionConfig;
 		this.factory = conversionConfig.getFactory();
 		this.conversionErrors = new StringBuilder();
 	}
-	
+
 	@Override
 	public String getConversionErrors() {
 		if (conversionErrors.length() >= MAX_ERROR_LENGTH) {
-			return conversionErrors.toString().concat("... (multiple error messages have been omitted to avoid running out of memory)");
+			return conversionErrors.toString().concat(
+					"... (multiple error messages have been omitted to avoid running out of memory)");
 		} else {
 			return conversionErrors.toString();
 		}
 	}
-	
+
 	@Override
 	public boolean hasConversionErrors() {
 		return conversionErrors.length() != 0;
@@ -86,7 +86,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			log.getExtensions().add(XTimeExtension.instance());
 			log.getExtensions().add(XLifecycleExtension.instance());
 			log.getClassifiers().add(XUtils.STANDARDCLASSIFIER);
-		}		
+		}
 		assignName(factory, log, inputFile.getFilename());
 	}
 
@@ -125,10 +125,19 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			// Include the other events in that trace
 			errorDetected = false;
 		}
-		if (startTime != null && completionTime != null) {
+		if (startTime == null && completionTime == null) {
+			// Both times are unknown only create an event assuming it is the completion event
+			currentEvent = factory.createEvent();
+			if (eventClass != null) {
+				assignName(factory, currentEvent, eventClass);
+			}
+			assignLifecycleTransition(factory, currentEvent, XLifecycleExtension.StandardModel.COMPLETE);
+		} else if (startTime != null && completionTime != null) {
+			// Both start and complete are present
 			String instance = String.valueOf((instanceCounter++));
 			hasStartEvents = true;
 
+			// Create Start
 			currentStartEvent = factory.createEvent();
 			if (eventClass != null) {
 				assignName(factory, currentStartEvent, eventClass);
@@ -137,6 +146,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			assignInstance(factory, currentStartEvent, instance);
 			assignLifecycleTransition(factory, currentStartEvent, XLifecycleExtension.StandardModel.START);
 
+			// Create Complete
 			currentEvent = factory.createEvent();
 			if (eventClass != null) {
 				assignName(factory, currentEvent, eventClass);
@@ -145,17 +155,22 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			assignInstance(factory, currentEvent, instance);
 			assignLifecycleTransition(factory, currentEvent, XLifecycleExtension.StandardModel.COMPLETE);
 		} else {
+			// Either start or complete are present
 			currentEvent = factory.createEvent();
 			if (eventClass != null) {
 				assignName(factory, currentEvent, eventClass);
 			}
 			if (completionTime != null) {
+				// Only create Complete
 				assignTimestamp(factory, currentEvent, completionTime);
 				assignLifecycleTransition(factory, currentEvent, XLifecycleExtension.StandardModel.COMPLETE);
-			}
-			if (startTime != null) {
+			} else if (startTime != null) {
+				// Only create Start
 				assignTimestamp(factory, currentEvent, startTime);
-				assignLifecycleTransition(factory, currentStartEvent, XLifecycleExtension.StandardModel.START);
+				assignLifecycleTransition(factory, currentEvent, XLifecycleExtension.StandardModel.START);
+			} else {
+				throw new IllegalStateException(
+						"Both start and complete time are NULL. This should never be the case here!");
 			}
 		}
 	}
@@ -163,35 +178,40 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	@Override
 	public void startAttribute(String name, String value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeLiteral(getNameFromConfig(name), value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent,
+					factory.createAttributeLiteral(getNameFromConfig(name), value, getExtensionFromConfig(name)));
 		}
 	}
 
 	@Override
 	public void startAttribute(String name, long value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeDiscrete(getNameFromConfig(name), value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent,
+					factory.createAttributeDiscrete(getNameFromConfig(name), value, getExtensionFromConfig(name)));
 		}
 	}
 
 	@Override
 	public void startAttribute(String name, double value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeContinuous(getNameFromConfig(name), value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent,
+					factory.createAttributeContinuous(getNameFromConfig(name), value, getExtensionFromConfig(name)));
 		}
 	}
 
 	@Override
 	public void startAttribute(String name, Date value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeTimestamp(getNameFromConfig(name), value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent,
+					factory.createAttributeTimestamp(getNameFromConfig(name), value, getExtensionFromConfig(name)));
 		}
 	}
 
 	@Override
 	public void startAttribute(String name, boolean value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent, factory.createAttributeBoolean(getNameFromConfig(name), value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent,
+					factory.createAttributeBoolean(getNameFromConfig(name), value, getExtensionFromConfig(name)));
 		}
 	}
 
@@ -199,10 +219,11 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		ExtensionAttribute extensionAttribute = getExtensionAttribute(name);
 		return extensionAttribute == null ? null : extensionAttribute.extension;
 	}
-	
+
 	private String getNameFromConfig(String columnName) {
 		CSVMapping csvMapping = getMapping(columnName);
-		if (csvMapping.getEventExtensionAttribute() != null && csvMapping.getEventExtensionAttribute() != CSVConversionConfig.NO_EXTENSION_ATTRIBUTE) {
+		if (csvMapping.getEventExtensionAttribute() != null
+				&& csvMapping.getEventExtensionAttribute() != CSVConversionConfig.NO_EXTENSION_ATTRIBUTE) {
 			return csvMapping.getEventExtensionAttribute().key;
 		} else if (csvMapping.getEventAttributeName() != null && !csvMapping.getEventAttributeName().isEmpty()) {
 			return csvMapping.getEventAttributeName();
@@ -238,12 +259,12 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 		currentEvent = null;
 	}
 
-	public XLog getResult() {		
+	public XLog getResult() {
 		return log;
 	}
 
 	private static void assignAttribute(XAttributable a, XAttribute value) {
-		a.getAttributes().put(value.getKey(), value);
+		XUtils.putAttribute(a, value);
 	}
 
 	private static void assignLifecycleTransition(XFactory factory, XAttributable a, StandardModel lifecycle) {
@@ -285,8 +306,9 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 				break;
 			case OMIT_TRACE_ON_ERROR :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ":\nSkipping trace " + XUtils.getConceptName(currentTrace)
-							+ ", could not convert" + nullSafeToString(content) + "\nError: " + e + "\n\n");
+					conversionErrors.append("Line: " + line + ":\nSkipping trace "
+							+ XUtils.getConceptName(currentTrace) + ", could not convert" + nullSafeToString(content)
+							+ "\nError: " + e + "\n\n");
 				}
 				break;
 			default :
@@ -306,10 +328,10 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	}
 
 	private boolean specialColumn(String columnName) {
-		return columnName == null || 
-				(XConceptExtension.KEY_NAME.equals(columnName) && !conversionConfig.getEventNameColumns().isEmpty()) || 
-				(XTimeExtension.KEY_TIMESTAMP.equals(columnName) && conversionConfig.getCompletionTimeColumn() != null) ||
-				(XConceptExtension.KEY_INSTANCE.equals(columnName) && conversionConfig.getStartTimeColumn() != null);
+		return columnName == null
+				|| (XConceptExtension.KEY_NAME.equals(columnName) && !conversionConfig.getEventNameColumns().isEmpty())
+				|| (XTimeExtension.KEY_TIMESTAMP.equals(columnName) && conversionConfig.getCompletionTimeColumn() != null)
+				|| (XConceptExtension.KEY_INSTANCE.equals(columnName) && conversionConfig.getStartTimeColumn() != null);
 	}
 
 }

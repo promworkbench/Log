@@ -68,8 +68,7 @@ public final class CSVConversionPlugin {
 				} else if (result == InteractionResult.PREV) {
 					i--;
 				} else if (result == InteractionResult.CANCEL) {
-					context.getFutureResult(0).cancel(false);
-					return null;
+					return cancel(context);
 				}
 			}
 
@@ -87,18 +86,21 @@ public final class CSVConversionPlugin {
 				String stackTrace = Throwables.getStackTraceAsString(e);
 				ProMUIHelper.showErrorMessage(context, errorMessage + "\n\n Stack Trace\n" + stackTrace,
 						"Conversion Failed");
-				context.getFutureResult(0).cancel(false);
-				return null;
+				return cancel(context);
 			}
 		} catch (IOException e) {
 			String errorMessage = Joiner.on("\ncaused by\n").join(Throwables.getCausalChain(e));
 			String stackTrace = Throwables.getStackTraceAsString(e);
 			ProMUIHelper.showErrorMessage(context, errorMessage + "\n\n Stack Trace\n" + stackTrace,
 					"Conversion Failed");
-			context.getFutureResult(0).cancel(false);
-			return null;
+			return cancel(context);
 		}
 
+	}
+
+	private XLog cancel(final UIPluginContext context) {
+		context.getFutureResult(0).cancel(false);
+		return null;
 	}
 
 	public ConversionResult<XLog> doConvertCSVToXes(final PluginContext context, CSVFile csvFile,
