@@ -9,6 +9,7 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.Progress;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginLevel;
 import org.processmining.framework.plugin.events.Logger.MessageLevel;
 import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
 import org.processmining.log.csv.CSVFile;
@@ -34,7 +35,7 @@ import com.google.common.base.Throwables;
  */
 public final class CSVConversionPlugin {
 
-	@Plugin(name = "Convert CSV to XES", parameterLabels = { "CSV" }, returnLabels = { "XES Event Log" }, // 
+	@Plugin(name = "Convert CSV to XES", level= PluginLevel.PeerReviewed, parameterLabels = { "CSV" }, returnLabels = { "XES Event Log" }, // 
 	returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,// 
 	keywords = { "CSV", "OpenXES", "Conversion", "Import" }, help = "Converts the CSV file to a OpenXES XLog object.")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt, N. Tax, D.M.M. Schunselaar", // 

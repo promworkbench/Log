@@ -7,6 +7,7 @@ import org.processmining.contexts.uitopia.annotations.UIImportPlugin;
 import org.processmining.framework.abstractplugins.AbstractImportPlugin;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginLevel;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csv.CSVFileReferenceUnivocityImpl;
 
@@ -16,7 +17,7 @@ import org.processmining.log.csv.CSVFileReferenceUnivocityImpl;
  * @author N. Tax
  *
  */
-@Plugin(name = "Import a CSV file and convert it to XES", parameterLabels = { "Filename" }, returnLabels = { "Imported CSV File" }, returnTypes = { CSVFile.class })
+@Plugin(name = "Import a CSV file and convert it to XES", level= PluginLevel.PeerReviewed, parameterLabels = { "Filename" }, returnLabels = { "Imported CSV File" }, returnTypes = { CSVFile.class })
 @UIImportPlugin(description = "CSV File (XES Conversion with Log package)", extensions = { "csv", "zip", "csv.gz", "txt" })
 public final class CSVImportPluginUnivocity extends AbstractImportPlugin {
 

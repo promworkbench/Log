@@ -11,9 +11,10 @@ import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UIExportPlugin;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.annotations.Plugin;
+import org.processmining.framework.plugin.annotations.PluginLevel;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 
-@Plugin(name = "Export Log to compressed XES File", parameterLabels = { "Log",
+@Plugin(name = "Export Log to compressed XES File", level = PluginLevel.PeerReviewed, parameterLabels = { "Log",
 		"File" }, returnLabels = {}, returnTypes = {}, userAccessible = true)
 @UIExportPlugin(description = "Compressed XES files", extension = "xes.gz")
 public class ExportLogXesGz {

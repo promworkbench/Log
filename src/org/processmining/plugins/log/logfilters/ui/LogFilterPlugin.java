@@ -6,9 +6,10 @@ import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginCategory;
+import org.processmining.framework.plugin.annotations.PluginLevel;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 
-@Plugin(name = "Filter Log using Simple Heuristics", categories = { PluginCategory.Filtering }, parameterLabels = { "Log" }, returnLabels = { "Log" }, returnTypes = { XLog.class }, userAccessible = true)
+@Plugin(name = "Filter Log using Simple Heuristics", level= PluginLevel.PeerReviewed, categories = { PluginCategory.Filtering }, parameterLabels = { "Log" }, returnLabels = { "Log" }, returnTypes = { XLog.class }, userAccessible = true)
 public class LogFilterPlugin {
 
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl", pack = "Log")
