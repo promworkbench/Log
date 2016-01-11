@@ -43,7 +43,7 @@ import com.google.common.collect.ImmutableList;
  */
 public final class CSVConversionConfig {
 
-	private static final int DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES = 10000;
+	private static final int DATA_TYPE_FORMAT_AUTO_DETECT_NUM_LINES = 5000;
 
 	private static final Set<String> CASE_COLUMN_IDS = new HashSet<String>() {
 		private static final long serialVersionUID = 1113995381788343439L;
