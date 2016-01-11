@@ -24,6 +24,7 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginCategory;
+import org.processmining.framework.plugin.annotations.PluginLevel;
 import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
 import org.processmining.framework.util.ui.widgets.helper.UserCancelledException;
 
@@ -60,7 +61,7 @@ public final class RepairGlobalAttributesPlugin {
 		doRepairLog(log);
 	}
 
-	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions", parameterLabels = { "Event Log" }, returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
+	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions", level = PluginLevel.PeerReviewed, parameterLabels = { "Event Log" }, returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
 	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc).")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
 	public XLog repairLog(PluginContext context, XLog log) {
@@ -86,7 +87,7 @@ public final class RepairGlobalAttributesPlugin {
 		doRepairLogUI(context, log);
 	}
 
-	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions", parameterLabels = { "Event Log" }, returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
+	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions", level = PluginLevel.PeerReviewed, parameterLabels = { "Event Log" }, returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
 	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc).")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
 	public XLog repairLogUI(UIPluginContext context, XLog log) throws UserCancelledException {
