@@ -118,14 +118,15 @@ public final class XesCsvSerializer implements XSerializer {
 			XEvent event = iterator.next();
 			if (!convertedEvents.contains(event)) {
 				StandardModel lifecycle = XLifecycleExtension.instance().extractStandardTransition(event);
-				if (lifecycle == null) {					
+				if (lifecycle == null) {
 					// treat as complete
 					currentRow = compileEvent(trace, null, event, columnMap, rowLength, currentRow);
 					convertedEvents.add(event);
 				} else if (lifecycle == StandardModel.START) {
 					XEvent completionEvent = null;
 					if (lifecycle == StandardModel.START) {
-						completionEvent = lookup(trace.listIterator(iterator.nextIndex()), event, StandardModel.COMPLETE);
+						completionEvent = lookup(trace.listIterator(iterator.nextIndex()), event,
+								StandardModel.COMPLETE);
 					}
 					currentRow = compileEvent(trace, event, completionEvent, columnMap, rowLength, currentRow);
 					convertedEvents.add(event);
@@ -166,21 +167,33 @@ public final class XesCsvSerializer implements XSerializer {
 		return null;
 	}
 
-	private String[] compileEvent(XTrace trace, XEvent startEvent, XEvent completionEvent, Map<String, Integer> columnMap,
-			int rowLength, String[] lastRow) {
+	private String[] compileEvent(XTrace trace, XEvent startEvent, XEvent completionEvent,
+			Map<String, Integer> columnMap, int rowLength, String[] lastRow) {
 		XEvent mainEvent = completionEvent != null ? completionEvent : startEvent;
 		String[] row = new String[rowLength];
-		row[0] = XConceptExtension.instance().extractName(trace);		
+		row[0] = XConceptExtension.instance().extractName(trace);
 		row[1] = XConceptExtension.instance().extractName(mainEvent);
-		if (startEvent != null) { 
-			row[2] = dateFormat.format(XTimeExtension.instance().extractTimestamp(startEvent));
+		if (startEvent != null) {
+			Date date = XTimeExtension.instance().extractTimestamp(startEvent);
+			if (date != null) {
+				row[2] = dateFormat.format(date);
+			}
 		} else {
-			row[2] = dateFormat.format(XTimeExtension.instance().extractTimestamp(completionEvent));
+			Date date = XTimeExtension.instance().extractTimestamp(completionEvent);
+			if (date != null) {
+				row[2] = dateFormat.format(date);
+			}
 		}
 		if (completionEvent != null) {
-			row[3] = dateFormat.format(XTimeExtension.instance().extractTimestamp(completionEvent));
+			Date date = XTimeExtension.instance().extractTimestamp(completionEvent);
+			if (date != null) {
+				row[3] = dateFormat.format(date);
+			}
 		} else {
-			row[3] = dateFormat.format(XTimeExtension.instance().extractTimestamp(startEvent));
+			Date date = XTimeExtension.instance().extractTimestamp(startEvent);
+			if (date != null) {
+				row[3] = dateFormat.format(date);
+			}
 		}
 
 		for (XAttribute attr : trace.getAttributes().values()) {

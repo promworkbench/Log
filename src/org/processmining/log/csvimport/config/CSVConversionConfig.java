@@ -81,6 +81,8 @@ public final class CSVConversionConfig {
 	private static final Set<String> COMPLETION_TIME_COLUMN_IDS = new HashSet<String>() {
 		private static final long serialVersionUID = 6419129336151793063L;
 		{
+			add("timecomplete");
+			add("completetime");
 			add("completiontime");
 			add("time");
 			add("date");

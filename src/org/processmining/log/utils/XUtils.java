@@ -66,6 +66,8 @@ import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.out.XSerializer;
 import org.deckfour.xes.out.XesXmlGZIPSerializer;
 import org.deckfour.xes.out.XesXmlSerializer;
+import org.processmining.framework.plugin.PluginContext;
+import org.processmining.plugins.utils.ProvidedObjectHelper;
 
 import com.google.common.collect.Iterables;
 
@@ -294,7 +296,8 @@ public class XUtils {
 	 * @return copy of the supplied attribute
 	 */
 	public static XAttribute cloneAttributeWithChangedKey(XAttribute oldAttribute, String newKey) {
-		return cloneAttributeWithChangedKeyWithFactory(oldAttribute, newKey, XFactoryRegistry.instance().currentDefault());
+		return cloneAttributeWithChangedKeyWithFactory(oldAttribute, newKey,
+				XFactoryRegistry.instance().currentDefault());
 	}
 
 	/**
@@ -420,8 +423,7 @@ public class XUtils {
 	 * @return
 	 */
 	public static XAttribute createAttribute(String attributeName, Object attributeValue) {
-		return createAttributeWithFactory(attributeName, attributeValue, XFactoryRegistry.instance()
-				.currentDefault());
+		return createAttributeWithFactory(attributeName, attributeValue, XFactoryRegistry.instance().currentDefault());
 	}
 
 	/**
@@ -447,8 +449,8 @@ public class XUtils {
 	 * @return a {@link XAttribute} with correct type
 	 */
 	public static XAttribute createAttribute(String attributeName, Object attributeValue, XExtension extension) {
-		return createAttributeWithFactory(attributeName, attributeValue, extension, XFactoryRegistry.instance()
-				.currentDefault());
+		return createAttributeWithFactory(attributeName, attributeValue, extension,
+				XFactoryRegistry.instance().currentDefault());
 	}
 
 	/**
@@ -496,6 +498,19 @@ public class XUtils {
 	 */
 	public static void putAttribute(XAttributable attributable, XAttribute attribute) {
 		attributable.getAttributes().put(attribute.getKey(), attribute);
+	}
+
+	/**
+	 * Rename the XLog with the label for the ProM provided object
+	 * 
+	 * @param context
+	 * @param log
+	 */
+	public static void renameLogWithProMLabel(PluginContext context, XLog log) {
+		String promLabel = ProvidedObjectHelper.getProvidedObjectLabel(context, log);
+		if (!promLabel.equals(XUtils.getConceptName(log))) {
+			XConceptExtension.instance().assignName(log, promLabel);
+		}
 	}
 
 }
