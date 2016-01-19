@@ -63,20 +63,21 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 				startTimeFormat.setEnabled(true);
 				conversionConfig.getConversionMap().get(conversionConfig.getStartTimeColumn())
 						.setPattern(startTimeFormat.getText());
-			} else if (!conversionConfig.getStartTimeColumn().isEmpty() && startTimeFormat.getText().isEmpty()) {
+			} else if (!conversionConfig.getStartTimeColumn().isEmpty() && startTimeFormat.getText().isEmpty() && !hasManipulatedStartTime) {
 				startTimeFormat.setEnabled(true);
 				startTimeFormat.setText(conversionConfig.getConversionMap().get(conversionConfig.getStartTimeColumn())
 						.getPattern());
 			} else {
 				startTimeFormat.setText("");
 				startTimeFormat.setEnabled(false);
+				
 			}
 			if (!conversionConfig.getCompletionTimeColumn().isEmpty() && !completionTimeFormat.getText().isEmpty()) {
 				completionTimeFormat.setEnabled(true);
 				conversionConfig.getConversionMap().get(conversionConfig.getCompletionTimeColumn())
 						.setPattern(completionTimeFormat.getText());
 			} else if (!conversionConfig.getCompletionTimeColumn().isEmpty()
-					&& completionTimeFormat.getText().isEmpty()) {
+					&& completionTimeFormat.getText().isEmpty() && !hasManipulatedCompletionTime) {
 				completionTimeFormat.setEnabled(true);
 				completionTimeFormat.setText(conversionConfig.getConversionMap()
 						.get(conversionConfig.getCompletionTimeColumn()).getPattern());
@@ -138,6 +139,9 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 	private ProMTextField completionTimeFormat;
 	private ProMTextField startTimeFormat;
+	
+	private boolean hasManipulatedStartTime = false;
+	private boolean hasManipulatedCompletionTime = false;
 
 	public ConversionConfigUI(final CSVFile csv, final CSVConfig importConfig, CSVConversionConfig conversionConfig)
 			throws IOException {
@@ -153,6 +157,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 				changeListener.updateSettings();
 			}
 		});
+		updateTimer.setRepeats(false);
 
 		GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
@@ -222,7 +227,13 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		} else {
 			completionTimeColumnCbx.setSelectedItem("");
 		}
-		completionTimeColumnCbx.addActionListener(changeListener);
+		completionTimeColumnCbx.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				hasManipulatedCompletionTime = false;
+				changeListener.updateSettings();
+			}
+		});
 
 		completionTimeFormat = new ProMTextField("",
 				"Could not auto-detect the used date format. Please provide a SimpleDateFormat pattern!");
@@ -233,14 +244,17 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		completionTimeFormat.getDocument().addDocumentListener(new DocumentListener() {
 
 			public void removeUpdate(DocumentEvent e) {
+				hasManipulatedCompletionTime = true;
 				update();
 			}
 
 			public void insertUpdate(DocumentEvent e) {
+				hasManipulatedCompletionTime = true;
 				update();
 			}
 
 			public void changedUpdate(DocumentEvent e) {
+				hasManipulatedCompletionTime = true;
 				update();
 			}
 
@@ -267,7 +281,13 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		} else {
 			startTimeColumnCbx.setSelectedItem("");
 		}
-		startTimeColumnCbx.addActionListener(changeListener);
+		startTimeColumnCbx.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				hasManipulatedStartTime = false;
+				changeListener.updateSettings();
+			}
+		});
 
 		startTimeFormat = new ProMTextField("",
 				"Could not auto-detect the used date format. Please provide a SimpleDateFormat pattern!");
@@ -278,14 +298,17 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		startTimeFormat.getDocument().addDocumentListener(new DocumentListener() {
 
 			public void removeUpdate(DocumentEvent e) {
+				hasManipulatedStartTime = true;
 				update();
 			}
 
 			public void insertUpdate(DocumentEvent e) {
+				hasManipulatedCompletionTime = true;
 				update();
 			}
 
 			public void changedUpdate(DocumentEvent e) {
+				hasManipulatedCompletionTime = true;
 				update();
 			}
 
@@ -398,6 +421,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 	@Override
 	public void removeNotify() {
 		super.removeNotify();
+		changeListener.updateSettings();
 		previewFrame.save();
 		previewFrame.setVisible(false);
 	}
