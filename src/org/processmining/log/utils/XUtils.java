@@ -160,6 +160,18 @@ public class XUtils {
 		return XConceptExtension.instance().extractName(element);
 	}
 
+	public static void assignConceptName(XLog log, String name) {
+		XConceptExtension.instance().assignName(log, name);
+	}
+
+	public static void assignConceptName(XEvent event, String name) {
+		XConceptExtension.instance().assignName(event, name);
+	}
+
+	public static void assignConceptName(XTrace trace, String name) {
+		XConceptExtension.instance().assignName(trace, name);
+	}
+
 	/**
 	 * Returns the event time.
 	 * 
@@ -168,6 +180,14 @@ public class XUtils {
 	 */
 	public static Date getTimestamp(XEvent event) {
 		return XTimeExtension.instance().extractTimestamp(event);
+	}
+
+	public static void assignTimestamp(XEvent event, Date timestamp) {
+		XTimeExtension.instance().assignTimestamp(event, timestamp);
+	}
+
+	public static void assignTimestamp(XEvent event, long timestamp) {
+		XTimeExtension.instance().assignTimestamp(event, timestamp);
 	}
 
 	public static XLog loadLog(String string) throws UnsupportedEncodingException, Exception {
@@ -296,8 +316,8 @@ public class XUtils {
 	 * @return copy of the supplied attribute
 	 */
 	public static XAttribute cloneAttributeWithChangedKey(XAttribute oldAttribute, String newKey) {
-		return cloneAttributeWithChangedKeyWithFactory(oldAttribute, newKey,
-				XFactoryRegistry.instance().currentDefault());
+		return cloneAttributeWithChangedKeyWithFactory(oldAttribute, newKey, XFactoryRegistry.instance()
+				.currentDefault());
 	}
 
 	/**
@@ -449,8 +469,8 @@ public class XUtils {
 	 * @return a {@link XAttribute} with correct type
 	 */
 	public static XAttribute createAttribute(String attributeName, Object attributeValue, XExtension extension) {
-		return createAttributeWithFactory(attributeName, attributeValue, extension,
-				XFactoryRegistry.instance().currentDefault());
+		return createAttributeWithFactory(attributeName, attributeValue, extension, XFactoryRegistry.instance()
+				.currentDefault());
 	}
 
 	/**
@@ -505,12 +525,15 @@ public class XUtils {
 	 * 
 	 * @param context
 	 * @param log
+	 * @return the old name
 	 */
-	public static void renameLogWithProMLabel(PluginContext context, XLog log) {
+	public static String renameLogWithProMLabel(PluginContext context, XLog log) {
+		String originalName = getConceptName(log);
 		String promLabel = ProvidedObjectHelper.getProvidedObjectLabel(context, log);
-		if (!promLabel.equals(XUtils.getConceptName(log))) {
+		if (!promLabel.equals(originalName)) {
 			XConceptExtension.instance().assignName(log, promLabel);
 		}
+		return originalName;
 	}
 
 }

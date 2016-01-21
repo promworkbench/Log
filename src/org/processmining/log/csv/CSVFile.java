@@ -14,7 +14,7 @@ import org.processmining.log.csv.config.CSVConfig;
 public interface CSVFile {
 
 	/**
-	 * @return the complete path to the CSV file
+	 * @return the complete path to the CSV file (including the file itself)
 	 */
 	Path getFile();
 
@@ -22,11 +22,6 @@ public interface CSVFile {
 	 * @return the filename with extension
 	 */
 	String getFilename();
-
-	/**
-	 * @return the file size
-	 */
-	long getFileSizeInBytes();
 
 	/**
 	 * @return input stream of this CSV file
@@ -54,7 +49,7 @@ public interface CSVFile {
 	 * @throws IOException
 	 */
 	ICSVReader createReader(CSVConfig config) throws IOException;
-	
+
 	/**
 	 * @return the CSV reader/writer interface used for this {@link CSVFile}
 	 */

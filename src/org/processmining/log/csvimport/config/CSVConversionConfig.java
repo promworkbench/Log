@@ -304,8 +304,8 @@ public final class CSVConversionConfig {
 	// Mapping to some of the XES standard extensions
 	private List<String> caseColumns = Collections.emptyList();
 	private List<String> eventNameColumns = Collections.emptyList();
-	private String completionTimeColumn;
-	private String startTimeColumn;
+	private String completionTimeColumn = null; // may be NULL
+	private String startTimeColumn = null; // may be NULL
 
 	// How to concatenate attributes built from multiple columns
 	private String compositeAttributeSeparator = "|";
@@ -317,8 +317,6 @@ public final class CSVConversionConfig {
 	private CSVErrorHandlingMode errorHandlingMode = CSVErrorHandlingMode.OMIT_TRACE_ON_ERROR;
 	private CSVEmptyCellHandlingMode emptyCellHandlingMode = CSVEmptyCellHandlingMode.SPARSE;
 	private Set<String> treatAsEmptyValues = new HashSet<>();
-
-	private boolean shouldGuessDataTypes = true;
 
 	// Internal only
 	private final CSVFile csvFile;
@@ -715,14 +713,6 @@ public final class CSVConversionConfig {
 
 	public void setCompositeAttributeSeparator(String compositeAttributeSeparator) {
 		this.compositeAttributeSeparator = compositeAttributeSeparator;
-	}
-
-	public boolean isShouldGuessDataTypes() {
-		return shouldGuessDataTypes;
-	}
-
-	public void setShouldGuessDataTypes(boolean shouldGuessDataTypes) {
-		this.shouldGuessDataTypes = shouldGuessDataTypes;
 	}
 
 	public CSVErrorHandlingMode getErrorHandlingMode() {

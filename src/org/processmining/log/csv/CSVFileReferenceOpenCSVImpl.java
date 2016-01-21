@@ -7,17 +7,23 @@ import org.processmining.log.csv.config.CSVConfig;
 
 /**
  * {@link CSVFile} implementation that holds a reference to a CSV file on disk.
+ * The {@link CSVFileReferenceUnivocityImpl} is recommended!
  *
  * @author F. Mannhardt
  *
  */
 public final class CSVFileReferenceOpenCSVImpl extends AbstractCSVFile {
-	
+
 	private final CSVOpenCSVImpl csv;
 
-	public CSVFileReferenceOpenCSVImpl(Path file, String filename, long fileSizeInBytes) {
-		super(file, filename, fileSizeInBytes);
+	public CSVFileReferenceOpenCSVImpl(Path file) {
+		super(file);
 		csv = new CSVOpenCSVImpl();
+	}
+
+	@Deprecated
+	public CSVFileReferenceOpenCSVImpl(Path file, String filename, long fileSizeInBytes) {
+		this(file);
 	}
 
 	/*
@@ -32,15 +38,21 @@ public final class CSVFileReferenceOpenCSVImpl extends AbstractCSVFile {
 		return createReader(importConfig).readNext();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.processmining.log.csv.CSVFile#createReader(org.processmining.log.csv.CSVConfig)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.processmining.log.csv.CSVFile#createReader(org.processmining.log.
+	 * csv.CSVConfig)
 	 */
 	@Override
 	public ICSVReader createReader(CSVConfig config) throws IOException {
 		return csv.createReader(getInputStream(), config);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.processmining.log.csv.CSVFile#getCSV()
 	 */
 	@Override

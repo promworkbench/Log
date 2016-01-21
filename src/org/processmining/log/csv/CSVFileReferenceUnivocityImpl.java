@@ -17,9 +17,14 @@ public final class CSVFileReferenceUnivocityImpl extends AbstractCSVFile {
 	
 	private final CSVUnivocityImpl csv;
 
-	public CSVFileReferenceUnivocityImpl(Path file, String filename, long fileSizeInBytes) {
-		super(file, filename, fileSizeInBytes);
+	public CSVFileReferenceUnivocityImpl(Path file) {
+		super(file);
 		csv = new CSVUnivocityImpl();
+	}
+	
+	@Deprecated
+	public CSVFileReferenceUnivocityImpl(Path file, String filename, long fileSizeInBytes) {
+		this(file);
 	}
 
 	/*

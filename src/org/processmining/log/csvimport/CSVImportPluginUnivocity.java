@@ -25,7 +25,7 @@ public final class CSVImportPluginUnivocity extends AbstractImportPlugin {
 	protected CSVFile importFromStream(final PluginContext context, final InputStream input, final String filename,
 			final long fileSizeInBytes) throws Exception {
 		context.getFutureResult(0).setLabel("Imported CSV: "+filename);
-		return new CSVFileReferenceUnivocityImpl(getFile().toPath(), filename, fileSizeInBytes);
+		return new CSVFileReferenceUnivocityImpl(getFile().toPath());
 	}
 
 }

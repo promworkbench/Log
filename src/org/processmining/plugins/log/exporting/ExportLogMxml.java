@@ -13,17 +13,15 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginLevel;
 import org.processmining.framework.plugin.annotations.PluginVariant;
-import org.processmining.log.utils.XUtils;
 
-@Plugin(name = "Export Log to MXML File", level= PluginLevel.PeerReviewed, parameterLabels = { "Log",
-		"File" }, returnLabels = {}, returnTypes = {}, userAccessible = true)
+@Plugin(name = "Export Log to MXML File", level = PluginLevel.PeerReviewed, parameterLabels = { "Log", "File" }, returnLabels = {}, returnTypes = {}, userAccessible = true)
 @UIExportPlugin(description = "MXML files", extension = "mxml")
-public class ExportLogMxml {
+public class ExportLogMxml extends AbstractLogExporter {
+
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "H.M.W Verbeek", email = "h.m.w.verbeek@tue.nl")
 	@PluginVariant(requiredParameterLabels = { 0, 1 }, variantLabel = "Export Log to XMXL File")
-	public void export(UIPluginContext context, XLog log, File file) throws IOException {
-		XUtils.renameLogWithProMLabel(context, log);
-		export(log, file);
+	public void export(UIPluginContext context, XLog log, File file) throws IOException {		
+		exportWithNameFromContext(context, log, file);
 	}
 
 	public static void export(XLog log, File file) throws IOException {
@@ -32,4 +30,9 @@ public class ExportLogMxml {
 		logSerializer.serialize(log, out);
 		out.close();
 	}
+
+	void doExport(XLog log, File file) throws IOException {
+		export(log, file);
+	}
+
 }

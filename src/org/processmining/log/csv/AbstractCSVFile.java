@@ -13,13 +13,9 @@ import com.google.common.io.Files;
 public abstract class AbstractCSVFile implements CSVFile {
 
 	private final Path file;
-	private final String filename;
-	private final long fileSizeInBytes;
 
-	public AbstractCSVFile(Path file, String filename, long fileSizeInBytes) {
+	public AbstractCSVFile(Path file) {
 		this.file = file;
-		this.filename = filename;
-		this.fileSizeInBytes = fileSizeInBytes;
 	}
 
 	/*
@@ -39,20 +35,12 @@ public abstract class AbstractCSVFile implements CSVFile {
 	 */
 	@Override
 	public String getFilename() {
-		return filename;
+		return file.getFileName().toString();
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.processmining.log.csvimport.ICSVFile#getFileSizeInBytes()
-	 */
-	@Override
-	public long getFileSizeInBytes() {
-		return fileSizeInBytes;
-	}
-
-	/* (non-Javadoc)
 	 * @see org.processmining.log.csv.CSVFile#getInputStream()
 	 */
 	@Override

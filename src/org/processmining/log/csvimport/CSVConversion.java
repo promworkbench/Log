@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -36,7 +37,39 @@ import com.google.common.primitives.Ints;
 import com.ning.compress.lzf.LZFInputStream;
 
 /**
- * Conversion from CSV to a structure like XES.
+ * Conversion from CSV to a structure like XES. Use
+ * {@link #doConvertCSVToXES(ProgressListener, CSVFile, CSVConfig, CSVConversionConfig)}
+ * to convert to XES, use
+ * {@link #convertCSV(ProgressListener, CSVConfig, CSVConversionConfig, CSVFile, CSVConversionHandler)}
+ * to use your own {@link CSVConversionHandler} for some other format.
+ * <p>
+ * Example usage:
+ * <p>
+ * 
+ * <pre>
+ * CSVFileReferenceUnivocityImpl csvFile = new CSVFileReferenceUnivocityImpl(getFile().toPath());
+ * CSVConfig config = new CSVConfig(csvFile);
+ * try (ICSVReader reader = csvFile.createReader(config)) {
+ * 	CSVConversion conversion = new CSVConversion();
+ * 	CSVConversionConfig conversionConfig = new CSVConversionConfig(csvFile, config);
+ * 	conversionConfig.autoDetect();
+ * 
+ * 	conversionConfig.setCaseColumns(ImmutableList.of(&quot;case&quot;));
+ * 	conversionConfig.setEventNameColumns(ImmutableList.of(&quot;event&quot;));
+ * 	conversionConfig.setCompletionTimeColumn(&quot;time&quot;);
+ * 	conversionConfig.setEmptyCellHandlingMode(CSVEmptyCellHandlingMode.SPARSE);
+ * 	conversionConfig.setErrorHandlingMode(CSVErrorHandlingMode.ABORT_ON_ERROR);
+ * 	Map&lt;String, CSVMapping&gt; conversionMap = conversionConfig.getConversionMap();
+ * 	CSVMapping mapping = conversionMap.get(&quot;time&quot;);
+ * 	mapping.setDataType(Datatype.TIME);
+ * 	mapping.setPattern(&quot;yyyy/MM/dd&quot;);
+ * 
+ * 	ConversionResult&lt;XLog&gt; result = conversion.doConvertCSVToXES(new NoOpProgressListenerImpl(), csvFile, config,
+ * 			conversionConfig);
+ * 
+ * 	XLog log = result.getResult();
+ * }
+ * </pre>
  * 
  * @author F. Mannhardt
  *
@@ -55,6 +88,63 @@ public final class CSVConversion {
 		Progress getProgress();
 
 		void log(String message);
+	}
+
+	public final static class NoOpProgressListenerImpl implements ProgressListener {
+		public void log(String message) {
+		}
+
+		public Progress getProgress() {
+			return new NoOpProgressImpl();
+		}
+	}
+
+	private final static class NoOpProgressImpl implements Progress {
+		public void setValue(int value) {
+		}
+
+		public void setMinimum(int value) {
+		}
+
+		public void setMaximum(int value) {
+		}
+
+		public void setIndeterminate(boolean makeIndeterminate) {
+		}
+
+		public void setCaption(String message) {
+		}
+
+		public boolean isIndeterminate() {
+			return false;
+		}
+
+		public boolean isCancelled() {
+			return false;
+		}
+
+		public void inc() {
+		}
+
+		public int getValue() {
+			return 0;
+		}
+
+		public int getMinimum() {
+			return 0;
+		}
+
+		public int getMaximum() {
+			return 0;
+		}
+
+		public String getCaption() {
+			return null;
+		}
+
+		public void cancel() {
+
+		}
 	}
 
 	private static final class ImportOrdering extends Ordering<String[]> {
@@ -225,7 +315,7 @@ public final class CSVConversion {
 				int maxMemory = (int) ((Runtime.getRuntime().maxMemory() * 0.30) / 1024 / 1024);
 				progress.log(String.format(
 						"Sorting CSV file (%.2f MB) by case and time using maximal %s MB of memory ...",
-						((double) csvFile.getFileSizeInBytes() / 1024 / 1024), maxMemory));
+						(getFileSizeInBytes(csvFile) / 1024 / 1024), maxMemory));
 				Ordering<String[]> caseComparator = new ImportOrdering(caseColumnIndex, mappingMap,
 						completionTimeColumnIndex, startTimeColumnIndex, conversionConfig.getErrorHandlingMode());
 				sortedFile = CSVSorter.sortCSV(csvFile, caseComparator, importConfig, maxMemory, header.length,
@@ -305,8 +395,7 @@ public final class CSVConversion {
 							final String value = nextLine[i];
 
 							if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.SPARSE && (value == null
-									|| conversionConfig.getTreatAsEmptyValues().contains(value) 
-									|| value.isEmpty()))) {
+									|| conversionConfig.getTreatAsEmptyValues().contains(value) || value.isEmpty()))) {
 								parseAttributes(progress, conversionConfig, conversionHandler, mappingMap.get(i),
 										lineIndex, i, name, nextLine);
 							}
@@ -359,12 +448,16 @@ public final class CSVConversion {
 		};
 	}
 
+	private static double getFileSizeInBytes(CSVFile csvFile) throws IOException {
+		return Files.size(csvFile.getFile());
+	}
+
 	private <R> void parseAttributes(ProgressListener progress, CSVConversionConfig conversionConfig,
 			CSVConversionHandler<R> conversionHandler, CSVMapping csvMapping, int lineIndex, int columnIndex,
 			String name, String[] line) throws CSVConversionException {
-		
+
 		String value = line[columnIndex];
-		if(name==null) // TODO: Nicer would be to create names like "unknown-1", "unknown-2", etc. instead of skipping the attribute
+		if (name == null) // TODO: Nicer would be to create names like "unknown-1", "unknown-2", etc. instead of skipping the attribute
 			return;
 		if (csvMapping.getDataType() == null) {
 			conversionHandler.startAttribute(name, value);
@@ -472,11 +565,12 @@ public final class CSVConversion {
 					if (customDateFormat instanceof SimpleDateFormat) {
 						pattern = ((SimpleDateFormat) customDateFormat).toPattern();
 					}
-					throw new ParseException("Could not parse " + value+ " using pattern '"+pattern + "'", pos.getErrorIndex());
+					throw new ParseException("Could not parse " + value + " using pattern '" + pattern + "'",
+							pos.getErrorIndex());
 				}
 			}
 		}
-		
+
 		throw new ParseException("Could not parse " + value, -1);
 	}
 

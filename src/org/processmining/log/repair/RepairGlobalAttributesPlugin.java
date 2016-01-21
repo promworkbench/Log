@@ -51,7 +51,8 @@ public final class RepairGlobalAttributesPlugin {
 		
 	}
 
-	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions (In Place)", parameterLabels = { "Event Log" }, returnLabels = {}, returnTypes = {}, userAccessible = true, mostSignificantResult = -1, categories = { PluginCategory.Enhancement }, //
+	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions (In Place)", level = PluginLevel.Regular, parameterLabels = { "Event Log" },//
+			returnLabels = {}, returnTypes = {}, userAccessible = true, mostSignificantResult = -1, categories = { PluginCategory.Enhancement }, //
 	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc). This plug-ins changes the input event log to be able to deal with large event logs!")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
 	public void repairLogInPlace(PluginContext context, XLog log) {
@@ -61,7 +62,8 @@ public final class RepairGlobalAttributesPlugin {
 		doRepairLog(log);
 	}
 
-	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions", level = PluginLevel.PeerReviewed, parameterLabels = { "Event Log" }, returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
+	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions", level = PluginLevel.PeerReviewed, parameterLabels = { "Event Log" }, //
+			returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
 	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc).")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
 	public XLog repairLog(PluginContext context, XLog log) {
@@ -76,7 +78,7 @@ public final class RepairGlobalAttributesPlugin {
 		return newLog;
 	}
 
-	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions (In Place)", parameterLabels = { "Event Log" }, returnLabels = {}, returnTypes = {}, userAccessible = true, mostSignificantResult = -1, categories = { PluginCategory.Enhancement }, //
+	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions (In Place)", level = PluginLevel.Regular, parameterLabels = { "Event Log" }, returnLabels = {}, returnTypes = {}, userAccessible = true, mostSignificantResult = -1, categories = { PluginCategory.Enhancement }, //
 	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc). This plug-ins changes the input event log to be able to deal with large event logs!")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
 	public void repairLogInPlaceUI(UIPluginContext context, XLog log) throws UserCancelledException {
