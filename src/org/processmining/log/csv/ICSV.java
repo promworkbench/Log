@@ -6,6 +6,12 @@ import java.io.OutputStream;
 
 import org.processmining.log.csv.config.CSVConfig;
 
+/**
+ * Wrapper around some CSV parsing library.
+ * 
+ * @author F. Mannhardt
+ *
+ */
 public interface ICSV {
 
 	/**

@@ -8,6 +8,29 @@ import java.nio.file.Path;
 import org.processmining.log.csv.config.CSVConfig;
 
 /**
+ * Interface for a CSV file managed in the ProM environment. Example usage:
+ * 
+ * <pre>
+ * CSVFile file; // get it from a plug-in
+ * 
+ * // Prepare config with auto guessing of encoding etc.
+ * CSVConfig importConfig = new CSVConfig(csvFile);
+ * 
+ * // Read header
+ * try {
+ * 	String[] header = csvFile.readHeader(importConfig);
+ * } catch (IOException e) {
+ * 	// do someting
+ * }
+ * 
+ * // Read content
+ * try (ICSVReader reader = csvFile.createReader(importConfig)) {
+ * 	while ((nextLine = reader.readNext()) != null) {
+ * 		// do something
+ * 	}
+ * }
+ * </pre>
+ * 
  * @author F. Mannhardt
  * 
  */
