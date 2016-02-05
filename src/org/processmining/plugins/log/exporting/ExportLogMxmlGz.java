@@ -14,7 +14,7 @@ import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginLevel;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 
-@Plugin(name = "Export Log to compressed MXML File", level = PluginLevel.PeerReviewed, parameterLabels = { "Log",
+@Plugin(name = "Export Log to compressed MXML File", level = PluginLevel.Regular, parameterLabels = { "Log",
 		"File" }, returnLabels = {}, returnTypes = {}, userAccessible = true)
 @UIExportPlugin(description = "Compressed MXML files", extension = "mxml.gz")
 public class ExportLogMxmlGz extends AbstractLogExporter {
