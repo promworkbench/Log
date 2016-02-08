@@ -26,6 +26,8 @@ public class TraceAttributeFilterPlugin {
 		AttributeFilterDialog dialog = new AttributeFilterDialog(context, parameters, " (filtered on trace attributes)");
 		InteractionResult result = context.showWizard("Configure filter (values)", true, true, dialog);
 		if (result != InteractionResult.FINISHED) {
+			context.log("Canceled by user.");
+			context.getFutureResult(0).cancel(true);
 			return null;
 		}
 		dialog.applyFilter();

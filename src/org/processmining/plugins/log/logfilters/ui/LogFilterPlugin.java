@@ -17,8 +17,13 @@ public class LogFilterPlugin {
 	public static XLog main(final UIPluginContext context, XLog log) {
 		LogFilterUI filterUI = new LogFilterUI(context);
 		XLog filteredLog = filterUI.filter(log);
-		XConceptExtension.instance().assignName(filteredLog, filterUI.getName());
-		context.getFutureResult(0).setLabel(filterUI.getName());
+		if (filteredLog != null) {
+			XConceptExtension.instance().assignName(filteredLog, filterUI.getName());
+			context.getFutureResult(0).setLabel(filterUI.getName());
+		} else {
+			context.log("Canceled by user.");
+			context.getFutureResult(0).cancel(true);
+		}
 		return filteredLog;
 	}
 }
