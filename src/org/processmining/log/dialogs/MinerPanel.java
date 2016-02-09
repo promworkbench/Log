@@ -1,8 +1,5 @@
 package org.processmining.log.dialogs;
 
-import info.clearthought.layout.TableLayout;
-import info.clearthought.layout.TableLayoutConstants;
-
 import java.awt.Dimension;
 import java.util.List;
 
@@ -14,6 +11,10 @@ import javax.swing.event.ListSelectionListener;
 
 import org.processmining.framework.util.ui.widgets.ProMList;
 import org.processmining.log.parameters.MinerParameter;
+import org.processmining.log.parameters.UpdateParameter;
+
+import info.clearthought.layout.TableLayout;
+import info.clearthought.layout.TableLayoutConstants;
 
 public class MinerPanel extends JPanel {
 	
@@ -23,6 +24,10 @@ public class MinerPanel extends JPanel {
 	private static final long serialVersionUID = 7656913719419272750L;
 
 	public MinerPanel(List<String> miners, final MinerParameter minerParameter) {
+		this(miners, minerParameter, null);
+	}
+	
+	public MinerPanel(List<String> miners, final MinerParameter minerParameter, final UpdateParameter updateParameter) {
 		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.FILL } };
 		setLayout(new TableLayout(size));
 
@@ -41,12 +46,18 @@ public class MinerPanel extends JPanel {
 				List<String> selected = list.getSelectedValuesList();
 				if (selected.size() == 1) {
 					minerParameter.setMiner(selected.get(0));
+					if (updateParameter != null) {
+						updateParameter.update();
+					}
 				} else {
 					/*
 					 * Nothing selected. Revert to selection of default classifier.
 					 */
 					list.setSelection(defaultMiner);
 					minerParameter.setMiner(defaultMiner);
+					if (updateParameter != null) {
+						updateParameter.update();
+					}
 				}
 			}
 		});
