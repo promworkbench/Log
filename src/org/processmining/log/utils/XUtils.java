@@ -530,7 +530,11 @@ public class XUtils {
 	public static String renameLogWithProMLabel(PluginContext context, XLog log) {
 		String originalName = getConceptName(log);
 		String promLabel = ProvidedObjectHelper.getProvidedObjectLabel(context, log);
-		if (!promLabel.equals(originalName)) {
+		/*
+		 * HV: Check whether promLabel equals null. This can happen if the log at hand
+		 * is not a provided object.
+		 */
+		if (promLabel != null && !promLabel.equals(originalName)) {
 			XConceptExtension.instance().assignName(log, promLabel);
 		}
 		return originalName;
