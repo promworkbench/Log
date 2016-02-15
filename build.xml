@@ -166,7 +166,7 @@
 		<delete>
 			<fileset dir="lib">
 				<include name="*" />
-				<exclude name="OpenXES*.jar" />
+				<!--exclude name="OpenXES*.jar" /-->
 			</fileset>
 		</delete>
 		<copy todir="lib" overwrite="true">
