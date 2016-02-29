@@ -306,7 +306,8 @@ public final class CSVPreviewFrame extends JFrame {
 					.setToolTipText("<HTML>Pattern describing how to parse the value to the selected data type. </BR>"
 							+ "<ul><li>For 'DATE' this is a pattern parseable by SimpleDateFormat,</li> "
 							+ "<li>for 'DISCRETE' and 'CONTINUOUS' this is a pattern parseable by DecimalFormat, "
-							+ "<li>for 'LITERAL' this is parsed by MessageFormat whereby the first parameter {0} is the value in the column itself, and the following parameters {1}-{n} are the values in the other columns starting from the first column (including the selected column itself).<li><.HTML>");
+							+ "<li>for 'LITERAL' this is parsed by MessageFormat whereby the first parameter {0} is the value in the column itself, and the following parameters {1}-{n} are the values in the other columns starting from the first column (including the selected column itself).<li>"
+							+ "<HTML>");
 			leftPanel.add(dataPattern);
 			JLabel traceAttribute = new JLabel("Trace Attribute");
 			traceAttribute.setToolTipText("Attribute in the trace (Read-only)");
