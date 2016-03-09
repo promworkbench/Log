@@ -16,7 +16,7 @@ import org.processmining.plugins.log.OpenLogFilePlugin;
 @Plugin(name = "Import XEvent Classifiers list form event log", parameterLabels = { "Filename" }, returnLabels = {
 		"XEventClassifier List" }, returnTypes = {
 				XEventClassifierList.class }, help = "This plugin performs a lightweight read of the XLog and retrieves the available XEventClassifiers as a list. This plugins is mainly used by RapidProM")
-@UIImportPlugin(description = "Import XEvent Classifiers list form event log", extensions = { "xes", "zip", "gz"})
+@UIImportPlugin(description = "Import XEvent Classifiers list form event log", extensions = { "xes", "zip", "gz" })
 public class ImportXEventClassifierListPlugin extends OpenLogFilePlugin {
 	protected XEventClassifierList importFromStream(PluginContext context, InputStream input, String filename,
 			long fileSizeInBytes) throws Exception {
@@ -40,6 +40,8 @@ public class ImportXEventClassifierListPlugin extends OpenLogFilePlugin {
 				globalsHandler.getGlobalEventAttributes());
 		classifiersParser.parse(is, classifiersHandler);
 		is.close();
+
+		System.out.println(classifiersHandler.getClassifierList());
 
 		return classifiersHandler.getClassifierList();
 	}
