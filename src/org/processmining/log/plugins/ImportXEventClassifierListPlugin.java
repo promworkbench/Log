@@ -41,8 +41,6 @@ public class ImportXEventClassifierListPlugin extends OpenLogFilePlugin {
 		classifiersParser.parse(is, classifiersHandler);
 		is.close();
 
-		System.out.println(classifiersHandler.getClassifierList());
-
 		return classifiersHandler.getClassifierList();
 	}
 }
