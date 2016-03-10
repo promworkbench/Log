@@ -15,7 +15,7 @@ public abstract class AbstractCSVFile implements CSVFile {
 	private final Path file;
 
 	public AbstractCSVFile(Path file) {
-		this.file = file;
+		this.file = file;	
 	}
 
 	/*
