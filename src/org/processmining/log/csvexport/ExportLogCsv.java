@@ -51,7 +51,7 @@ public final class ExportLogCsv {
 			logSerializer.serialize(log, out);
 			out.close();			
 		}*/
-		XSerializer logSerializer = new XesCsvSerializer("yyyy/MM/dd HH:mm:ss");
+		XSerializer logSerializer = new XesCsvSerializer("yyyy/MM/dd HH:mm:ss.SSS");
 		logSerializer.serialize(log, out);
 		out.close();	
 	}
