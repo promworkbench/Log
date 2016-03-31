@@ -186,6 +186,21 @@ public final class CSVConversionConfig {
 			return desc;
 		}
 	}
+	
+	public enum CSVAttributeConversionMode {
+		ADD_TO_COMPLETE("Add attributes to complete event"), ADD_TO_BOTH("Add attributes to both start and complete event");
+
+		private String desc;
+
+		CSVAttributeConversionMode(String desc) {
+			this.desc = desc;
+		}
+
+		@Override
+		public String toString() {
+			return desc;
+		}
+	}
 
 	public enum CSVEmptyCellHandlingMode {
 		DENSE("Dense (Include empty cells)"), SPARSE("Sparse (Exclude empty cells)");
@@ -317,6 +332,7 @@ public final class CSVConversionConfig {
 	private CSVErrorHandlingMode errorHandlingMode = CSVErrorHandlingMode.OMIT_TRACE_ON_ERROR;
 	private CSVEmptyCellHandlingMode emptyCellHandlingMode = CSVEmptyCellHandlingMode.SPARSE;
 	private Set<String> treatAsEmptyValues = new HashSet<>();
+	private boolean shouldAddStartEventAttributes = true;
 
 	// Internal only
 	private final CSVFile csvFile;
@@ -737,6 +753,14 @@ public final class CSVConversionConfig {
 
 	public void setEmptyCellHandlingMode(CSVEmptyCellHandlingMode emptyCellHandlingMode) {
 		this.emptyCellHandlingMode = emptyCellHandlingMode;
+	}
+
+	public boolean isShouldAddStartEventAttributes() {
+		return shouldAddStartEventAttributes;
+	}
+
+	public void setShouldAddStartEventAttributes(boolean shouldAddStartEventAttributes) {
+		this.shouldAddStartEventAttributes = shouldAddStartEventAttributes;
 	}
 
 }

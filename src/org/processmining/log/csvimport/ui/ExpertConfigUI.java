@@ -19,6 +19,7 @@ import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csv.config.CSVConfig;
 import org.processmining.log.csvimport.config.CSVConversionConfig;
+import org.processmining.log.csvimport.config.CSVConversionConfig.CSVAttributeConversionMode;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVEmptyCellHandlingMode;
 import org.processmining.log.csvimport.config.CSVConversionConfig.CSVErrorHandlingMode;
 
@@ -80,6 +81,7 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 	private final ProMComboBox<XFactoryUI> xFactoryChoice;
 	private final ProMComboBox<CSVEmptyCellHandlingMode> emptyCellHandlingModeCbx;
 	private final ProMComboBox<CSVErrorHandlingMode> errorHandlingModeCbx;
+	private final ProMComboBox<CSVAttributeConversionMode> attributeConversionModeCbx;
 
 	public ExpertConfigUI(final CSVFile csv, final CSVConfig importConfig, final CSVConversionConfig conversionConfig) {
 		super();
@@ -137,16 +139,36 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 			}
 		});
 
+		attributeConversionModeCbx = new ProMComboBox<>(CSVAttributeConversionMode.values());
+		attributeConversionModeCbx
+				.setSelectedItem(conversionConfig.isShouldAddStartEventAttributes() ? CSVAttributeConversionMode.ADD_TO_BOTH
+						: CSVAttributeConversionMode.ADD_TO_COMPLETE);
+		JLabel attributeConversionModeLabel = createLabel(
+				"Attribute Conversion Mode",
+				"Add attributes to either to both start and complete events or only to the complete event. "
+				+ "This is only relevant if your log contains information on the 'start' and 'completion' of an activity.");
+		attributeConversionModeCbx.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				conversionConfig.setShouldAddStartEventAttributes(attributeConversionModeCbx.getSelectedItem() == CSVAttributeConversionMode.ADD_TO_BOTH);
+			}
+		});
+
 		SequentialGroup verticalGroup = layout.createSequentialGroup();
 		verticalGroup.addGroup(layout
 				.createParallelGroup()
 				.addGroup(
 						layout.createSequentialGroup().addComponent(errorHandlingModeLabel)
 								.addComponent(errorHandlingModeCbx))
-				.addGroup(layout.createSequentialGroup().addComponent(xFactoryLabel).addComponent(xFactoryChoice)));
-		verticalGroup.addGroup(layout.createParallelGroup().addGroup(
-				layout.createSequentialGroup().addComponent(emptyCellHandlingModeLabel)
-						.addComponent(emptyCellHandlingModeCbx)));
+				.addGroup(
+						layout.createSequentialGroup().addComponent(xFactoryLabel)
+								.addComponent(xFactoryChoice)));
+		verticalGroup.addGroup(layout
+				.createParallelGroup()
+				.addGroup(
+						layout.createSequentialGroup().addComponent(emptyCellHandlingModeLabel)
+							.addComponent(emptyCellHandlingModeCbx))
+				.addGroup(layout.createSequentialGroup().addComponent(attributeConversionModeLabel).addComponent(attributeConversionModeCbx)));
 
 		ParallelGroup horizontalGroup = layout.createParallelGroup();
 		horizontalGroup.addGroup(layout
@@ -160,13 +182,19 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 						layout.createParallelGroup()
 								.addComponent(xFactoryLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
 								.addComponent(xFactoryChoice, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
-		horizontalGroup.addGroup(layout.createSequentialGroup().addGroup(
-				layout.createParallelGroup()
-						.addComponent(emptyCellHandlingModeLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH,
-								COLUMN_WIDTH)
-						.addComponent(emptyCellHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
+		horizontalGroup.addGroup(layout
+				.createSequentialGroup()
+				.addGroup(
+						layout.createParallelGroup()
+								.addComponent(emptyCellHandlingModeLabel, Alignment.LEADING, COLUMN_WIDTH, COLUMN_WIDTH,
+										COLUMN_WIDTH)
+								.addComponent(emptyCellHandlingModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH))
+				.addGroup(
+						layout.createParallelGroup()
+								.addComponent(attributeConversionModeLabel, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)
+								.addComponent(attributeConversionModeCbx, COLUMN_WIDTH, COLUMN_WIDTH, COLUMN_WIDTH)));
 
-		layout.linkSize(errorHandlingModeLabel, xFactoryLabel, emptyCellHandlingModeLabel);
+		layout.linkSize(errorHandlingModeLabel, xFactoryLabel, emptyCellHandlingModeLabel, attributeConversionModeLabel);
 
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);

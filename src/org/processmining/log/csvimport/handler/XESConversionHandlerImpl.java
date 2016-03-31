@@ -16,6 +16,11 @@ import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XAttributable;
 import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeBoolean;
+import org.deckfour.xes.model.XAttributeContinuous;
+import org.deckfour.xes.model.XAttributeDiscrete;
+import org.deckfour.xes.model.XAttributeLiteral;
+import org.deckfour.xes.model.XAttributeTimestamp;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
@@ -27,6 +32,8 @@ import org.processmining.log.csvimport.config.CSVConversionConfig.CSVMapping;
 import org.processmining.log.csvimport.config.CSVConversionConfig.ExtensionAttribute;
 import org.processmining.log.csvimport.exception.CSVConversionException;
 import org.processmining.log.utils.XUtils;
+
+import com.google.common.collect.Ordering;
 
 /**
  * Handler that creates an XLog from a CSV
@@ -46,10 +53,11 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 
 	private XTrace currentTrace = null;
 	private List<XEvent> currentEvents = new ArrayList<>();
-	private boolean hasStartEvents = false;
+	private boolean traceHasStartEvents = false;
+
+	private int instanceCounter = 0;
 
 	private XEvent currentEvent = null;
-	private int instanceCounter = 0;
 	private XEvent currentStartEvent;
 
 	private boolean errorDetected = false;
@@ -93,7 +101,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	@Override
 	public void startTrace(String caseId) {
 		currentEvents.clear();
-		hasStartEvents = false;
+		traceHasStartEvents = false;
 		errorDetected = false;
 		currentTrace = factory.createTrace();
 		assignName(factory, currentTrace, caseId);
@@ -105,15 +113,17 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			// Do not include the whole trace
 			return;
 		}
-		if (hasStartEvents) {
-			Collections.sort(currentEvents, new Comparator<XEvent>() {
+		if (traceHasStartEvents) {
+			Comparator<XEvent> comparator = new Comparator<XEvent>() {
 
 				public int compare(XEvent o1, XEvent o2) {
 					// assumes stable sorting so start events will be always before complete events
-					return XTimeExtension.instance().extractTimestamp(o1)
-							.compareTo(XTimeExtension.instance().extractTimestamp(o2));
+					Date time1 = XTimeExtension.instance().extractTimestamp(o1);
+					Date time2 = XTimeExtension.instance().extractTimestamp(o2);
+					return Ordering.natural().nullsFirst().compare(time1, time2);
 				}
-			});
+			};
+			Collections.sort(currentEvents, comparator);
 		}
 		currentTrace.addAll(currentEvents);
 		log.add(currentTrace);
@@ -125,19 +135,26 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			// Include the other events in that trace
 			errorDetected = false;
 		}
+
+		currentEvent = factory.createEvent();
+		if (eventClass != null) {
+			assignName(factory, currentEvent, eventClass);
+		}
+
 		if (startTime == null && completionTime == null) {
 			// Both times are unknown only create an event assuming it is the completion event
-			currentEvent = factory.createEvent();
-			if (eventClass != null) {
-				assignName(factory, currentEvent, eventClass);
-			}
 			assignLifecycleTransition(factory, currentEvent, XLifecycleExtension.StandardModel.COMPLETE);
 		} else if (startTime != null && completionTime != null) {
 			// Both start and complete are present
 			String instance = String.valueOf((instanceCounter++));
-			hasStartEvents = true;
 
-			// Create Start
+			// Assign attribute for complete event (currentEvent)			
+			assignTimestamp(factory, currentEvent, completionTime);
+			assignInstance(factory, currentEvent, instance);
+			assignLifecycleTransition(factory, currentEvent, XLifecycleExtension.StandardModel.COMPLETE);
+
+			traceHasStartEvents = true;
+			// Add additional start event
 			currentStartEvent = factory.createEvent();
 			if (eventClass != null) {
 				assignName(factory, currentStartEvent, eventClass);
@@ -146,20 +163,8 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			assignInstance(factory, currentStartEvent, instance);
 			assignLifecycleTransition(factory, currentStartEvent, XLifecycleExtension.StandardModel.START);
 
-			// Create Complete
-			currentEvent = factory.createEvent();
-			if (eventClass != null) {
-				assignName(factory, currentEvent, eventClass);
-			}
-			assignTimestamp(factory, currentEvent, completionTime);
-			assignInstance(factory, currentEvent, instance);
-			assignLifecycleTransition(factory, currentEvent, XLifecycleExtension.StandardModel.COMPLETE);
 		} else {
 			// Either start or complete are present
-			currentEvent = factory.createEvent();
-			if (eventClass != null) {
-				assignName(factory, currentEvent, eventClass);
-			}
 			if (completionTime != null) {
 				// Only create Complete
 				assignTimestamp(factory, currentEvent, completionTime);
@@ -178,41 +183,71 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	@Override
 	public void startAttribute(String name, String value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent,
-					factory.createAttributeLiteral(getNameFromConfig(name), value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent, createLiteral(name, value));
+			if (isShouldAddStartEventAttributes() && currentStartEvent != null) {
+				assignAttribute(currentStartEvent, createLiteral(name, value));
+			}
 		}
+	}
+
+	private XAttributeLiteral createLiteral(String name, String value) {
+		return factory.createAttributeLiteral(getNameFromConfig(name), value, getExtensionFromConfig(name));
 	}
 
 	@Override
 	public void startAttribute(String name, long value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent,
-					factory.createAttributeDiscrete(getNameFromConfig(name), value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent, createDiscrete(name, value));
+			if (isShouldAddStartEventAttributes() && currentStartEvent != null) {
+				assignAttribute(currentStartEvent, createDiscrete(name, value));
+			}
 		}
+	}
+
+	private XAttributeDiscrete createDiscrete(String name, long value) {
+		return factory.createAttributeDiscrete(getNameFromConfig(name), value, getExtensionFromConfig(name));
 	}
 
 	@Override
 	public void startAttribute(String name, double value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent,
-					factory.createAttributeContinuous(getNameFromConfig(name), value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent, createContinuous(name, value));
+			if (isShouldAddStartEventAttributes() && currentStartEvent != null) {
+				assignAttribute(currentStartEvent, createContinuous(name, value));
+			}
 		}
+	}
+
+	private XAttributeContinuous createContinuous(String name, double value) {
+		return factory.createAttributeContinuous(getNameFromConfig(name), value, getExtensionFromConfig(name));
 	}
 
 	@Override
 	public void startAttribute(String name, Date value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent,
-					factory.createAttributeTimestamp(getNameFromConfig(name), value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent, createDate(name, value));
+			if (isShouldAddStartEventAttributes() && currentStartEvent != null) {
+				assignAttribute(currentStartEvent, createDate(name, value));
+			}
 		}
+	}
+
+	private XAttributeTimestamp createDate(String name, Date value) {
+		return factory.createAttributeTimestamp(getNameFromConfig(name), value, getExtensionFromConfig(name));
 	}
 
 	@Override
 	public void startAttribute(String name, boolean value) {
 		if (!specialColumn(name)) {
-			assignAttribute(currentEvent,
-					factory.createAttributeBoolean(getNameFromConfig(name), value, getExtensionFromConfig(name)));
+			assignAttribute(currentEvent, createBoolean(name, value));
+			if (isShouldAddStartEventAttributes() && currentStartEvent != null) {
+				assignAttribute(currentStartEvent, createBoolean(name, value));
+			}
 		}
+	}
+
+	private XAttributeBoolean createBoolean(String name, boolean value) {
+		return factory.createAttributeBoolean(getNameFromConfig(name), value, getExtensionFromConfig(name));
 	}
 
 	private XExtension getExtensionFromConfig(String name) {
@@ -251,6 +286,7 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			// Do not include the event
 			return;
 		}
+		// Add start event before complete event to guarantee order for events with same time-stamp
 		if (currentStartEvent != null) {
 			currentEvents.add(currentStartEvent);
 			currentStartEvent = null;
@@ -288,32 +324,36 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	}
 
 	@Override
-	public void errorDetected(int line, Object content, Exception e) throws CSVConversionException {
+	public void errorDetected(int lineNumber, int columnIndex, String attributeName, Object content, Exception e)
+			throws CSVConversionException {
 		CSVErrorHandlingMode errorMode = conversionConfig.getErrorHandlingMode();
 		errorDetected = true;
+		String columnInfo = String.format("Attribute '%s' with column index %s ", attributeName, columnIndex);
 		switch (errorMode) {
 			case BEST_EFFORT :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ":\nSkipping attribute " + nullSafeToString(content)
-							+ "\nError: " + e + "\n");
+					conversionErrors.append("Line: " + lineNumber + ", " + columnInfo + "\n" + "Skipping attribute "
+							+ nullSafeToString(content) + "\nError: " + e + "\n\n");
 				}
 				break;
 			case OMIT_EVENT_ON_ERROR :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ":\nSkipping event, could not convert "
-							+ nullSafeToString(content) + "\nError: " + e + "\n");
+					conversionErrors.append("Line: " + lineNumber + ", " + columnInfo + "\n"
+							+ "Skipping event, could not convert " + nullSafeToString(content) + "\nError: " + e
+							+ "\n\n");
 				}
 				break;
 			case OMIT_TRACE_ON_ERROR :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + line + ":\nSkipping trace "
-							+ XUtils.getConceptName(currentTrace) + ", could not convert" + nullSafeToString(content)
+					conversionErrors.append("Line: " + lineNumber + ", " + columnInfo + "\n" + "Skipping trace "
+							+ XUtils.getConceptName(currentTrace) + ", could not convert " + nullSafeToString(content)
 							+ "\nError: " + e + "\n\n");
 				}
 				break;
 			default :
 			case ABORT_ON_ERROR :
-				throw new CSVConversionException("Error converting " + content + " at line " + line, e);
+				throw new CSVConversionException("Error converting " + content + " at line " + lineNumber
+						+ "and column " + columnIndex, e);
 		}
 	}
 
@@ -332,6 +372,10 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 				|| (XConceptExtension.KEY_NAME.equals(columnName) && !conversionConfig.getEventNameColumns().isEmpty())
 				|| (XTimeExtension.KEY_TIMESTAMP.equals(columnName) && conversionConfig.getCompletionTimeColumn() != null)
 				|| (XConceptExtension.KEY_INSTANCE.equals(columnName) && conversionConfig.getStartTimeColumn() != null);
+	}
+
+	public boolean isShouldAddStartEventAttributes() {
+		return conversionConfig.isShouldAddStartEventAttributes();
 	}
 
 }

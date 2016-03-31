@@ -273,7 +273,7 @@ public final class CSVConversion {
 		String[] header = null;
 
 		final Map<String, Integer> headerMap = new HashMap<>();
-		final Map<Integer, CSVMapping> mappingMap = new HashMap<>();
+		final Map<Integer, CSVMapping> columnMap = new HashMap<>();
 
 		try {
 			header = csvFile.readHeader(importConfig);
@@ -287,7 +287,7 @@ public final class CSVConversion {
 									oldIndex, i, columnHeader));
 				}
 				CSVMapping columnMapping = conversionConfig.getConversionMap().get(columnHeader);
-				mappingMap.put(i, columnMapping);
+				columnMap.put(i, columnMapping);
 			}
 
 			for (int i = 0; i < conversionConfig.getCaseColumns().size(); i++) {
@@ -316,7 +316,7 @@ public final class CSVConversion {
 				progress.log(String.format(
 						"Sorting CSV file (%.2f MB) by case and time using maximal %s MB of memory ...",
 						(getFileSizeInBytes(csvFile) / 1024 / 1024), maxMemory));
-				Ordering<String[]> caseComparator = new ImportOrdering(caseColumnIndex, mappingMap,
+				Ordering<String[]> caseComparator = new ImportOrdering(caseColumnIndex, columnMap,
 						completionTimeColumnIndex, startTimeColumnIndex, conversionConfig.getErrorHandlingMode());
 				sortedFile = CSVSorter.sortCSV(csvFile, caseComparator, importConfig, maxMemory, header.length,
 						progress);
@@ -368,46 +368,38 @@ public final class CSVConversion {
 					}
 
 					// Create new event
-					try {
 
-						// Read event name
-						final String eventClass = readCompositeAttribute(eventNameColumnIndex, nextLine,
-								conversionConfig.getCompositeAttributeSeparator());
+					// Read event name
+					final String eventClass = readCompositeAttribute(eventNameColumnIndex, nextLine,
+							conversionConfig.getCompositeAttributeSeparator());
 
-						// Read time stamps
-						final Date completionTime = completionTimeColumnIndex != -1 ? parseDate((DateFormat) mappingMap
-								.get(completionTimeColumnIndex).getFormat(), nextLine[completionTimeColumnIndex])
-								: null;
-						final Date startTime = startTimeColumnIndex != -1 ? parseDate(
-								(DateFormat) mappingMap.get(startTimeColumnIndex).getFormat(),
-								nextLine[startTimeColumnIndex]) : null;
+					// Read time stamps
+					Date completionTime = parseTime(conversionHandler, completionTimeColumnIndex, columnMap, lineIndex,
+							nextLine);
+					Date startTime = parseTime(conversionHandler, startTimeColumnIndex, columnMap, lineIndex, nextLine);
 
-						conversionHandler.startEvent(eventClass, completionTime, startTime);
+					conversionHandler.startEvent(eventClass, completionTime, startTime);
 
-						for (int i = 0; i < nextLine.length; i++) {
-							if (Ints.contains(eventNameColumnIndex, i) || Ints.contains(caseColumnIndex, i)
-									|| i == completionTimeColumnIndex || i == startTimeColumnIndex) {
-								// Is already mapped to a special column, do not include again
-								continue;
-							}
-
-							final String name = header[i];
-							final String value = nextLine[i];
-
-							if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.SPARSE && (value == null
-									|| conversionConfig.getTreatAsEmptyValues().contains(value) || value.isEmpty()))) {
-								parseAttributes(progress, conversionConfig, conversionHandler, mappingMap.get(i),
-										lineIndex, i, name, nextLine);
-							}
+					for (int i = 0; i < nextLine.length; i++) {
+						if (Ints.contains(eventNameColumnIndex, i) || Ints.contains(caseColumnIndex, i)
+								|| i == completionTimeColumnIndex || i == startTimeColumnIndex) {
+							// Is already mapped to a special column, do not include again
+							continue;
 						}
 
-						// Already sorted by time
-						conversionHandler.endEvent();
-						eventIndex++;
+						final String name = header[i];
+						final String value = nextLine[i];
 
-					} catch (ParseException e) {
-						conversionHandler.errorDetected(lineIndex, nextLine, e);
+						if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.SPARSE && (value == null
+								|| conversionConfig.getTreatAsEmptyValues().contains(value) || value.isEmpty()))) {
+							parseAttributes(progress, conversionConfig, conversionHandler, columnMap.get(i), lineIndex,
+									i, name, nextLine);
+						}
 					}
+
+					// Already sorted by time
+					conversionHandler.endEvent();
+					eventIndex++;
 				}
 
 				// Close last trace
@@ -446,6 +438,22 @@ public final class CSVConversion {
 				return conversionHandler.getConversionErrors();
 			}
 		};
+	}
+
+	private <R> Date parseTime(final CSVConversionHandler<R> conversionHandler, int timeColumnIndex,
+			final Map<Integer, CSVMapping> columnMap, int lineIndex, String[] nextLine) throws CSVConversionException {
+		if (timeColumnIndex == -1) {
+			return null;
+		} else {
+			String timeValue = nextLine[timeColumnIndex];
+			try {
+				return parseDate((DateFormat) columnMap.get(timeColumnIndex).getFormat(), timeValue);
+			} catch (ParseException e) {
+				conversionHandler.errorDetected(lineIndex, timeColumnIndex, columnMap.get(timeColumnIndex)
+						.getEventAttributeName(), timeValue, e);
+				return null;
+			}
+		}
 	}
 
 	private static double getFileSizeInBytes(CSVFile csvFile) throws IOException {
@@ -502,10 +510,10 @@ public final class CSVConversion {
 						break;
 				}
 			} catch (NumberFormatException e) {
-				conversionHandler.errorDetected(lineIndex, value, e);
+				conversionHandler.errorDetected(lineIndex, columnIndex, name, value, e);
 				conversionHandler.startAttribute(name, value);
 			} catch (ParseException e) {
-				conversionHandler.errorDetected(lineIndex, value, e);
+				conversionHandler.errorDetected(lineIndex, columnIndex, name, value, e);
 				conversionHandler.startAttribute(name, value);
 			}
 		}
