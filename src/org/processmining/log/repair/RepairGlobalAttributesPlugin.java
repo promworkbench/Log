@@ -81,25 +81,33 @@ public final class RepairGlobalAttributesPlugin {
 	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions (In Place)", level = PluginLevel.Regular, parameterLabels = { "Event Log" }, returnLabels = {}, returnTypes = {}, userAccessible = true, mostSignificantResult = -1, categories = { PluginCategory.Enhancement }, //
 	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc). This plug-ins changes the input event log to be able to deal with large event logs!")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
-	public void repairLogInPlaceUI(UIPluginContext context, XLog log) throws UserCancelledException {
+	public void repairLogInPlaceUI(UIPluginContext context, XLog log) {
 
 		context.getProgress().setMinimum(0);
 		context.getProgress().setMaximum(log.size());
 
-		doRepairLogUI(context, log);
+		try {
+			doRepairLogUI(context, log);
+		} catch (UserCancelledException e) {
+			context.getFutureResult(0).cancel(false);
+		}
 	}
 
 	@Plugin(name = "Repair Log: Globals, Classifiers, Extensions", level = PluginLevel.PeerReviewed, parameterLabels = { "Event Log" }, returnLabels = { "Repaired Log with Globals" }, returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, categories = { PluginCategory.Enhancement }, //
 	help = "Repairs the Event Log by detecting which attributes are global, updating the information about global attributes, adding possible classifiers, and adding correct extensions to certain attributes (time:timestamp, etc).")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = "F. Mannhardt", email = "f.mannhardt@tue.nl")
-	public XLog repairLogUI(UIPluginContext context, XLog log) throws UserCancelledException {
+	public XLog repairLogUI(UIPluginContext context, XLog log) {
 
 		context.getProgress().setMinimum(0);
 		context.getProgress().setMaximum(log.size());
 
 		XLog newLog = (XLog) log.clone();
 
-		doRepairLogUI(context, newLog);
+		try {
+			doRepairLogUI(context, newLog);
+		} catch (UserCancelledException e) {
+			context.getFutureResult(0).cancel(false);
+		}
 
 		return newLog;
 	}

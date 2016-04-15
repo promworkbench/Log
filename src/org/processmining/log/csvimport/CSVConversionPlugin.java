@@ -2,6 +2,8 @@ package org.processmining.log.csvimport;
 
 import java.io.IOException;
 
+import javax.swing.JOptionPane;
+
 import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
@@ -35,11 +37,11 @@ import com.google.common.base.Throwables;
  */
 public final class CSVConversionPlugin {
 
-	@Plugin(name = "Convert CSV to XES", level= PluginLevel.PeerReviewed, parameterLabels = { "CSV" }, returnLabels = { "XES Event Log" }, // 
+	@Plugin(name = "Convert CSV to XES", level = PluginLevel.PeerReviewed, parameterLabels = { "CSV" }, returnLabels = { "XES Event Log" }, // 
 	returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,// 
 	keywords = { "CSV", "OpenXES", "Conversion", "Import" }, help = "Converts the CSV file to a OpenXES XLog object.")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt, N. Tax, D.M.M. Schunselaar", // 
-	email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl", pack="Log")
+	email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl", pack = "Log")
 	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csvFile) {
 
 		InteractionResult result = InteractionResult.CONTINUE;
@@ -49,7 +51,7 @@ public final class CSVConversionPlugin {
 			CSVConversionConfig csvConversionConfig = null;
 
 			int i = 0;
-			while (result != InteractionResult.FINISHED) {
+			wizardLoop: while (result != InteractionResult.FINISHED) {
 				switch (i) {
 					case 0 :
 						result = queryImportConfig(context, csvFile, importConfig);
@@ -58,6 +60,13 @@ public final class CSVConversionPlugin {
 						break;
 					case 1 :
 						result = queryConversionConfig(context, csvFile, importConfig, csvConversionConfig);
+						if (result == InteractionResult.NEXT || result == InteractionResult.CONTINUE) {
+							boolean reconfigure = queryMissingConfiguration(context, csvConversionConfig);
+							if (reconfigure) {
+								// Show same dialog again
+								continue wizardLoop;
+							}
+						}
 						break;
 					case 2 :
 						result = queryExpertConfig(context, csvFile, importConfig, csvConversionConfig);
@@ -96,6 +105,32 @@ public final class CSVConversionPlugin {
 			return cancel(context);
 		}
 
+	}
+
+	private boolean queryMissingConfiguration(final UIPluginContext context, CSVConversionConfig csvConversionConfig) {
+		boolean noCase = csvConversionConfig.getCaseColumns().isEmpty();
+		boolean noEvents = csvConversionConfig.getEventNameColumns().isEmpty();
+		Object[] options = { "Continue", "Reconfigure" };
+		String message;
+		String title;
+		if (noCase) {
+			message = "<HTML>You did not select a column containing the case identifier. This will result in an event log with a single trace.<BR/> "
+					+ "Do you want to continue without case identifier or reconfigure the conversion?</HTML>";
+			title = "Missing event column";
+		} else if (noEvents) {
+			message = "<HTML>You did not select a column containing the event name. This will result in an event log with unamed events.<BR/> "
+					+ "Do you want to continue without event name or reconfigure the conversion?</HTML>";
+			title = "Missing event column";
+		} else if (noEvents && noCase) {
+			message = "You did not select columns containing the case identifier and event name. This will result in an event log with a single trace and unnamed events. "
+					+ "Do you want to continue or reconfigure the conversion?";
+			title = "Missing case and event columns";
+		} else {
+			return false;
+		}
+		int warningResult = JOptionPane.showOptionDialog(context.getGlobalContext().getUI(), message, title,
+				JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+		return warningResult == 1; // reconfigure
 	}
 
 	private XLog cancel(final UIPluginContext context) {
