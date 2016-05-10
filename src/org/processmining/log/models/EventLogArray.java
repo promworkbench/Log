@@ -6,8 +6,12 @@ import java.io.InputStream;
 
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.out.XSerializer;
+import org.processmining.framework.annotations.AuthoredType;
+import org.processmining.framework.annotations.Icon;
 import org.processmining.framework.plugin.PluginContext;
 
+@AuthoredType(typeName = "Event log array", affiliation = AuthoredType.TUE, author = "H.M.W. Verbeek", email = "h.m.w.verbeek@tue.nl")
+@Icon(icon = "resourcetype_ela_30x35.png")
 public interface EventLogArray {
 
 	/**
