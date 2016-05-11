@@ -104,7 +104,7 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 		xFactoryChoice.setSelectedItem(new XFactoryUI(conversionConfig.getFactory()));
 		JLabel xFactoryLabel = createLabel(
 				"XFactory",
-				"XFactory implementation that is be used to create the log. Some implementations might be more memory efficient, consider changing this in case you import a huge log.");
+				"XFactory implementation that is used to create the log. Some implementations might be more memory efficient, consider changing this in case you import a huge log.");
 
 		xFactoryChoice.addActionListener(new ActionListener() {
 
@@ -145,7 +145,7 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 						: CSVAttributeConversionMode.ADD_TO_COMPLETE);
 		JLabel attributeConversionModeLabel = createLabel(
 				"Attribute Conversion Mode",
-				"Add attributes to either to both start and complete events or only to the complete event. "
+				"Add attributes either to both start and complete events, or only to the complete event. "
 				+ "This is only relevant if your log contains information on the 'start' and 'completion' of an activity.");
 		attributeConversionModeCbx.addActionListener(new ActionListener() {
 
