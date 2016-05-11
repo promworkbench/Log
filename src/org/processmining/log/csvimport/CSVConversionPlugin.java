@@ -26,7 +26,6 @@ import org.processmining.log.csvimport.ui.ConversionConfigUI;
 import org.processmining.log.csvimport.ui.ExpertConfigUI;
 import org.processmining.log.csvimport.ui.ImportConfigUI;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 
 /**
@@ -82,26 +81,24 @@ public final class CSVConversionPlugin {
 			}
 
 			CSVConversion csvConversion = new CSVConversion();
-			try {
-				ConversionResult<XLog> conversionResult = doConvertCSVToXes(context, csvFile, importConfig,
-						csvConversionConfig, csvConversion);
-				if (conversionResult.hasConversionErrors()) {
-					ProMUIHelper.showWarningMessage(context, conversionResult.getConversionErrors(),
-							"Warning: Some issues have been detected during conversion");
-				}
-				return conversionResult.getResult();
-			} catch (CSVConversionException e) {
-				String errorMessage = Joiner.on("\ncaused by\n").join(Throwables.getCausalChain(e));
-				String stackTrace = Throwables.getStackTraceAsString(e);
-				ProMUIHelper.showErrorMessage(context, errorMessage + "\n\n Stack Trace\n" + stackTrace,
-						"Conversion Failed");
-				return cancel(context);
+			ConversionResult<XLog> conversionResult = doConvertCSVToXes(context, csvFile, importConfig,
+					csvConversionConfig, csvConversion);
+			if (conversionResult.hasConversionErrors()) {
+				ProMUIHelper.showWarningMessage(context, conversionResult.getConversionErrors(),
+						"Warning: Some issues have been detected during conversion");
 			}
-		} catch (IOException e) {
-			String errorMessage = Joiner.on("\ncaused by\n").join(Throwables.getCausalChain(e));
+			return conversionResult.getResult();
+		} catch (CSVConversionException e) {			
+			Throwable rootCause = Throwables.getRootCause(e);
+			String errorMessage;
+			if (rootCause != null) {
+				errorMessage = rootCause.getMessage();
+			} else {
+				errorMessage = e.toString();
+			}
 			String stackTrace = Throwables.getStackTraceAsString(e);
-			ProMUIHelper.showErrorMessage(context, errorMessage + "\n\n Stack Trace\n" + stackTrace,
-					"Conversion Failed");
+			ProMUIHelper.showErrorMessage(context, errorMessage + "\n\nDebug information:\n" + stackTrace,
+					"CSV Conversion Failed");
 			return cancel(context);
 		}
 
@@ -192,9 +189,11 @@ public final class CSVConversionPlugin {
 	}
 
 	public static InteractionResult queryConversionConfig(UIPluginContext context, CSVFile csv, CSVConfig importConfig,
-			CSVConversionConfig conversionConfig) throws IOException {
+			CSVConversionConfig conversionConfig) throws CSVConversionException {
 		try (ConversionConfigUI conversionConfigUI = new ConversionConfigUI(csv, importConfig, conversionConfig)) {
 			return context.showWizard("Configure Conversion from CSV to XES", false, false, conversionConfigUI);
+		} catch (IOException e) {
+			throw new CSVConversionConfigException("Could not query conversion config.", e);
 		}
 	}
 

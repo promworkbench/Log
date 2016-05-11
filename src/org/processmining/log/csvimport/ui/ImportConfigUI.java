@@ -50,7 +50,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 
 	private final CSVPreviewPanel previewPanel;
 
-	private SwingWorker<Void, Object[]> worker;
+	private SwingWorker<Void, String[]> worker;
 
 	public ImportConfigUI(final CSVFile csv, final CSVConfig importConfig) {
 		super();
@@ -179,7 +179,7 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 			return;
 		}
 
-		worker = new SwingWorker<Void, Object[]>() {
+		worker = new SwingWorker<Void, String[]>() {
 
 			protected Void doInBackground() throws Exception {
 
@@ -197,8 +197,8 @@ public final class ImportConfigUI extends CSVConfigurationPanel {
 				return null;
 			}
 
-			protected void process(List<Object[]> chunks) {
-				for (Object[] row : chunks) {
+			protected void process(List<String[]> chunks) {
+				for (String[] row : chunks) {
 					previewPanel.addRow(row);
 				}
 			}

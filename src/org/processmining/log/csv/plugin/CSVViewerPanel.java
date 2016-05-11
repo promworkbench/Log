@@ -51,7 +51,7 @@ final class CSVViewerPanel extends JPanel {
 
 	private final CSVPreviewPanel previewPanel;
 
-	private SwingWorker<Void, Object[]> worker;
+	private SwingWorker<Void, String[]> worker;
 
 	public CSVViewerPanel(final CSVFile csv, final CSVConfig importConfig) {
 		super();
@@ -125,6 +125,7 @@ final class CSVViewerPanel extends JPanel {
 		quoteField = new ProMComboBox<>(CSVQuoteCharacter.values());
 		quoteField.setPreferredSize(null);
 		quoteField.setMinimumSize(null);
+		quoteField.setSelectedItem(importConfig.getQuoteChar());
 		JLabel quoteLabel = createLabel(
 				"Quote Character",
 				"Configure the character that is used by the CSV file that is used to quote values if they contain the separator character or a newline");
@@ -138,8 +139,7 @@ final class CSVViewerPanel extends JPanel {
 				importConfig.setQuoteChar((CSVQuoteCharacter) quoteField.getSelectedItem());
 				refreshPreview();
 			}
-		});
-		quoteField.setSelectedItem(importConfig.getQuoteChar());
+		});		
 
 		ParallelGroup verticalGroup = layout.createParallelGroup().addComponent(charsetPanel, Alignment.TRAILING)
 				.addComponent(separatorPanel, Alignment.TRAILING).addComponent(quotePanel, Alignment.TRAILING);
@@ -159,6 +159,7 @@ final class CSVViewerPanel extends JPanel {
 
 		add(topPanel);
 		add(previewPanel);
+		refreshPreview();
 	}
 
 	private void refreshPreview() {
@@ -177,7 +178,7 @@ final class CSVViewerPanel extends JPanel {
 			return;
 		}
 
-		worker = new SwingWorker<Void, Object[]>() {
+		worker = new SwingWorker<Void, String[]>() {
 
 			protected Void doInBackground() throws Exception {
 
@@ -195,8 +196,8 @@ final class CSVViewerPanel extends JPanel {
 				return null;
 			}
 
-			protected void process(List<Object[]> chunks) {
-				for (Object[] row : chunks) {
+			protected void process(List<String[]> chunks) {
+				for (String[] row : chunks) {
 					previewPanel.addRow(row);
 				}
 			}

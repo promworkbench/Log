@@ -31,6 +31,7 @@ import org.deckfour.xes.model.XAttribute;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csv.ICSVReader;
 import org.processmining.log.csv.config.CSVConfig;
+import org.processmining.log.csvimport.exception.CSVConversionException;
 import org.processmining.log.formats.StandardDateFormats;
 
 import com.google.common.collect.ImmutableList;
@@ -186,9 +187,10 @@ public final class CSVConversionConfig {
 			return desc;
 		}
 	}
-	
+
 	public enum CSVAttributeConversionMode {
-		ADD_TO_COMPLETE("Add attributes to complete event"), ADD_TO_BOTH("Add attributes to both start and complete event");
+		ADD_TO_COMPLETE("Add attributes to complete event"), ADD_TO_BOTH(
+				"Add attributes to both start and complete event");
 
 		private String desc;
 
@@ -338,17 +340,35 @@ public final class CSVConversionConfig {
 	private final CSVFile csvFile;
 	private final CSVConfig csvConfig;
 
-	public CSVConversionConfig(CSVFile csvFile, CSVConfig csvConfig) throws IOException {
+	public CSVConversionConfig(CSVFile csvFile, CSVConfig csvConfig) throws CSVConversionException {
 		this.csvFile = csvFile;
 		this.csvConfig = csvConfig;
 
-		String[] headers = csvFile.readHeader(csvConfig);
-		for (String columnHeader : headers) {
-			if (columnHeader != null) {
+		try {
+			String[] headers = csvFile.readHeader(csvConfig);
+			for (String columnHeader : headers) {
 				CSVMapping mapping = new CSVMapping();
-				mapping.setEventAttributeName(columnHeader);
-				conversionMap.put(columnHeader, mapping);
+				if (columnHeader != null) {
+					mapping.setEventAttributeName(columnHeader);
+				}
+				if (!conversionMap.containsKey(columnHeader)) {
+					conversionMap.put(columnHeader, mapping);
+				} else {
+					if (columnHeader == null) {
+						throw new CSVConversionException(
+								MessageFormat
+										.format("The CSV file contains two columns with an empty name! The CSV importer cannot handle such CSV files. Please rename the columns (i.e., the first line of the CSV file) such that columns have unique names.",
+												columnHeader));
+					} else {
+						throw new CSVConversionException(
+								MessageFormat
+										.format("The CSV file contains two columns with the same name: {0}! The CSV importer cannot handle such CSV files. Please rename the columns (i.e., the first line of the CSV file) such that columns have unique names.",
+												columnHeader));
+					}
+				}
 			}
+		} catch (IOException e) {
+			throw new CSVConversionException("Could not read headers of CSV", e);
 		}
 
 		// Standard settings for empty/NULL or N/A values
@@ -360,14 +380,18 @@ public final class CSVConversionConfig {
 		treatAsEmptyValues.add("n/a");
 	}
 
-	public void autoDetect() throws IOException {
-		String[] headers = csvFile.readHeader(csvConfig);
-		//TODO put those auto detection methods in a new class
-		autoDetectCaseColumn(headers);
-		autoDetectEventColumn(headers);
-		autoDetectCompletionTimeColumn(headers);
-		autoDetectStartTimeColumn(headers);
-		autoDetectDataTypes(csvFile, getConversionMap(), csvConfig);
+	public void autoDetect() throws CSVConversionException {
+		try {
+			String[] headers = csvFile.readHeader(csvConfig);
+			//TODO put those auto detection methods in a new class
+			autoDetectCaseColumn(headers);
+			autoDetectEventColumn(headers);
+			autoDetectCompletionTimeColumn(headers);
+			autoDetectStartTimeColumn(headers);
+			autoDetectDataTypes(csvFile, getConversionMap(), csvConfig);
+		} catch (IOException e) {
+			throw new CSVConversionException("Could not auto-detect column types.", e);
+		}
 	}
 
 	private void autoDetectCaseColumn(String[] headers) {

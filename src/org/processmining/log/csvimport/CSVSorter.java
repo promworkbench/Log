@@ -49,6 +49,7 @@ final class CSVSorter {
 
 		private final ICSVReader reader;
 		private final int numColumns;
+		private int currentRow = 1;
 
 		private UncompressedCSVReaderWithoutHeader(CSVFile csvFile, CSVConfig importConfig, int numColumns)
 				throws IOException {
@@ -70,10 +71,12 @@ final class CSVSorter {
 			String[] val = reader.readNext();
 			if (val != null && val.length != numColumns) {
 				String offendingLine = safeToString(val);
-				throw new IOException("Inconsistent number of fields in a row of the CSV file. Should be " + numColumns
-						+ " according to the header, but read a line with " + val.length + " fields! Invalid line: "
-						+ offendingLine);
+				throw new IOException(
+						MessageFormat
+								.format("The number of fields in rows of the CSV file is inconsistent. There should be {0} fields in each row according to the header, but there was a row with {1} fields in the CSV file! Row {2} is invalid: {3}",
+										numColumns, val.length, currentRow, offendingLine));
 			}
+			currentRow++;
 			return val;
 		}
 
@@ -85,7 +88,7 @@ final class CSVSorter {
 			} else {
 				StringBuilder sb = new StringBuilder();
 				sb.append('[');
-				for (int i = 0;; i++) {
+				for (int i = 0; i < valueArray.length; i++) {
 					String value = valueArray[i];
 					if (value != null) {
 						if (value.length() < MAX_FIELD_LENGTH_FOR_ERROR_REPORTING) {
@@ -97,17 +100,18 @@ final class CSVSorter {
 							return sb.append(String.format("[... omitted %s further columns]", valueArray.length - i))
 									.toString();
 						}
-						if (i == valueArray.length - 1)
-							return sb.append(']').toString();
-						sb.append(", ");
+						if (i < valueArray.length - 1) {
+							sb.append(", ");
+						}
 					}
 				}
+				return sb.append(']').toString();
 			}
 		}
 	}
 
 	private static final class CompressedCSVDataWriterFactory extends DataWriterFactory<String[]> {
-		
+
 		private final CSVConfig importConfig;
 		private final CSVFile csvFile;
 
@@ -133,7 +137,7 @@ final class CSVSorter {
 	}
 
 	private static final class CompressedCSVDataReaderFactory extends DataReaderFactory<String[]> {
-		
+
 		private final CSVConfig importConfig;
 		private final CSVFile csvFile;
 
@@ -182,10 +186,10 @@ final class CSVSorter {
 			final ProgressListener progress) throws CSVSortException {
 
 		// Create Sorter
-		final CompressedCSVDataReaderFactory dataReaderFactory = new CompressedCSVDataReaderFactory(
-				csvFile, importConfig);
-		final CompressedCSVDataWriterFactory dataWriterFactory = new CompressedCSVDataWriterFactory(
-				csvFile, importConfig);
+		final CompressedCSVDataReaderFactory dataReaderFactory = new CompressedCSVDataReaderFactory(csvFile,
+				importConfig);
+		final CompressedCSVDataWriterFactory dataWriterFactory = new CompressedCSVDataWriterFactory(csvFile,
+				importConfig);
 		final IteratingSorter<String[]> sorter = new IteratingSorter<>(new SortConfig().withMaxMemoryUsage(
 				maxMemory * 1024l * 1024l).withTempFileProvider(new TempFileProvider() {
 
@@ -200,7 +204,8 @@ final class CSVSorter {
 			public File call() throws Exception {
 
 				// Read uncompressed CSV
-				DataReader<String[]> inputDataReader = new UncompressedCSVReaderWithoutHeader(csvFile, importConfig, numOfColumnsInCSV);
+				DataReader<String[]> inputDataReader = new UncompressedCSVReaderWithoutHeader(csvFile, importConfig,
+						numOfColumnsInCSV);
 				try {
 					Iterator<String[]> result = sorter.sort(inputDataReader);
 

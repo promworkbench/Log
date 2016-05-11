@@ -7,6 +7,7 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Vector;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.Box;
@@ -80,12 +81,12 @@ public final class CSVPreviewFrame extends JFrame {
 
 		private static final long serialVersionUID = 1L;
 
-		private BatchUpdateDefaultTableModel(Object[] columnNames, int rowCount) {
+		private BatchUpdateDefaultTableModel(Vector<String> columnNames, int rowCount) {
 			super(columnNames, rowCount);
 		}
 
 		@SuppressWarnings("unchecked")
-		public void addRows(List<Object[]> rowData) {
+		public void addRows(List<String[]> rowData) {
 			int firstRow = dataVector.size();
 			for (Object[] row : rowData) {
 				dataVector.add(convertToVector(row));
@@ -93,6 +94,7 @@ public final class CSVPreviewFrame extends JFrame {
 			int lastRow = dataVector.size() - 1;
 			fireTableRowsInserted(firstRow, lastRow);
 		}
+
 	}
 
 	public static class DataTypeTableModel extends AbstractTableModel {
@@ -137,11 +139,11 @@ public final class CSVPreviewFrame extends JFrame {
 							csvMapping.setEventAttributeName(extAttr.key);
 						} else {
 							csvMapping.setEventExtensionAttribute(CSVConversionConfig.NO_EXTENSION_ATTRIBUTE);
-							csvMapping.setEventAttributeName(columnHeader);
+							csvMapping.setEventAttributeName(nullSafe(columnHeader));
 						}
 					} else {
 						csvMapping.setEventExtensionAttribute(null);
-						csvMapping.setEventAttributeName(columnHeader);
+						csvMapping.setEventAttributeName(nullSafe(columnHeader));
 					}
 					fireTableCellUpdated(4, columnIndex);
 					break;
@@ -153,6 +155,10 @@ public final class CSVPreviewFrame extends JFrame {
 							+ columnIndex);
 			}
 			conversionConfig.getConversionMap().put(columnHeader, csvMapping);
+		}
+
+		private static String nullSafe(String s) {
+			return s == null ? "" : s;
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -178,7 +184,7 @@ public final class CSVPreviewFrame extends JFrame {
 		}
 
 		public String getColumnName(int column) {
-			return header[column];
+			return nullSafe(header[column]);
 		}
 
 		public Class<?> getColumnClass(int columnIndex) {
@@ -213,7 +219,8 @@ public final class CSVPreviewFrame extends JFrame {
 		setTitle("CSV Import: Preview of the Import");
 		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 
-		previewTableModel = new BatchUpdateDefaultTableModel(header, 0);
+		Vector<String> columnIds = prepareNullSafeColumnNames(header);
+		previewTableModel = new BatchUpdateDefaultTableModel(columnIds, 0);
 		previewTable = new ProMTableWithoutPanel(previewTableModel);
 		previewTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		Enumeration<TableColumn> columns = previewTable.getColumnModel().getColumns();
@@ -332,6 +339,18 @@ public final class CSVPreviewFrame extends JFrame {
 		pack();
 	}
 
+	private Vector<String> prepareNullSafeColumnNames(String[] header) {
+		Vector<String> columnIds = new Vector<String>();
+		for (String obj: header) {
+			if (obj == null) {
+				columnIds.add("");
+			} else {
+				columnIds.add(obj);	
+			}				
+		}
+		return columnIds;
+	}
+
 	public void showFrame(JComponent parent) {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] gs = ge.getScreenDevices();
@@ -354,25 +373,12 @@ public final class CSVPreviewFrame extends JFrame {
 		setVisible(true);
 	}
 
-	public void addRow(Object[] data) {
+	public void addRow(String[] data) {
 		previewTableModel.addRow(data);
 	}
 
-	public void addRows(List<Object[]> rows) {
+	public void addRows(List<String[]> rows) {
 		previewTableModel.addRows(rows);
-	}
-
-	public void setHeader(Object[] header) {
-		if (header == null) {
-			previewTable.setTableHeader(null);
-		} else {
-			previewTableModel.setColumnIdentifiers(header);
-		}
-	}
-
-	public void clear() {
-		previewTableModel.getDataVector().clear();
-		previewTable.repaint();
 	}
 
 	public void refresh() {

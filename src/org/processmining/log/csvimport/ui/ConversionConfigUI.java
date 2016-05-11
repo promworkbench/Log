@@ -90,7 +90,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 
 	}
 
-	private final class LoadCSVRecordsWorker extends SwingWorker<Void, Object[]> {
+	private final class LoadCSVRecordsWorker extends SwingWorker<Void, String[]> {
 		protected Void doInBackground() throws Exception {
 			String[] oldLine = null;
 			String[] nextLine;
@@ -109,7 +109,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 			return null;
 		}
 
-		protected void process(List<Object[]> chunks) {
+		protected void process(List<String[]> chunks) {
 			previewFrame.addRows(chunks);
 			previewFrame.setTitle(String.format("CSV Preview (%s rows - scroll down to load more)", previewFrame
 					.getPreviewTable().getModel().getRowCount()));

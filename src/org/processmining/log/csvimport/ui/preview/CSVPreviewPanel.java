@@ -2,6 +2,7 @@ package org.processmining.log.csvimport.ui.preview;
 
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Vector;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
@@ -28,9 +29,9 @@ public final class CSVPreviewPanel extends JPanel {
 		}
 
 		@SuppressWarnings("unchecked")
-		public void addRows(List<Object[]> rowData) {
+		public void addRows(List<String[]> rowData) {
 			int firstRow = dataVector.size();
-			for (Object[] row : rowData) {
+			for (String[] row : rowData) {
 				dataVector.add(convertToVector(row));
 			}
 			int lastRow = dataVector.size() - 1;
@@ -81,19 +82,27 @@ public final class CSVPreviewPanel extends JPanel {
 		add(mainScrollPane);
 	}
 
-	public void addRow(Object[] data) {
+	public void addRow(String[] data) {
 		previewTableModel.addRow(data);
 	}
 
-	public void addRows(List<Object[]> rows) {
+	public void addRows(List<String[]> rows) {
 		previewTableModel.addRows(rows);
 	}
 
-	public void setHeader(Object[] header) {
+	public void setHeader(String[] header) {
 		if (header == null) {
 			previewTable.setTableHeader(null);
-		} else {
-			previewTableModel.setColumnIdentifiers(header);
+		} else {			
+			Vector<String> columnIds = new Vector<String>();
+			for (String obj: header) {
+				if (obj == null) {
+					columnIds.add("");
+				} else {
+					columnIds.add(obj);	
+				}				
+			}
+			previewTableModel.setColumnIdentifiers(columnIds);
 		}
 	}
 

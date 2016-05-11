@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csvimport.exception.CSVConversionException;
 
 /**
  * Configuration for the import of the CSV
@@ -31,10 +32,14 @@ public final class CSVConfig {
 	public CSVConfig() {
 	}
 	
-	public CSVConfig(final CSVFile csvFile) throws FileNotFoundException, IOException {
-		charset = autoDetectCharset(csvFile);
-		separator = autoDetectSeparator(csvFile, charset);
-		quoteChar = autoDetectQuote(csvFile, charset);
+	public CSVConfig(final CSVFile csvFile) throws CSVConversionException {
+		try {
+			charset = autoDetectCharset(csvFile);
+			separator = autoDetectSeparator(csvFile, charset);
+			quoteChar = autoDetectQuote(csvFile, charset);
+		} catch (IOException e) {
+			throw new CSVConversionException("Could not auto-detect CSV import parameters.", e);
+		}
 	}
 	
 	private static String autoDetectCharset(final CSVFile csvFile) throws FileNotFoundException, IOException {
