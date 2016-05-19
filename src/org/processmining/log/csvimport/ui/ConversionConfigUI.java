@@ -182,6 +182,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		for (String caseColumn : conversionConfig.getCaseColumns()) {
 			caseComboBox.addElement(caseColumn);
 		}
+		caseComboBox.getSelectedItemsText().setText("Selected case columns:");
 		caseComboBox.getListModel().addListDataListener(new ListDataListener() {
 
 			public void intervalRemoved(ListDataEvent e) {
@@ -203,6 +204,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		for (String eventColumn : conversionConfig.getEventNameColumns()) {
 			eventComboBox.addElement(eventColumn);
 		}
+		eventComboBox.getSelectedItemsText().setText("Selected event columns:");
 		eventComboBox.getListModel().addListDataListener(new ListDataListener() {
 
 			public void intervalRemoved(ListDataEvent e) {
