@@ -474,12 +474,12 @@ public final class CSVConversion {
 				switch (csvMapping.getDataType()) {
 					case BOOLEAN :
 						boolean boolVal;
-						if ("J".equalsIgnoreCase(value) || "Y".equalsIgnoreCase(value) || "T".equalsIgnoreCase(value)) {
+						if ("true".equalsIgnoreCase(value) || "J".equalsIgnoreCase(value) || "Y".equalsIgnoreCase(value) || "T".equalsIgnoreCase(value) || "1".equals(value)) {
 							boolVal = true;
-						} else if ("N".equalsIgnoreCase(value) || "F".equalsIgnoreCase(value)) {
+						} else if ("false".equalsIgnoreCase(value) || "N".equalsIgnoreCase(value) || "F".equalsIgnoreCase(value) || "0".equals(value)) {
 							boolVal = false;
 						} else {
-							boolVal = Boolean.valueOf(value);
+							throw new ParseException(value +" cannot be converted to a boolean", 0);
 						}
 						conversionHandler.startAttribute(name, boolVal);
 						break;
