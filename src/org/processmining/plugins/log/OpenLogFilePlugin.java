@@ -31,9 +31,14 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 	 * Holds zip file, if zip file is open.
 	 */
 	private ZipFile zipFile;
+	/**
+	 * Holds the name of the zipped file, if input is zip file.
+	 */
+	private String zipName;
 	
 	public OpenLogFilePlugin() {
 		zipFile = null;
+		zipName = null;
 	}
 	
 	protected Object importFromStream(PluginContext context, InputStream input, String filename, long fileSizeInBytes,
@@ -41,6 +46,12 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 		context.getFutureResult(0).setLabel(filename);
 		//	System.out.println("Open file");
 		XParser parser;
+		if (zipName != null) {
+			/*
+			 * Stream contains a zip file. Use the name of the zipped file, not of the zip file itself.
+			 */
+			filename = zipName;
+		}
 		if (filename.toLowerCase().endsWith(".xes") || filename.toLowerCase().endsWith(".xez")
 				|| filename.toLowerCase().endsWith(".xes.gz")) {
 			parser = new XesXmlParser(factory);
@@ -57,7 +68,7 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 			firstException = e;
 			errorMessage = errorMessage + e;
 		}
-		if (logs == null) {
+		if (logs == null || logs.isEmpty()) {
 			// try any other parser
 			for (XParser p : XParserRegistry.instance().getAvailable()) {
 				if (p == parser) {
@@ -138,6 +149,10 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 			if (entries.hasMoreElements()) {
 				throw new InvalidParameterException("Zipped log files should not contain more than one entry.");
 			}
+			/*
+			 * Store the name of the zipped file. This will override the provided filename when importing.
+			 */
+			zipName = zipEntry.getName();
 			// Return stream of only entry in zip file.
 			// Do not yet close zip file, as the retruend stream still needs to be read.
 			return zipFile.getInputStream(zipEntry);
