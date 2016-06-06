@@ -239,7 +239,12 @@ public class MergeLogsAlgorithm {
 			mainWords = new HashSet<String>();
 			for (XEvent event : mainTrace) {
 				for (XAttribute attribute : event.getAttributes().values()) {
-					mainWords.addAll(Arrays.asList(attribute.toString().split(" ")));
+					/*
+					 * Exclude date/time from comparision.
+					 */
+					if (!(attribute instanceof XAttributeTimestamp)) {
+						mainWords.addAll(Arrays.asList(attribute.toString().split(" ")));
+					}
 				}
 			}
 			mainWords.removeAll(stopWords);
@@ -251,7 +256,12 @@ public class MergeLogsAlgorithm {
 		Collection<String> subWords = new HashSet<String>();
 		for (XEvent event : subTrace) {
 			for (XAttribute attribute : event.getAttributes().values()) {
-				subWords.addAll(Arrays.asList(attribute.toString().split(" ")));
+				/*
+				 * Exclude date/time from comparision.
+				 */
+				if (!(attribute instanceof XAttributeTimestamp)) {
+					subWords.addAll(Arrays.asList(attribute.toString().split(" ")));
+				}
 			}
 		}
 		subWords.removeAll(stopWords);
