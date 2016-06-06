@@ -291,16 +291,15 @@ public class MergeLogsAlgorithm {
 
 	private boolean isBetween(XTrace trace, Date firstDate, Date lastDate) {
 		Date firstTraceDate = getFirstDate(trace);
-		Date lastTraceDate = getLastDate(trace);
-		if (firstTraceDate == null || lastTraceDate == null) {
+		if (firstTraceDate == null) {
 			return false;
 		}
-		//		return (!firstTraceDate.before(firstDate) && !lastTraceDate.after(lastDate));
 		/*
-		 * Update on May 7, 2016: the subtrace should start after the main trace
-		 * has started. There is no requirement on when the subtrace ends.
+		 * Update on June 6, 2016: the subtrace should start after the main trace
+		 * has started, but not after it has started. 
+		 * There is no requirement on when the subtrace ends.
 		 */
-		return (firstDate.after(firstTraceDate));
+		return (firstTraceDate.after(firstDate) && !firstTraceDate.after(lastDate));
 	}
 
 	private boolean isBetween(XTrace mainTrace, XTrace subTrace) {
