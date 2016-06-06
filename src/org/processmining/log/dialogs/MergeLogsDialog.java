@@ -42,7 +42,7 @@ public class MergeLogsDialog extends JPanel {
 	private static final long serialVersionUID = -5486690145975904628L;
 
 	public MergeLogsDialog(final MergeLogsParameters parameters, final XLog log) {
-		double size[][] = { { 100, 700 }, { 30, TableLayoutConstants.FILL, 30, 30, 30, 30, 30, 30 } };
+		double size[][] = { { 100, 700 }, { 30, TableLayoutConstants.FILL, 30, 30, 30, 30, 30, 30, 30 } };
 		setLayout(new TableLayout(size));
 		int row = 0;
 		DateFormat df;
@@ -258,6 +258,18 @@ public class MergeLogsDialog extends JPanel {
 			}
 		});
 		add(clusterSlider, "0, "+ row + ", 1, " + row);
+		row++;
+
+
+		final NiceSlider wordSlider = SlickerFactory.instance().createNiceIntegerSlider("Set matching words", 0, 100,
+				parameters.getMinMatches(), Orientation.HORIZONTAL);
+		clusterSlider.addChangeListener(new ChangeListener() {
+
+			public void stateChanged(ChangeEvent e) {
+				parameters.setMinMatches(wordSlider.getSlider().getValue());
+			}
+		});
+		add(wordSlider, "0, "+ row + ", 1, " + row);
 		row++;
 
 		

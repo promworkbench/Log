@@ -24,30 +24,56 @@ import org.processmining.log.parameters.MergeLogsParameters;
 
 public class MergeLogsAlgorithm {
 
+	private final String STOPWORDS = "a about above above across after afterwards again against "
+			+ "all almost alone along already also although always am among amongst amoungst "
+			+ "amount an and another any anyhow anyone anything anyway anywhere are around as at "
+			+ "back be became because become becomes becoming been before beforehand behind being "
+			+ "below beside besides between beyond bill both bottom but by call can cannot cant co "
+			+ "con could couldnt cry de describe detail do done down due during each eg eight either "
+			+ "eleven else elsewhere empty enough etc even ever every everyone everything everywhere "
+			+ "except few fifteen fify fill find fire first five for former formerly forty found four "
+			+ "from front full further get give go had has hasnt have he hence her here hereafter hereby "
+			+ "herein hereupon hers herself him himself his how however hundred ie if in inc indeed "
+			+ "interest into is it its itself keep last latter latterly least less ltd made many may me "
+			+ "meanwhile might mill mine more moreover most mostly move much must my myself name namely "
+			+ "neither never nevertheless next nine no nobody none noone nor not nothing now nowhere of off "
+			+ "often on once one only onto or other others otherwise our ours ourselves out over own part "
+			+ "per perhaps please put rather re same see seem seemed seeming seems serious several she should "
+			+ "show side since sincere six sixty so some somehow someone something sometime sometimes "
+			+ "somewhere still such system take ten than that the their them themselves then thence there "
+			+ "thereafter thereby therefore therein thereupon these they thickv thin third this those though "
+			+ "three through throughout thru thus to together too top toward towards twelve twenty two un "
+			+ "under until up upon us very via was we well were what whatever when whence whenever where "
+			+ "whereafter whereas whereby wherein whereupon wherever whether which while whither who whoever "
+			+ "whole whom whose why will with within without would yet you your yours yourself yourselves the";
+
 	public XLog apply(PluginContext context, XLog mainLog, XLog subLog, MergeLogsParameters parameters) {
 		XLog log = XFactoryRegistry.instance().currentDefault().createLog();
-		DateFormat df = new SimpleDateFormat(parameters.getDateFormat());						
-		
+		DateFormat df = new SimpleDateFormat(parameters.getDateFormat());
+
 		long time = -System.currentTimeMillis();
 
-		for (XTrace mainTrace: mainLog) {
+		for (XTrace mainTrace : mainLog) {
 			boolean doApply = true;
 			if (doApply && parameters.getTraceId() != null) {
 				/*
-				 * User has selected specific main trace. Filter in only the trace that has that id as concept:name.
+				 * User has selected specific main trace. Filter in only the
+				 * trace that has that id as concept:name.
 				 */
 				String id = XConceptExtension.instance().extractName(mainTrace);
 				doApply = (id != null && id.equals(parameters.getTraceId()));
 			}
 			if (doApply && parameters.getFromDate() != null && parameters.getToDate() != null) {
 				/*
-				 * User has selected from date and to date. Filter in only those traces that occur entirely in that interval.
+				 * User has selected from date and to date. Filter in only those
+				 * traces that occur entirely in that interval.
 				 */
 				doApply = isBetween(mainTrace, parameters.getFromDate(), parameters.getToDate());
 			}
 			if (doApply && parameters.getSpecificDate() != null) {
 				/*
-				 * User has selected a specific date. Only filter in those traces that have this exact date.
+				 * User has selected a specific date. Only filter in those
+				 * traces that have this exact date.
 				 */
 				doApply = false;
 				for (XEvent event : mainTrace) {
@@ -60,10 +86,12 @@ public class MergeLogsAlgorithm {
 			}
 			if (doApply && parameters.getRequiredWords() != null) {
 				/*
-				 * User has selected required words. Filter in those traces that match one of these words.
+				 * User has selected required words. Filter in those traces that
+				 * match one of these words.
 				 */
 				doApply = false;
-				Collection<String> required = new HashSet<String>(Arrays.asList(parameters.getRequiredWords().split(",")));
+				Collection<String> required = new HashSet<String>(
+						Arrays.asList(parameters.getRequiredWords().split(",")));
 				for (XEvent event : mainTrace) {
 					for (XAttribute attribute : event.getAttributes().values()) {
 						if (attribute instanceof XAttributeLiteral) {
@@ -99,10 +127,12 @@ public class MergeLogsAlgorithm {
 			}
 			if (doApply && parameters.getForbiddenWords() != null) {
 				/*
-				 * User has selected forbidden words. Filter out those traces that match one of these words.
+				 * User has selected forbidden words. Filter out those traces
+				 * that match one of these words.
 				 */
 				doApply = true;
-				Collection<String> forbidden = new HashSet<String>(Arrays.asList(parameters.getForbiddenWords().split(",")));
+				Collection<String> forbidden = new HashSet<String>(
+						Arrays.asList(parameters.getForbiddenWords().split(",")));
 				for (XEvent event : mainTrace) {
 					for (XAttribute attribute : event.getAttributes().values()) {
 						if (attribute instanceof XAttributeLiteral) {
@@ -138,14 +168,15 @@ public class MergeLogsAlgorithm {
 			}
 			if (doApply) {
 				/*
-				 * Main trace has passed all filters. Add it with all corresponding sub traces to the resulting log.
+				 * Main trace has passed all filters. Add it with all
+				 * corresponding sub traces to the resulting log.
 				 */
 				apply(context, mainTrace, mainLog, subLog, log, parameters);
 			}
 		}
-		
+
 		time += System.currentTimeMillis();
-		context.log("Merging time :" +  convet_MS(time));
+		context.log("Merging time :" + convet_MS(time));
 		return log;
 	}
 
@@ -153,8 +184,14 @@ public class MergeLogsAlgorithm {
 			MergeLogsParameters parameters) {
 		for (XTrace subTrace : subLog) {
 			if (isBetween(mainTrace, subTrace)) {
-				int match = checkMatch(mainTrace, subTrace);
-				if (match > parameters.getRelated()) {
+				boolean doApply = true;
+				if (doApply && !(checkMatch(mainTrace, subTrace) > parameters.getRelated())) {
+					doApply = false;
+				}
+				if (doApply && !(checkWordMatch(mainTrace, subTrace) > parameters.getMinMatches())) {
+					doApply = false;
+				}
+				if (doApply) {
 					XTrace trace = XFactoryRegistry.instance().currentDefault().createTrace(mainTrace.getAttributes());
 					int mainCtr = 0;
 					int subCtr = 0;
@@ -181,6 +218,51 @@ public class MergeLogsAlgorithm {
 				}
 			}
 		}
+	}
+
+	private XTrace previousMainTrace = null;
+	private Collection<String> mainWords = null;
+	private Collection<String> stopWords = null;
+
+	private int checkWordMatch(XTrace mainTrace, XTrace subTrace) {
+		/*
+		 * Build the stop words.
+		 */
+		if (stopWords == null) {
+			stopWords = new HashSet<String>();
+			stopWords.addAll(Arrays.asList(STOPWORDS.split(" ")));
+		}
+		/*
+		 * Build (or reuse) the main words.
+		 */
+		if (mainTrace != previousMainTrace) {
+			mainWords = new HashSet<String>();
+			for (XEvent event : mainTrace) {
+				for (XAttribute attribute : event.getAttributes().values()) {
+					mainWords.addAll(Arrays.asList(attribute.toString().split(" ")));
+				}
+			}
+			mainWords.removeAll(stopWords);
+			previousMainTrace = mainTrace;			
+		}
+		/*
+		 * Build the sub words.
+		 */
+		Collection<String> subWords = new HashSet<String>();
+		for (XEvent event : subTrace) {
+			for (XAttribute attribute : event.getAttributes().values()) {
+				subWords.addAll(Arrays.asList(attribute.toString().split(" ")));
+			}
+		}
+		subWords.removeAll(stopWords);
+		/*
+		 * Remove all words not in the main words.
+		 */
+		subWords.retainAll(mainWords);
+		/*
+		 * Return number of matching words.
+		 */
+		return subWords.size();
 	}
 
 	private int checkMatch(XTrace mainTrace, XTrace subTrace) {
@@ -213,7 +295,12 @@ public class MergeLogsAlgorithm {
 		if (firstTraceDate == null || lastTraceDate == null) {
 			return false;
 		}
-		return (!firstTraceDate.before(firstDate) && !lastTraceDate.after(lastDate));
+		//		return (!firstTraceDate.before(firstDate) && !lastTraceDate.after(lastDate));
+		/*
+		 * Update on May 7, 2016: the subtrace should start after the main trace
+		 * has started. There is no requirement on when the subtrace ends.
+		 */
+		return (firstDate.after(firstTraceDate));
 	}
 
 	private boolean isBetween(XTrace mainTrace, XTrace subTrace) {
@@ -253,12 +340,10 @@ public class MergeLogsAlgorithm {
 
 	private String convet_MS(long millis) {
 
-		return String.format(
-				"%d min, %d sec %d ms",
-				TimeUnit.MILLISECONDS.toMinutes(millis),
+		return String.format("%d min, %d sec %d ms", TimeUnit.MILLISECONDS.toMinutes(millis),
 				TimeUnit.MILLISECONDS.toSeconds(millis)
-						- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)), millis
-						- TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis)));
+						- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)),
+				millis - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis)));
 	}
 
 }
