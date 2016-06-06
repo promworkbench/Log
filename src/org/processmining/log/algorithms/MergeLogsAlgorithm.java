@@ -185,10 +185,10 @@ public class MergeLogsAlgorithm {
 		for (XTrace subTrace : subLog) {
 			if (isBetween(mainTrace, subTrace)) {
 				boolean doApply = true;
-				if (doApply && !(checkMatch(mainTrace, subTrace) > parameters.getRelated())) {
+				if (doApply && (checkMatch(mainTrace, subTrace) < parameters.getRelated())) {
 					doApply = false;
 				}
-				if (doApply && !(checkWordMatch(mainTrace, subTrace) > parameters.getMinMatches())) {
+				if (doApply && (checkWordMatch(mainTrace, subTrace) < parameters.getMinMatches())) {
 					doApply = false;
 				}
 				if (doApply) {
