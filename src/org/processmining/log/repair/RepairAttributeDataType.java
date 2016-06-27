@@ -493,7 +493,7 @@ public final class RepairAttributeDataType {
 			if (val != 0 && val != 1) {
 				throw new UnexpectedDataTypeException("Unexpected value " + val);
 			}
-			return Boolean.valueOf(val == 0 ? true : false);
+			return Boolean.valueOf(val == 0 ? false : true);
 		} else {
 			throw new UnexpectedDataTypeException("Unexpected attribute type " + value);
 		}
