@@ -219,7 +219,11 @@ final class CSVSorter {
 								dataWriter.writeEntry(result.next());
 							}
 						} finally {
-							dataWriter.close();
+							try {
+								dataWriter.close();
+							} catch (IllegalStateException e) {
+								// already closed - ignore here to propagate the real exception
+							}
 						}
 						return sortedCsvFile;
 					} else {

@@ -77,8 +77,8 @@ public class CSVUnivocityImpl implements ICSV {
 				writer.writeRow((Object[])value);
 			}
 			
-			public void close() throws IOException {
-				writer.close();
+			public void close() throws IOException {				
+				writer.close();				
 			}
 		};
 	}
