@@ -11,6 +11,6 @@
        <dependency org="prom-libs" name="OpenXES" rev="20160212" transitive="false" />
        <dependency org="prom-libs" name="OpenXES-XStream" rev="20160212" transitive="false" />
        <dependency org="prom" name="Saxon" rev="latest" changing="true" transitive="true" />
-       <dependency org="com.univocity" name="univocity-parsers" rev="1.5.5" />
+       <dependency org="com.univocity" name="univocity-parsers" rev="2.2.0" />
     </dependencies>
 </ivy-module>

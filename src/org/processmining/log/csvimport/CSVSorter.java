@@ -126,7 +126,7 @@ final class CSVSorter {
 			return new DataWriter<String[]>() {
 
 				public void close() throws IOException {
-					writer.close();
+					writer.close(); // catch IllegalStateException
 				}
 
 				public void writeEntry(String[] val) throws IOException {
