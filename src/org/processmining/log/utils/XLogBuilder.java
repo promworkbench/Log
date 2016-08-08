@@ -73,7 +73,7 @@ public class XLogBuilder {
 	public XLogBuilder startLog(String name) {
 		log = factory.createLog();
 		if (log != null) {
-			XConceptExtension.instance().assignName(log, name);
+			conceptInstance.assignName(log, name);
 		}
 		return this;
 	}
@@ -128,7 +128,7 @@ public class XLogBuilder {
 			addCurrentEventToTrace();
 		}
 		currentEvent = factory.createEvent();
-		XConceptExtension.instance().assignName(currentEvent, name);
+		conceptInstance.assignName(currentEvent, name);
 		currentEventMultiplicity = numberOfEvents;
 		return this;
 	}
@@ -205,6 +205,11 @@ public class XLogBuilder {
 	public XLogBuilder addAttribute(String name, double value) {
 		XAttribute attribute = factory.createAttributeContinuous(name, value, null);
 		addAttributeInternal(name, attribute);
+		return this;
+	}
+	
+	public XLogBuilder setFactory(XFactory factory) {
+		this.factory = factory;
 		return this;
 	}
 
