@@ -18,7 +18,7 @@ import org.processmining.log.csv.CSVFileReferenceUnivocityImpl;
  *
  */
 @Plugin(name = "Import a CSV file and convert it to XES", level= PluginLevel.PeerReviewed, parameterLabels = { "Filename" }, returnLabels = { "Imported CSV File" }, returnTypes = { CSVFile.class })
-@UIImportPlugin(description = "CSV File (XES Conversion with Log package)", extensions = { "csv", "zip", "csv.gz", "txt" })
+@UIImportPlugin(description = "CSV File (XES Conversion with Log package)", extensions = { "csv", "zip", "csv.gz", "txt", "rpt" })
 public final class CSVImportPluginUnivocity extends AbstractImportPlugin {
 
 	@Override
