@@ -171,7 +171,6 @@
 		</delete>
 		<copy todir="lib" overwrite="true">
 			<fileset dir="ivy">
-				<include name="univocity-parsers-*.jar" />
 				<include name="OpenXES-*.jar" />
 				<exclude name="*sources.jar" />
 				<exclude name="*javadoc.jar" />
