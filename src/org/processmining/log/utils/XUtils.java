@@ -77,7 +77,11 @@ import com.google.common.collect.Iterables;
  * @author F. Mannhardt
  *
  */
-public class XUtils {
+public final class XUtils {
+
+	private XUtils() {
+		//only for static methods
+	}
 
 	public static final XEventClassifier STANDARDCLASSIFIER = new XEventAndClassifier(new XEventNameClassifier(),
 			new XEventLifeTransClassifier());
@@ -316,8 +320,8 @@ public class XUtils {
 	 * @return copy of the supplied attribute
 	 */
 	public static XAttribute cloneAttributeWithChangedKey(XAttribute oldAttribute, String newKey) {
-		return cloneAttributeWithChangedKeyWithFactory(oldAttribute, newKey, XFactoryRegistry.instance()
-				.currentDefault());
+		return cloneAttributeWithChangedKeyWithFactory(oldAttribute, newKey,
+				XFactoryRegistry.instance().currentDefault());
 	}
 
 	/**
@@ -469,8 +473,8 @@ public class XUtils {
 	 * @return a {@link XAttribute} with correct type
 	 */
 	public static XAttribute createAttribute(String attributeName, Object attributeValue, XExtension extension) {
-		return createAttributeWithFactory(attributeName, attributeValue, extension, XFactoryRegistry.instance()
-				.currentDefault());
+		return createAttributeWithFactory(attributeName, attributeValue, extension,
+				XFactoryRegistry.instance().currentDefault());
 	}
 
 	/**
@@ -531,8 +535,8 @@ public class XUtils {
 		String originalName = getConceptName(log);
 		String promLabel = ProvidedObjectHelper.getProvidedObjectLabel(context, log);
 		/*
-		 * HV: Check whether promLabel equals null. This can happen if the log at hand
-		 * is not a provided object.
+		 * HV: Check whether promLabel equals null. This can happen if the log
+		 * at hand is not a provided object.
 		 */
 		if (promLabel != null && !promLabel.equals(originalName)) {
 			XConceptExtension.instance().assignName(log, promLabel);
