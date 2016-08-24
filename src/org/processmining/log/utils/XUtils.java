@@ -578,9 +578,9 @@ public final class XUtils {
 		return classes;
 	}
 
-	public static Set<String> getEventAttributeKeys(XLog log) {
+	public static Set<String> getEventAttributeKeys(Iterable<XTrace> traces) {
 		Set<String> attributeKeys = new HashSet<>();
-		for (XTrace t : log) {
+		for (XTrace t : traces) {
 			for (XEvent e : t) {
 				attributeKeys.addAll(e.getAttributes().keySet());
 			}
