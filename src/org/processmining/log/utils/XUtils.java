@@ -30,9 +30,11 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableSet;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.deckfour.xes.classification.XEventAndClassifier;
@@ -574,6 +576,16 @@ public final class XUtils {
 		}
 		classes.harmonizeIndices();
 		return classes;
+	}
+
+	public static Set<String> getEventAttributeKeys(XLog log) {
+		Set<String> attributeKeys = new HashSet<>();
+		for (XTrace t : log) {
+			for (XEvent e : t) {
+				attributeKeys.addAll(e.getAttributes().keySet());
+			}
+		}
+		return attributeKeys;
 	}
 
 }
