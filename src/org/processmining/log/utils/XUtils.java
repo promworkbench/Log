@@ -36,6 +36,7 @@ import java.util.NavigableSet;
 import java.util.TreeSet;
 
 import org.deckfour.xes.classification.XEventAndClassifier;
+import org.deckfour.xes.classification.XEventClasses;
 import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.classification.XEventLifeTransClassifier;
 import org.deckfour.xes.classification.XEventNameClassifier;
@@ -48,6 +49,7 @@ import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
 import org.deckfour.xes.in.XesXmlParser;
+import org.deckfour.xes.info.XLogInfo;
 import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XAttributable;
 import org.deckfour.xes.model.XAttribute;
@@ -542,6 +544,36 @@ public final class XUtils {
 			XConceptExtension.instance().assignName(log, promLabel);
 		}
 		return originalName;
+	}
+
+	/**
+	 * Obtain the event classes from the supplied collection of traces using the
+	 * specified classifier. Uses the {@link XEvent} cached in the
+	 * {@link XLogInfo} if available and in case the trace are, in fact, a
+	 * {@link XLog}.
+	 * 
+	 * @param classifier
+	 * @param traces
+	 * @return
+	 */
+	public static XEventClasses createEventClasses(XEventClassifier classifier, Iterable<XTrace> traces) {
+		if (traces instanceof XLog) {
+			XLog log = (XLog) traces;
+			XLogInfo existingLogInfo = log.getInfo(classifier);
+			if (existingLogInfo != null) {
+				return existingLogInfo.getEventClasses();
+			}
+		}
+		return deriveEventClasses(classifier, traces);
+	}
+
+	private static XEventClasses deriveEventClasses(XEventClassifier classifier, Iterable<XTrace> traces) {
+		XEventClasses classes = new XEventClasses(classifier);
+		for (XTrace trace : traces) {
+			classes.register(trace);
+		}
+		classes.harmonizeIndices();
+		return classes;
 	}
 
 }
