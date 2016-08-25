@@ -30,9 +30,11 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -50,6 +52,7 @@ import org.deckfour.xes.extension.std.XOrganizationalExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.id.XID;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.info.XLogInfo;
 import org.deckfour.xes.info.impl.XLogInfoImpl;
@@ -443,6 +446,30 @@ public final class XUtils {
 	}
 
 	/**
+	 * Returns the Java class of the {@link XAttribute} value.
+	 * 
+	 * @param attribute
+	 * @return class of the attribute
+	 */
+	public static Class<?> getAttributeClass(XAttribute attribute) {
+		if (attribute instanceof XAttributeLiteral) {
+			return String.class;
+		} else if (attribute instanceof XAttributeBoolean) {
+			return Boolean.class;
+		} else if (attribute instanceof XAttributeContinuous) {
+			return Double.class;
+		} else if (attribute instanceof XAttributeDiscrete) {
+			return Long.class;
+		} else if (attribute instanceof XAttributeTimestamp) {
+			return Date.class;
+		} else if (attribute instanceof XAttributeID) {
+			return XID.class;
+		} else {
+			throw new IllegalArgumentException("Unexpected attribute type!");
+		}
+	}
+
+	/**
 	 * Creates an appropriate {@link XAttribute}, decided on the type of the
 	 * parameter atttributeValue.
 	 * 
@@ -586,6 +613,40 @@ public final class XUtils {
 			}
 		}
 		return attributeKeys;
+	}
+
+	public static Map<String, Class<?>> getEventAttributeTypes(Iterable<XTrace> traces) {
+		Map<String, Class<?>> attributeTypes = new HashMap<String, Class<?>>();
+		for (XTrace t : traces) {
+			for (XEvent e : t) {
+				for (XAttribute a : e.getAttributes().values()) {
+					fillAttributeType(attributeTypes, a);
+				}
+			}
+		}
+		return attributeTypes;
+	}
+
+	public static Set<String> getTraceAttributeKeys(Iterable<XTrace> traces) {
+		Set<String> attributeKeys = new HashSet<>();
+		for (XTrace t : traces) {
+			attributeKeys.addAll(t.getAttributes().keySet());
+		}
+		return attributeKeys;
+	}
+
+	public static Map<String, Class<?>> getTraceAttributeTypes(Iterable<XTrace> traces) {
+		Map<String, Class<?>> attributeTypes = new HashMap<String, Class<?>>();
+		for (XTrace t : traces) {
+			for (XAttribute a : t.getAttributes().values()) {
+				fillAttributeType(attributeTypes, a);
+			}
+		}
+		return attributeTypes;
+	}
+
+	private static void fillAttributeType(Map<String, Class<?>> attributeTypes, XAttribute attribute) {
+		attributeTypes.put(attribute.getKey(), getAttributeClass(attribute));
 	}
 
 }
