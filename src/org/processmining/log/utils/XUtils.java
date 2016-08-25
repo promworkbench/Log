@@ -78,6 +78,7 @@ import org.processmining.plugins.utils.ProvidedObjectHelper;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
@@ -665,10 +666,15 @@ public final class XUtils {
 	 * @param classifier
 	 * @return
 	 */
-	public static ImmutableListMultimap<TraceVariantByClassifier, XTrace> getTraceVariantsByClassifier(
+	public static ImmutableListMultimap<TraceVariantByClassifier, XTrace> getVariantsByClassifier(
 			Iterable<XTrace> traces, XEventClassifier classifier) {
 		final XEventClasses eventClasses = XUtils.createEventClasses(new XEventNameClassifier(), traces);
-		return getTraceVariantsByClassifier(traces, eventClasses);
+		return getVariantsByClassifier(traces, eventClasses);
+	}
+
+	public static int countVariantsByClassifier(Iterable<XTrace> traces, XEventClassifier classifier) {
+		final XEventClasses eventClasses = XUtils.createEventClasses(new XEventNameClassifier(), traces);
+		return countVariantsByClassifier(traces, eventClasses);
 	}
 
 	/**
@@ -680,9 +686,19 @@ public final class XUtils {
 	 * @param eventClasses
 	 * @return
 	 */
-	public static ImmutableListMultimap<TraceVariantByClassifier, XTrace> getTraceVariantsByClassifier(
+	public static ImmutableListMultimap<TraceVariantByClassifier, XTrace> getVariantsByClassifier(
 			Iterable<XTrace> traces, final XEventClasses eventClasses) {
-		return getTraceVariants(traces, new Function<XTrace, TraceVariantByClassifier>() {
+		return getVariants(traces, new Function<XTrace, TraceVariantByClassifier>() {
+
+			public TraceVariantByClassifier apply(XTrace trace) {
+				return new TraceVariantByClassifier(trace, eventClasses);
+			}
+
+		});
+	}
+
+	public static int countVariantsByClassifier(Iterable<XTrace> traces, final XEventClasses eventClasses) {
+		return countVariants(traces, new Function<XTrace, TraceVariantByClassifier>() {
 
 			public TraceVariantByClassifier apply(XTrace trace) {
 				return new TraceVariantByClassifier(trace, eventClasses);
@@ -700,9 +716,14 @@ public final class XUtils {
 	 * @param variantFunction
 	 * @return
 	 */
-	public static <T extends TraceVariant<E>, E> ImmutableListMultimap<T, XTrace> getTraceVariants(
-			Iterable<XTrace> traces, Function<XTrace, T> variantFunction) {
+	public static <T extends TraceVariant<E>, E> ImmutableListMultimap<T, XTrace> getVariants(Iterable<XTrace> traces,
+			Function<XTrace, T> variantFunction) {
 		return Multimaps.index(traces, variantFunction);
+	}
+
+	public static <T extends TraceVariant<?>> int countVariants(Iterable<XTrace> traces,
+			Function<XTrace, T> variantFunction) {
+		return ImmutableSet.copyOf(Iterables.transform(traces, variantFunction)).size();
 	}
 
 }
