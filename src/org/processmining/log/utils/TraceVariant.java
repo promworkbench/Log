@@ -1,6 +1,6 @@
 package org.processmining.log.utils;
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
 
 /**
  * Trace variant which should override {@link #equals(Object)} and
@@ -18,6 +18,6 @@ public interface TraceVariant<E> {
 	/**
 	 * @return the list of events as viewed by this variant
 	 */
-	ImmutableList<E> getEvents();
+	List<E> getEvents();
 
 }
