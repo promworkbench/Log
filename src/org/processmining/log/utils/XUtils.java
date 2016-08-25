@@ -76,7 +76,12 @@ import org.deckfour.xes.out.XesXmlSerializer;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.plugins.utils.ProvidedObjectHelper;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 
 /**
  * Commonly used methods for handling XES logs
@@ -649,6 +654,55 @@ public final class XUtils {
 		if (!attributeTypes.containsKey(attribute.getKey())) {
 			attributeTypes.put(attribute.getKey(), getAttributeClass(attribute));
 		}
+	}
+
+	/**
+	 * Groups traces in a {@link ListMultimap} by their event classification. A
+	 * {@link ListMultimap} instead of an {@link SetMultimap} is returned as the
+	 * input traces are not required to be a {@link Set}.
+	 * 
+	 * @param traces
+	 * @param classifier
+	 * @return
+	 */
+	public static ImmutableListMultimap<TraceVariantByClassifier, XTrace> getTraceVariantsByClassifier(
+			Iterable<XTrace> traces, XEventClassifier classifier) {
+		final XEventClasses eventClasses = XUtils.createEventClasses(new XEventNameClassifier(), traces);
+		return getTraceVariantsByClassifier(traces, eventClasses);
+	}
+
+	/**
+	 * Groups traces in a {@link ListMultimap} by their event classification. A
+	 * {@link ListMultimap} instead of an {@link SetMultimap} is returned as the
+	 * input traces are not required to be a {@link Set}.
+	 * 
+	 * @param traces
+	 * @param eventClasses
+	 * @return
+	 */
+	public static ImmutableListMultimap<TraceVariantByClassifier, XTrace> getTraceVariantsByClassifier(
+			Iterable<XTrace> traces, final XEventClasses eventClasses) {
+		return getTraceVariants(traces, new Function<XTrace, TraceVariantByClassifier>() {
+
+			public TraceVariantByClassifier apply(XTrace trace) {
+				return new TraceVariantByClassifier(trace, eventClasses);
+			}
+
+		});
+	}
+
+	/**
+	 * Groups traces in a {@link ListMultimap} by a generic {@link Function}. A
+	 * {@link ListMultimap} instead of an {@link SetMultimap} is returned as the
+	 * input traces are not required to be a {@link Set}.
+	 * 
+	 * @param traces
+	 * @param variantFunction
+	 * @return
+	 */
+	public static <T extends TraceVariant<E>, E> ImmutableListMultimap<T, XTrace> getTraceVariants(
+			Iterable<XTrace> traces, Function<XTrace, T> variantFunction) {
+		return Multimaps.index(traces, variantFunction);
 	}
 
 }
