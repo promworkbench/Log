@@ -646,7 +646,9 @@ public final class XUtils {
 	}
 
 	private static void fillAttributeType(Map<String, Class<?>> attributeTypes, XAttribute attribute) {
-		attributeTypes.put(attribute.getKey(), getAttributeClass(attribute));
+		if (!attributeTypes.containsKey(attribute.getKey())) {
+			attributeTypes.put(attribute.getKey(), getAttributeClass(attribute));
+		}
 	}
 
 }
