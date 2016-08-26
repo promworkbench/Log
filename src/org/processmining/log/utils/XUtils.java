@@ -424,6 +424,56 @@ public final class XUtils {
 	}
 
 	/**
+	 * Creates a new log with attributes and meta data (classifiers, globals,
+	 * extension) from the oldLog.
+	 * 
+	 * @param oldLog
+	 * @return
+	 */
+	public static XLog createLogFrom(XLog oldLog) {
+		return createLogFrom(oldLog, XFactoryRegistry.instance().currentDefault());
+	}
+
+	/**
+	 * Creates a new log with attributes and meta data (classifiers, globals,
+	 * extension) from the oldLog.
+	 * 
+	 * @param oldLog
+	 * @param factory
+	 * @return
+	 */
+	public static XLog createLogFrom(XLog oldLog, XFactory factory) {
+		XLog newLog = factory.createLog((XAttributeMap) oldLog.getAttributes().clone());
+		newLog.getClassifiers().addAll(oldLog.getClassifiers());
+		newLog.getExtensions().addAll(oldLog.getExtensions());
+		for (XAttribute attr : oldLog.getGlobalEventAttributes()) {
+			newLog.getGlobalEventAttributes().add((XAttribute) attr.clone());
+		}
+		for (XAttribute attr : oldLog.getGlobalTraceAttributes()) {
+			newLog.getGlobalTraceAttributes().add((XAttribute) attr.clone());
+		}
+		return newLog;
+	}
+
+	/**
+	 * Copies the meta data (classifiers, globals, extension) from the oldLog to
+	 * the newLog.
+	 * 
+	 * @param oldLog
+	 * @param newLog
+	 */
+	public static void copyLogMetadata(XLog oldLog, XLog newLog) {
+		newLog.getClassifiers().addAll(oldLog.getClassifiers());
+		newLog.getExtensions().addAll(oldLog.getExtensions());
+		for (XAttribute attr : oldLog.getGlobalEventAttributes()) {
+			newLog.getGlobalEventAttributes().add((XAttribute) attr.clone());
+		}
+		for (XAttribute attr : oldLog.getGlobalTraceAttributes()) {
+			newLog.getGlobalTraceAttributes().add((XAttribute) attr.clone());
+		}
+	}
+
+	/**
 	 * Returns the value of the {@link XAttribute} as {@link Object}
 	 * 
 	 * @param attribute
