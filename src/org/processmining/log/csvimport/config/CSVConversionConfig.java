@@ -154,14 +154,11 @@ public final class CSVConversionConfig {
 	static {
 		List<ExtensionAttribute> list = new ArrayList<>();
 		list.add(NO_EXTENSION_ATTRIBUTE);
-		addAttributesFromExtension(XConceptExtension.instance(), XConceptExtension.instance().getEventAttributes(),
-				list);
-		addAttributesFromExtension(XConceptExtension.instance(), XOrganizationalExtension.instance()
-				.getEventAttributes(), list);
-		addAttributesFromExtension(XConceptExtension.instance(), XTimeExtension.instance().getEventAttributes(), list);
-		addAttributesFromExtension(XConceptExtension.instance(), XLifecycleExtension.instance().getEventAttributes(),
-				list);
-		addAttributesFromExtension(XConceptExtension.instance(), XCostExtension.instance().getEventAttributes(), list);
+		addAttributesFromExtension(XConceptExtension.instance(), XConceptExtension.instance().getEventAttributes(),list);
+		addAttributesFromExtension(XOrganizationalExtension.instance(), XOrganizationalExtension.instance().getEventAttributes(), list);
+		addAttributesFromExtension(XTimeExtension.instance(), XTimeExtension.instance().getEventAttributes(), list);
+		addAttributesFromExtension(XLifecycleExtension.instance(), XLifecycleExtension.instance().getEventAttributes(),list);
+		addAttributesFromExtension(XCostExtension.instance(), XCostExtension.instance().getEventAttributes(), list);
 		AVAILABLE_EVENT_EXTENSIONS_ATTRIBUTES = list.toArray(new ExtensionAttribute[list.size()]);
 	}
 
@@ -714,7 +711,7 @@ public final class CSVConversionConfig {
 	}
 
 	public void setCompletionTimeColumn(String completionTimeColumn) {
-		if (this.completionTimeColumn != null && !this.completionTimeColumn.isEmpty()) {
+		if (completionTimeColumn != null && this.completionTimeColumn != null && !this.completionTimeColumn.isEmpty()) {
 			// Reset mapping for old column
 			getConversionMap().get(this.completionTimeColumn).setEventExtensionAttribute(NO_EXTENSION_ATTRIBUTE);
 			getConversionMap().get(this.completionTimeColumn).eventAttributeName = this.completionTimeColumn;
@@ -733,7 +730,7 @@ public final class CSVConversionConfig {
 	}
 
 	public void setStartTimeColumn(String startTimeColumn) {
-		if (this.startTimeColumn != null && !this.startTimeColumn.isEmpty()) {
+		if (startTimeColumn != null && this.startTimeColumn != null && !this.startTimeColumn.isEmpty()) {
 			// Reset mapping for old column
 			getConversionMap().get(this.startTimeColumn).setEventExtensionAttribute(NO_EXTENSION_ATTRIBUTE);
 			getConversionMap().get(this.startTimeColumn).eventAttributeName = this.startTimeColumn;
