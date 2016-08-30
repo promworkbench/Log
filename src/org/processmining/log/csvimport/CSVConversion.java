@@ -296,10 +296,10 @@ public final class CSVConversion {
 			for (int i = 0; i < conversionConfig.getEventNameColumns().size(); i++) {
 				eventNameColumnIndex[i] = headerMap.get(conversionConfig.getEventNameColumns().get(i));
 			}
-			if (conversionConfig.getCompletionTimeColumn() != "") {
+			if (conversionConfig.getCompletionTimeColumn() != null && !conversionConfig.getCompletionTimeColumn().isEmpty()) {
 				completionTimeColumnIndex = headerMap.get(conversionConfig.getCompletionTimeColumn());
 			}
-			if (conversionConfig.getStartTimeColumn() != "") {
+			if (conversionConfig.getStartTimeColumn() != null && !conversionConfig.getStartTimeColumn().isEmpty()) {
 				startTimeColumnIndex = headerMap.get(conversionConfig.getStartTimeColumn());
 			}
 		} catch (IOException e) {
