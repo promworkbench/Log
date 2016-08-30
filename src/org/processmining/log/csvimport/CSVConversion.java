@@ -90,16 +90,19 @@ public final class CSVConversion {
 		void log(String message);
 	}
 
-	public final static class NoOpProgressListenerImpl implements ProgressListener {
+	public static class NoOpProgressListenerImpl implements ProgressListener {
+
 		public void log(String message) {
 		}
 
 		public Progress getProgress() {
 			return new NoOpProgressImpl();
 		}
+
 	}
 
-	private final static class NoOpProgressImpl implements Progress {
+	public static class NoOpProgressImpl implements Progress {
+		
 		public void setValue(int value) {
 		}
 
@@ -139,12 +142,12 @@ public final class CSVConversion {
 		}
 
 		public String getCaption() {
-			return null;
+			return "";
 		}
 
 		public void cancel() {
-
 		}
+		
 	}
 
 	private static final class ImportOrdering extends Ordering<String[]> {
@@ -218,6 +221,22 @@ public final class CSVConversion {
 
 	/**
 	 * Convert a {@link CSVFileReferenceOpenCSVImpl} into an {@link XLog} using
+	 * the supplied configuration. Without progress information.
+	 * 
+	 * @param csvFile
+	 * @param importConfig
+	 * @param conversionConfig
+	 * @return
+	 * @throws CSVConversionException
+	 * @throws CSVConversionConfigException
+	 */
+	public ConversionResult<XLog> doConvertCSVToXES(CSVFile csvFile, CSVConfig importConfig,
+			CSVConversionConfig conversionConfig) throws CSVConversionException, CSVConversionConfigException {
+		return doConvertCSVToXES(new NoOpProgressListenerImpl(), csvFile, importConfig, conversionConfig);
+	}
+
+	/**
+	 * Convert a {@link CSVFileReferenceOpenCSVImpl} into an {@link XLog} using
 	 * the supplied configuration.
 	 * 
 	 * @param progressListener
@@ -229,10 +248,10 @@ public final class CSVConversion {
 	 * @throws CSVConversionConfigException
 	 */
 	public ConversionResult<XLog> doConvertCSVToXES(final ProgressListener progressListener, CSVFile csvFile,
-			CSVConfig importConfig, CSVConversionConfig conversionConfig) throws CSVConversionException,
-			CSVConversionConfigException {
-		return convertCSV(progressListener, importConfig, conversionConfig, csvFile, new XESConversionHandlerImpl(
-				importConfig, conversionConfig));
+			CSVConfig importConfig, CSVConversionConfig conversionConfig)
+			throws CSVConversionException, CSVConversionConfigException {
+		return convertCSV(progressListener, importConfig, conversionConfig, csvFile,
+				new XESConversionHandlerImpl(importConfig, conversionConfig));
 	}
 
 	/**
@@ -281,10 +300,9 @@ public final class CSVConversion {
 				String columnHeader = header[i];
 				Integer oldIndex = headerMap.put(columnHeader, i);
 				if (oldIndex != null) {
-					throw new CSVConversionException(
-							String.format(
-									"Ambigous header in the CSV file: Two columns (%s, %s) have the same header %s. Please fix this in the CSV file!",
-									oldIndex, i, columnHeader));
+					throw new CSVConversionException(String.format(
+							"Ambigous header in the CSV file: Two columns (%s, %s) have the same header %s. Please fix this in the CSV file!",
+							oldIndex, i, columnHeader));
 				}
 				CSVMapping columnMapping = conversionConfig.getConversionMap().get(columnHeader);
 				columnMap.put(i, columnMapping);
@@ -296,7 +314,8 @@ public final class CSVConversion {
 			for (int i = 0; i < conversionConfig.getEventNameColumns().size(); i++) {
 				eventNameColumnIndex[i] = headerMap.get(conversionConfig.getEventNameColumns().get(i));
 			}
-			if (conversionConfig.getCompletionTimeColumn() != null && !conversionConfig.getCompletionTimeColumn().isEmpty()) {
+			if (conversionConfig.getCompletionTimeColumn() != null
+					&& !conversionConfig.getCompletionTimeColumn().isEmpty()) {
 				completionTimeColumnIndex = headerMap.get(conversionConfig.getCompletionTimeColumn());
 			}
 			if (conversionConfig.getStartTimeColumn() != null && !conversionConfig.getStartTimeColumn().isEmpty()) {
@@ -313,9 +332,9 @@ public final class CSVConversion {
 			try {
 				long startSortTime = System.currentTimeMillis();
 				int maxMemory = (int) ((Runtime.getRuntime().maxMemory() * 0.30) / 1024 / 1024);
-				progress.log(String.format(
-						"Sorting CSV file (%.2f MB) by case and time using maximal %s MB of memory ...",
-						(getFileSizeInBytes(csvFile) / 1024 / 1024), maxMemory));
+				progress.log(
+						String.format("Sorting CSV file (%.2f MB) by case and time using maximal %s MB of memory ...",
+								(getFileSizeInBytes(csvFile) / 1024 / 1024), maxMemory));
 				Ordering<String[]> caseComparator = new ImportOrdering(caseColumnIndex, columnMap,
 						completionTimeColumnIndex, startTimeColumnIndex, conversionConfig.getErrorHandlingMode());
 				sortedFile = CSVSorter.sortCSV(csvFile, caseComparator, importConfig, maxMemory, header.length,
@@ -390,8 +409,9 @@ public final class CSVConversion {
 						final String name = header[i];
 						final String value = nextLine[i];
 
-						if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.SPARSE && (value == null
-								|| conversionConfig.getTreatAsEmptyValues().contains(value) || value.isEmpty()))) {
+						if (!(conversionConfig.getEmptyCellHandlingMode() == CSVEmptyCellHandlingMode.SPARSE
+								&& (value == null || conversionConfig.getTreatAsEmptyValues().contains(value)
+										|| value.isEmpty()))) {
 							parseAttributes(progress, conversionConfig, conversionHandler, columnMap.get(i), lineIndex,
 									i, name, nextLine);
 						}
@@ -449,8 +469,8 @@ public final class CSVConversion {
 			try {
 				return parseDate((DateFormat) columnMap.get(timeColumnIndex).getFormat(), timeValue);
 			} catch (ParseException e) {
-				conversionHandler.errorDetected(lineIndex, timeColumnIndex, columnMap.get(timeColumnIndex)
-						.getEventAttributeName(), timeValue, e);
+				conversionHandler.errorDetected(lineIndex, timeColumnIndex,
+						columnMap.get(timeColumnIndex).getEventAttributeName(), timeValue, e);
 				return null;
 			}
 		}
@@ -474,12 +494,14 @@ public final class CSVConversion {
 				switch (csvMapping.getDataType()) {
 					case BOOLEAN :
 						boolean boolVal;
-						if ("true".equalsIgnoreCase(value) || "J".equalsIgnoreCase(value) || "Y".equalsIgnoreCase(value) || "T".equalsIgnoreCase(value) || "1".equals(value)) {
+						if ("true".equalsIgnoreCase(value) || "J".equalsIgnoreCase(value) || "Y".equalsIgnoreCase(value)
+								|| "T".equalsIgnoreCase(value) || "1".equals(value)) {
 							boolVal = true;
-						} else if ("false".equalsIgnoreCase(value) || "N".equalsIgnoreCase(value) || "F".equalsIgnoreCase(value) || "0".equals(value)) {
+						} else if ("false".equalsIgnoreCase(value) || "N".equalsIgnoreCase(value)
+								|| "F".equalsIgnoreCase(value) || "0".equals(value)) {
 							boolVal = false;
 						} else {
-							throw new ParseException(value +" cannot be converted to a boolean", 0);
+							throw new ParseException(value + " cannot be converted to a boolean", 0);
 						}
 						conversionHandler.startAttribute(name, boolVal);
 						break;
@@ -503,8 +525,8 @@ public final class CSVConversion {
 					case LITERAL :
 					default :
 						if (csvMapping.getFormat() != null) {
-							value = ((MessageFormat) csvMapping.getFormat()).format(ObjectArrays.concat(value, line),
-									new StringBuffer(), null).toString();
+							value = ((MessageFormat) csvMapping.getFormat())
+									.format(ObjectArrays.concat(value, line), new StringBuffer(), null).toString();
 						}
 						conversionHandler.startAttribute(name, value);
 						break;
