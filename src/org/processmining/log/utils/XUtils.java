@@ -100,13 +100,13 @@ public final class XUtils {
 	/**
 	 * The invisible activity. Activity to be used for mapping silent transitions on.
 	 */
-	public final static XEventClass invisibleActivity = new XEventClass("[invisible]", 0);
+	public final static XEventClass INVISIBLEACTIVITY = new XEventClass("[invisible]", 0);
 	
 	/**
 	 * The move-on-model activity. Activity to be used for mapping transition on that are not 
 	 * covered by the log at hand. As such, they will always have to be a move-on-model.
 	 */
-	public final static XEventClass moveOnModelActivity = new XEventClass("[move on model]", 0);
+	public final static XEventClass MOVEONMODELACTIVITY = new XEventClass("[move on model]", 0);
 
 	public static final XEventClassifier STANDARDCLASSIFIER = new XEventAndClassifier(new XEventNameClassifier(),
 			new XEventLifeTransClassifier());
