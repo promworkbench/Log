@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 
+import org.apache.commons.io.input.BOMInputStream;
 import org.processmining.log.csv.config.CSVConfig;
 
 import com.univocity.parsers.csv.CsvParser;
@@ -29,7 +30,8 @@ public class CSVUnivocityImpl implements ICSV {
 		settings.getFormat().setQuote(importConfig.getQuoteChar().getQuoteChar());
 		settings.getFormat().setCharToEscapeQuoteEscaping(importConfig.getEscapeChar().getEscapeChar());
 		CsvParser parser = new CsvParser(settings);
-		parser.beginParsing(new BufferedReader(new InputStreamReader(is, importConfig.getCharset()), BUFFER_SIZE));
+		BOMInputStream bomExcludingStream = new BOMInputStream(is); // exclude BOM byte for UTF-BOM encoded files as those mess up with pretty much everything
+		parser.beginParsing(new BufferedReader(new InputStreamReader(bomExcludingStream, importConfig.getCharset()), BUFFER_SIZE));
 		return parser;
 	}
 
