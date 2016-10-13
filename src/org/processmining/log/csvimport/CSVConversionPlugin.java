@@ -36,11 +36,13 @@ import com.google.common.base.Throwables;
  */
 public final class CSVConversionPlugin {
 
-	@Plugin(name = "Convert CSV to XES", level = PluginLevel.PeerReviewed, parameterLabels = { "CSV" }, returnLabels = { "XES Event Log" }, // 
-	returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1,// 
-	keywords = { "CSV", "OpenXES", "Conversion", "Import" }, help = "Converts the CSV file to a OpenXES XLog object.")
+	@Plugin(name = "Convert CSV to XES", level = PluginLevel.PeerReviewed, parameterLabels = { "CSV" }, returnLabels = {
+			"XES Event Log" }, // 
+			returnTypes = { XLog.class }, userAccessible = true, mostSignificantResult = 1, // 
+			keywords = { "CSV", "OpenXES", "Conversion",
+					"Import" }, help = "Converts the CSV file to a OpenXES XLog object.")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt, N. Tax, D.M.M. Schunselaar", // 
-	email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl", pack = "Log")
+			email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl", pack = "Log")
 	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csvFile) {
 
 		InteractionResult result = InteractionResult.CONTINUE;
@@ -54,8 +56,17 @@ public final class CSVConversionPlugin {
 				switch (i) {
 					case 0 :
 						result = queryImportConfig(context, csvFile, importConfig);
-						csvConversionConfig = new CSVConversionConfig(csvFile, importConfig);
-						csvConversionConfig.autoDetect();
+						try {
+							csvConversionConfig = new CSVConversionConfig(csvFile, importConfig);
+							csvConversionConfig.autoDetect();
+						} catch (CSVConversionException e) {							
+							// Due to the strange wizard framework, we cannot cancel this dialog. So show again. The only way to cancel is through the user.
+							if (result != InteractionResult.CANCEL) {
+								continue wizardLoop;	
+							} else {
+								ProMUIHelper.showErrorMessage(context, e.getMessage(), "CSV Conversion Failed");
+							}
+						}
 						break;
 					case 1 :
 						result = queryConversionConfig(context, csvFile, importConfig, csvConversionConfig);
@@ -88,7 +99,7 @@ public final class CSVConversionPlugin {
 						"Warning: Some issues have been detected during conversion");
 			}
 			return conversionResult.getResult();
-		} catch (CSVConversionException e) {			
+		} catch (CSVConversionException e) {
 			Throwable rootCause = Throwables.getRootCause(e);
 			String errorMessage;
 			if (rootCause != null) {
