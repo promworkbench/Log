@@ -160,7 +160,7 @@
 	</target>
 
 	<target name="resolve">
-		<ivy:retrieve type="jar" sync="true" />
+		<ivy:retrieve sync="true" />
 		<delete>
 			<fileset dir="lib">
 				<include name="*" />
