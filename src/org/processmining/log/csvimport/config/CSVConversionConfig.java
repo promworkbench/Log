@@ -386,7 +386,7 @@ public final class CSVConversionConfig {
 			autoDetectEventColumn(headers);
 			autoDetectCompletionTimeColumn(headers);
 			autoDetectStartTimeColumn(headers);
-			autoDetectDataTypes(csvFile, getConversionMap(), csvConfig);
+			autoDetectDataTypes();
 		} catch (IOException e) {
 			throw new CSVConversionException("Could not auto-detect column types.", e);
 		}
@@ -435,9 +435,8 @@ public final class CSVConversionConfig {
 		}
 	}
 
-	private void autoDetectDataTypes(CSVFile csv, Map<String, CSVMapping> conversionMap, CSVConfig csvConfig)
-			throws IOException {
-		try (ICSVReader reader = csv.createReader(csvConfig)) {
+	public void autoDetectDataTypes() throws CSVConversionException {
+		try (ICSVReader reader = csvFile.createReader(csvConfig)) {
 			String[] header = reader.readNext();
 
 			//TODO FM, can't this be done in a more streaming fashion?
@@ -474,6 +473,8 @@ public final class CSVConversionConfig {
 
 				}
 			}
+		} catch (IOException e) {
+			throw new CSVConversionException("Could not auto-detect column types.", e);
 		}
 	}
 
