@@ -110,6 +110,21 @@ public final class StandardDateFormats {
 			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm:ss"));
 			add(new SimpleDateFormat("MM/dd/yyyy'T'HH:mm"));
 			add(new SimpleDateFormat("MM/dd/yyyy"));
+			
+			add(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSSz"));
+			add(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("dd/MM/yyyy HH:mm:ssXXX"));
+			add(new SimpleDateFormat("dd/MM/yyyy HH:mm:ssz"));
+			add(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"));
+			add(new SimpleDateFormat("dd/MM/yyyy HH:mm"));
+			add(new SimpleDateFormat("dd/MM/yyyy'T'HH:mm:ss.SSSXXX"));
+			add(new SimpleDateFormat("dd/MM/yyyy'T'HH:mm:ss.SSSz"));
+			add(new SimpleDateFormat("dd/MM/yyyy'T'HH:mm:ss.SSS"));
+			add(new SimpleDateFormat("dd/MM/yyyy'T'HH:mm:ssXXX"));
+			add(new SimpleDateFormat("dd/MM/yyyy'T'HH:mm:ssz"));
+			add(new SimpleDateFormat("dd/MM/yyyy'T'HH:mm:ss"));
+			add(new SimpleDateFormat("dd/MM/yyyy'T'HH:mm"));	
 
 			add(new SimpleDateFormat("yyyy.M.d H:mm:ss.SSSXXX"));
 			add(new SimpleDateFormat("yyyy.M.d H:mm:ss.SSSz"));
