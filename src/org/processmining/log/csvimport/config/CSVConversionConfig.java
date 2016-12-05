@@ -154,10 +154,13 @@ public final class CSVConversionConfig {
 	static {
 		List<ExtensionAttribute> list = new ArrayList<>();
 		list.add(NO_EXTENSION_ATTRIBUTE);
-		addAttributesFromExtension(XConceptExtension.instance(), XConceptExtension.instance().getEventAttributes(),list);
-		addAttributesFromExtension(XOrganizationalExtension.instance(), XOrganizationalExtension.instance().getEventAttributes(), list);
+		addAttributesFromExtension(XConceptExtension.instance(), XConceptExtension.instance().getEventAttributes(),
+				list);
+		addAttributesFromExtension(XOrganizationalExtension.instance(),
+				XOrganizationalExtension.instance().getEventAttributes(), list);
 		addAttributesFromExtension(XTimeExtension.instance(), XTimeExtension.instance().getEventAttributes(), list);
-		addAttributesFromExtension(XLifecycleExtension.instance(), XLifecycleExtension.instance().getEventAttributes(),list);
+		addAttributesFromExtension(XLifecycleExtension.instance(), XLifecycleExtension.instance().getEventAttributes(),
+				list);
 		addAttributesFromExtension(XCostExtension.instance(), XCostExtension.instance().getEventAttributes(), list);
 		AVAILABLE_EVENT_EXTENSIONS_ATTRIBUTES = list.toArray(new ExtensionAttribute[list.size()]);
 	}
@@ -352,15 +355,13 @@ public final class CSVConversionConfig {
 					conversionMap.put(columnHeader, mapping);
 				} else {
 					if (columnHeader == null) {
-						throw new CSVConversionException(
-								MessageFormat
-										.format("The CSV file contains two columns with an empty name! The CSV importer cannot handle such CSV files. Please rename the columns (i.e., the first line of the CSV file) such that columns have unique names.",
-												columnHeader));
+						throw new CSVConversionException(MessageFormat.format(
+								"The CSV file contains two columns with an empty name! The CSV importer cannot handle such CSV files. Please rename the columns (i.e., the first line of the CSV file) such that columns have unique names.",
+								columnHeader));
 					} else {
-						throw new CSVConversionException(
-								MessageFormat
-										.format("The CSV file contains two columns with the same name: {0}! The CSV importer cannot handle such CSV files. Please rename the columns (i.e., the first line of the CSV file) such that columns have unique names.",
-												columnHeader));
+						throw new CSVConversionException(MessageFormat.format(
+								"The CSV file contains two columns with the same name: {0}! The CSV importer cannot handle such CSV files. Please rename the columns (i.e., the first line of the CSV file) such that columns have unique names.",
+								columnHeader));
 					}
 				}
 			}
@@ -534,8 +535,8 @@ public final class CSVConversionConfig {
 			hasParsed = true;
 			//TODO what about mixed
 			if (!("J".equalsIgnoreCase(value) || "Y".equalsIgnoreCase(value) || "T".equalsIgnoreCase(value)
-					|| "true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value) || "N".equalsIgnoreCase(value) || "F"
-						.equalsIgnoreCase(value))) {
+					|| "true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value) || "N".equalsIgnoreCase(value)
+					|| "F".equalsIgnoreCase(value))) {
 				isBoolean = false;
 				break;
 			}
@@ -676,11 +677,11 @@ public final class CSVConversionConfig {
 	public void setCaseColumns(List<String> caseColumns) {
 		// Remove old mapping
 		for (String caseColumn : this.caseColumns) {
-			getConversionMap().get(caseColumn).traceAttributeName = "";
+			getConversionMap().get(caseColumn).setTraceAttributeName("");
 		}
 		// Set new mapping
 		for (String caseColumn : caseColumns) {
-			getConversionMap().get(caseColumn).traceAttributeName = "concept:name";
+			getConversionMap().get(caseColumn).setTraceAttributeName("concept:name");
 			getConversionMap().get(caseColumn).setDataType(Datatype.LITERAL);
 		}
 		this.caseColumns = caseColumns;
@@ -694,13 +695,13 @@ public final class CSVConversionConfig {
 		// Remove old mapping
 		for (String eventColumn : this.eventNameColumns) {
 			getConversionMap().get(eventColumn).setEventExtensionAttribute(NO_EXTENSION_ATTRIBUTE);
-			getConversionMap().get(eventColumn).eventAttributeName = eventColumn;
+			getConversionMap().get(eventColumn).setEventAttributeName(eventColumn);
 		}
 		// Set new mapping
 		for (String eventColumn : eventNameColumns) {
-			getConversionMap().get(eventColumn).setEventExtensionAttribute(
-					new ExtensionAttribute("concept:name", XConceptExtension.instance()));
-			getConversionMap().get(eventColumn).eventAttributeName = "concept:name";
+			getConversionMap().get(eventColumn)
+					.setEventExtensionAttribute(new ExtensionAttribute("concept:name", XConceptExtension.instance()));
+			getConversionMap().get(eventColumn).setEventAttributeName("concept:name");
 			getConversionMap().get(eventColumn).setDataType(Datatype.LITERAL);
 		}
 		this.eventNameColumns = eventNameColumns;
@@ -710,17 +711,24 @@ public final class CSVConversionConfig {
 		return completionTimeColumn;
 	}
 
+	private ExtensionAttribute previousCompletionTimeExtension;
+	private Datatype previousCompletionTimeDataType;
+
 	public void setCompletionTimeColumn(String completionTimeColumn) {
-		if (completionTimeColumn != null && this.completionTimeColumn != null && !this.completionTimeColumn.isEmpty()) {
-			// Reset mapping for old column
-			getConversionMap().get(this.completionTimeColumn).setEventExtensionAttribute(NO_EXTENSION_ATTRIBUTE);
-			getConversionMap().get(this.completionTimeColumn).eventAttributeName = this.completionTimeColumn;
+		// Reset mapping for old column		
+		if (this.completionTimeColumn != null && !this.completionTimeColumn.isEmpty()) {
+			getConversionMap().get(this.completionTimeColumn).setDataType(previousCompletionTimeDataType);
+			getConversionMap().get(this.completionTimeColumn).setEventExtensionAttribute(previousCompletionTimeExtension);
+			getConversionMap().get(this.completionTimeColumn).setEventAttributeName(this.completionTimeColumn);
 		}
+
 		if (completionTimeColumn != null && !completionTimeColumn.isEmpty()) {
-			getConversionMap().get(completionTimeColumn).setDataType(Datatype.TIME);
-			getConversionMap().get(completionTimeColumn).setEventExtensionAttribute(
-					new ExtensionAttribute("time:timestamp", XTimeExtension.instance()));
-			getConversionMap().get(completionTimeColumn).eventAttributeName = "time:timestamp";
+			CSVMapping mapping = getConversionMap().get(completionTimeColumn);
+			previousCompletionTimeDataType = mapping.getDataType();
+			mapping.setDataType(Datatype.TIME);
+			previousCompletionTimeExtension = mapping.getEventExtensionAttribute();
+			mapping.setEventExtensionAttribute(new ExtensionAttribute("time:timestamp", XTimeExtension.instance()));
+			mapping.setEventAttributeName("time:timestamp");
 		}
 		this.completionTimeColumn = completionTimeColumn;
 	}
@@ -729,17 +737,24 @@ public final class CSVConversionConfig {
 		return startTimeColumn;
 	}
 
+	private ExtensionAttribute previousStartTimeExtension;
+	private Datatype previousStartTimeDataType;
+
 	public void setStartTimeColumn(String startTimeColumn) {
-		if (startTimeColumn != null && this.startTimeColumn != null && !this.startTimeColumn.isEmpty()) {
-			// Reset mapping for old column
-			getConversionMap().get(this.startTimeColumn).setEventExtensionAttribute(NO_EXTENSION_ATTRIBUTE);
-			getConversionMap().get(this.startTimeColumn).eventAttributeName = this.startTimeColumn;
+		// Reset mapping for old column
+		if (this.startTimeColumn != null && !this.startTimeColumn.isEmpty()) {
+			getConversionMap().get(this.startTimeColumn).setDataType(previousStartTimeDataType);
+			getConversionMap().get(this.startTimeColumn).setEventExtensionAttribute(previousStartTimeExtension);
+			getConversionMap().get(this.startTimeColumn).setEventAttributeName(this.startTimeColumn);
 		}
+
 		if (startTimeColumn != null && !startTimeColumn.isEmpty()) {
-			getConversionMap().get(startTimeColumn).setDataType(Datatype.TIME);
-			getConversionMap().get(startTimeColumn).setEventExtensionAttribute(
-					new ExtensionAttribute("time:timestamp", XTimeExtension.instance()));
-			getConversionMap().get(startTimeColumn).eventAttributeName = "time:timestamp";
+			CSVMapping mapping = getConversionMap().get(startTimeColumn);
+			previousStartTimeDataType = mapping.getDataType();
+			mapping.setDataType(Datatype.TIME);
+			previousStartTimeExtension = mapping.getEventExtensionAttribute();
+			mapping.setEventExtensionAttribute(new ExtensionAttribute("time:timestamp", XTimeExtension.instance()));
+			mapping.setEventAttributeName("time:timestamp");
 		}
 		this.startTimeColumn = startTimeColumn;
 	}
