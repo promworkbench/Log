@@ -1,8 +1,11 @@
 package org.processmining.log.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.deckfour.xes.classification.XEventNameClassifier;
+import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XLog;
 import org.junit.Test;
 
@@ -24,6 +27,28 @@ public class XUtilsTest {
 		assertEquals(2, XUtils.countVariantsByClassifier(log, new XEventNameClassifier()));
 		
 		assertEquals(2, XUtils.getVariantsByClassifier(log, new XEventNameClassifier()).keySet().size());
+	}
+	
+	@Test
+	public void testSameType() {
+
+		XAttribute a = XUtils.createAttribute("a", "a");
+		XAttribute b = XUtils.createAttribute("b", "b");
+
+		XAttribute c = XUtils.createAttribute("c", false);
+		XAttribute d = XUtils.createAttribute("c", true);
+		
+		XAttribute e = XUtils.createAttribute("c", 2);
+		XAttribute f = XUtils.createAttribute("c", 3);
+		
+		assertTrue(XUtils.isSameType(a, b));
+		assertFalse(XUtils.isSameType(a, c));
+		assertTrue(XUtils.isSameType(c, d));
+		
+		assertTrue(XUtils.isSameType(e, f));
+		assertFalse(XUtils.isSameType(e, c));
+		assertFalse(XUtils.isSameType(e, b));
+		
 	}
 
 }

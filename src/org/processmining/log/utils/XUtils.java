@@ -98,13 +98,15 @@ public final class XUtils {
 	}
 
 	/**
-	 * The invisible activity. Activity to be used for mapping silent transitions on.
+	 * The invisible activity. Activity to be used for mapping silent
+	 * transitions on.
 	 */
 	public final static XEventClass INVISIBLEACTIVITY = new XEventClass("[invisible]", 0);
-	
+
 	/**
-	 * The move-on-model activity. Activity to be used for mapping transition on that are not 
-	 * covered by the log at hand. As such, they will always have to be a move-on-model.
+	 * The move-on-model activity. Activity to be used for mapping transition on
+	 * that are not covered by the log at hand. As such, they will always have
+	 * to be a move-on-model.
 	 */
 	public final static XEventClass MOVEONMODELACTIVITY = new XEventClass("[move on model]", 0);
 
@@ -483,6 +485,41 @@ public final class XUtils {
 		for (XAttribute attr : oldLog.getGlobalTraceAttributes()) {
 			newLog.getGlobalTraceAttributes().add((XAttribute) attr.clone());
 		}
+	}
+
+	/**
+	 * Checks whether both objects implement the same XAttribute interface
+	 * 
+	 * @param obj1
+	 * @param obj2
+	 * @return
+	 */
+	public static boolean isSameType(XAttribute obj1, XAttribute obj2) {
+		if (obj1 instanceof XAttributeList && obj2 instanceof XAttributeList) {
+			return true;
+		}
+		if (obj1 instanceof XAttributeContainer && obj2 instanceof XAttributeContainer) {
+			return true;
+		}
+		if (obj1 instanceof XAttributeLiteral && obj2 instanceof XAttributeLiteral) {
+			return true;
+		}
+		if (obj1 instanceof XAttributeBoolean && obj2 instanceof XAttributeBoolean) {
+			return true;
+		}
+		if (obj1 instanceof XAttributeContinuous && obj2 instanceof XAttributeContinuous) {
+			return true;
+		}
+		if (obj1 instanceof XAttributeDiscrete && obj2 instanceof XAttributeDiscrete) {
+			return true;
+		}
+		if (obj1 instanceof XAttributeTimestamp && obj2 instanceof XAttributeTimestamp) {
+			return true;
+		}		
+		if (obj1 instanceof XAttributeID && obj2 instanceof XAttributeID) {
+			return true;
+		}	
+		return false;
 	}
 
 	/**
