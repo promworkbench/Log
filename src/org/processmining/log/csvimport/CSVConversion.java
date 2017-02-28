@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -15,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.model.XLog;
 import org.processmining.framework.plugin.Progress;
 import org.processmining.log.csv.CSVFile;
@@ -76,6 +79,8 @@ import com.ning.compress.lzf.LZFInputStream;
  */
 public final class CSVConversion {
 
+	private static final int PROGRESS_REPORT_WINDOW = 10000;
+
 	public interface ConversionResult<R> {
 		R getResult();
 
@@ -102,7 +107,7 @@ public final class CSVConversion {
 	}
 
 	public static class NoOpProgressImpl implements Progress {
-		
+
 		public void setValue(int value) {
 		}
 
@@ -147,76 +152,7 @@ public final class CSVConversion {
 
 		public void cancel() {
 		}
-		
-	}
 
-	private static final class ImportOrdering extends Ordering<String[]> {
-
-		private final int[] caseIndices;
-
-		private final int completionTimeIndex;
-		private final CSVMapping completionTimeMapping;
-
-		private final CSVErrorHandlingMode errorHandlingMode;
-
-		public ImportOrdering(int[] indices, Map<Integer, CSVMapping> mappingMap, int completionTimeIndex,
-				int startTimeIndex, CSVErrorHandlingMode errorHandlingMode) {
-			this.caseIndices = indices;
-			this.completionTimeIndex = completionTimeIndex;
-			this.completionTimeMapping = mappingMap.get(completionTimeIndex);
-			this.errorHandlingMode = errorHandlingMode;
-		}
-
-		public int compare(String[] o1, String[] o2) {
-			if (o1.length != o2.length) {
-				throw new IllegalArgumentException(
-						"Can only compare lines in a CSV file with the same number of columns!");
-			}
-			// First compare on all the case columns
-			for (int i = 0; i < caseIndices.length; i++) {
-				int index = caseIndices[i];
-				// We treat empty and NULL cells as the same as there is no concept of a NULL cell in CSV 
-				String s1 = o1[index] == null ? "" : o1[index];
-				String s2 = o2[index] == null ? "" : o2[index];
-				int comp = s1.compareTo(s2);
-				if (comp != 0) {
-					// Case ID is different on current index
-					return comp;
-				}
-			}
-			// Belongs to the same case over all indices, compare on completion time
-			if (completionTimeIndex != -1) {
-				// Sort by completion time
-				return compareTime(completionTimeMapping, o1[completionTimeIndex], o2[completionTimeIndex]);
-			} else {
-				// Keep ordering -> using a stable sort algorithm
-				return 0;
-			}
-		}
-
-		private int compareTime(CSVMapping mapping, String t1, String t2) {
-			Date d1;
-			try {
-				d1 = parseDate((DateFormat) mapping.getFormat(), t1);
-			} catch (ParseException e) {
-				if (errorHandlingMode == CSVErrorHandlingMode.ABORT_ON_ERROR) {
-					throw new IllegalArgumentException("Cannot parse date: " + t1);
-				} else {
-					d1 = new Date(0);
-				}
-			}
-			Date d2;
-			try {
-				d2 = parseDate((DateFormat) mapping.getFormat(), t2);
-			} catch (ParseException e) {
-				if (errorHandlingMode == CSVErrorHandlingMode.ABORT_ON_ERROR) {
-					throw new IllegalArgumentException("Cannot parse date: " + t2);
-				} else {
-					d2 = new Date(0);
-				}
-			}
-			return d1.compareTo(d2);
-		}
 	}
 
 	/**
@@ -275,7 +211,6 @@ public final class CSVConversion {
 
 		Progress p = progress.getProgress();
 
-		//TODO can we provide determinate progress? maybe based on bytes of CSV read
 		p.setMinimum(0);
 		p.setMaximum(1);
 		p.setValue(0);
@@ -331,17 +266,17 @@ public final class CSVConversion {
 		try {
 			try {
 				long startSortTime = System.currentTimeMillis();
-				int maxMemory = (int) ((Runtime.getRuntime().maxMemory() * 0.30) / 1024 / 1024);
+				int maxMemory = (int) ((Runtime.getRuntime().maxMemory() * maxSortingMemory) / 1024 / 1024);
 				progress.log(
 						String.format("Sorting CSV file (%.2f MB) by case and time using maximal %s MB of memory ...",
 								(getFileSizeInBytes(csvFile) / 1024 / 1024), maxMemory));
-				Ordering<String[]> caseComparator = new ImportOrdering(caseColumnIndex, columnMap,
-						completionTimeColumnIndex, startTimeColumnIndex, conversionConfig.getErrorHandlingMode());
+				Ordering<String[]> caseComparator = new StringBasedImportOrdering(caseColumnIndex);
 				sortedFile = CSVSorter.sortCSV(csvFile, caseComparator, importConfig, maxMemory, header.length,
 						progress);
 				sortedCsvInputStream = new LZFInputStream(new FileInputStream(sortedFile));
 				long endSortTime = System.currentTimeMillis();
-				progress.log(String.format("Finished sorting in %d seconds", (endSortTime - startSortTime) / 1000));
+				progress.log(
+						String.format("Finished sorting in %.2f seconds", (endSortTime - startSortTime) / 1000.0d));
 			} catch (IllegalArgumentException e) {
 				throw new CSVSortException("Could not sort CSV file", e);
 			} catch (IOException e) {
@@ -358,7 +293,7 @@ public final class CSVConversion {
 				String[] nextLine;
 				String currentCaseId = null;
 
-				while ((nextLine = reader.readNext()) != null && (caseIndex % 1000 != 0 || !p.isCancelled())) {
+				while ((nextLine = reader.readNext()) != null && (caseIndex % 100 != 0 || !p.isCancelled())) {
 					lineIndex++;
 
 					final String newCaseID = readCompositeAttribute(caseColumnIndex, nextLine,
@@ -379,7 +314,7 @@ public final class CSVConversion {
 						conversionHandler.startTrace(currentCaseId);
 						caseIndex++;
 
-						if (caseIndex % 1000 == 0) {
+						if (caseIndex % PROGRESS_REPORT_WINDOW == 0) {
 							progress.log("Reading line " + lineIndex + ", already " + caseIndex + " cases and "
 									+ eventIndex + " events processed ...");
 						}
@@ -440,7 +375,7 @@ public final class CSVConversion {
 				sortedFile.delete();
 			}
 		}
-
+		commitFactoryIfNeeded(conversionConfig.getFactory());
 		long endConvertTime = System.currentTimeMillis();
 		progress.log(String.format("Finished reading cases in %d seconds.", (endConvertTime - startCSVTime) / 1000));
 
@@ -458,6 +393,24 @@ public final class CSVConversion {
 				return conversionHandler.getConversionErrors();
 			}
 		};
+	}
+
+	/**
+	 * Calls the XESLite commit method if available. Uses reflection to not
+	 * introduce a dependency on XESLite.
+	 * 
+	 * @param factory
+	 */
+	private void commitFactoryIfNeeded(XFactory factory) {
+		try {
+			Method method = factory.getClass().getMethod("commit");
+			if (method != null) {
+				method.invoke(factory);
+			}
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private <R> Date parseTime(final CSVConversionHandler<R> conversionHandler, int timeColumnIndex,
@@ -533,10 +486,14 @@ public final class CSVConversion {
 				}
 			} catch (NumberFormatException e) {
 				conversionHandler.errorDetected(lineIndex, columnIndex, name, value, e);
-				conversionHandler.startAttribute(name, value);
+				if (conversionConfig.getErrorHandlingMode() == CSVErrorHandlingMode.BEST_EFFORT) {
+					conversionHandler.startAttribute(name, value);
+				}
 			} catch (ParseException e) {
 				conversionHandler.errorDetected(lineIndex, columnIndex, name, value, e);
-				conversionHandler.startAttribute(name, value);
+				if (conversionConfig.getErrorHandlingMode() == CSVErrorHandlingMode.BEST_EFFORT) {
+					conversionHandler.startAttribute(name, value);
+				}
 			}
 		}
 		conversionHandler.endAttribute();
@@ -572,6 +529,7 @@ public final class CSVConversion {
 	}
 
 	private static Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*");
+	private double maxSortingMemory = 0.30;
 
 	private static Date parseDate(DateFormat customDateFormat, String value) throws ParseException {
 
@@ -602,6 +560,14 @@ public final class CSVConversion {
 		}
 
 		throw new ParseException("Could not parse " + value, -1);
+	}
+
+	public double getMaxSortingMemory() {
+		return maxSortingMemory;
+	}
+
+	public void setMaxSortingMemory(double maxSortingMemory) {
+		this.maxSortingMemory = maxSortingMemory;
 	}
 
 }

@@ -205,11 +205,11 @@ public class ExpertConfigUI extends CSVConfigurationPanel {
 
 	private Set<XFactory> getAvailableXFactories() {
 		//Try to register XESLite Factories
-		tryRegisterFactory("org.processmining.xeslite.lite.factory.XFactoryLiteImpl");
-		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskImpl");
-		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskWithoutCacheImpl");
-		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskSequentialAccessImpl");
-		tryRegisterFactory("org.processmining.xeslite.external.XFactoryExternalStore$MapDBDiskSequentialAccessWithoutCacheImpl");
+		tryRegisterFactory("org.xeslite.lite.factory.XFactoryLiteImpl");
+		tryRegisterFactory("org.xeslite.external.XFactoryExternalStore$MapDBDiskImpl");
+		tryRegisterFactory("org.xeslite.external.XFactoryExternalStore$MapDBDiskWithoutCacheImpl");
+		tryRegisterFactory("org.xeslite.external.XFactoryExternalStore$MapDBDiskSequentialAccessImpl");
+		tryRegisterFactory("org.xeslite.external.XFactoryExternalStore$InMemoryStoreImpl");
 		return XFactoryRegistry.instance().getAvailable();
 	}
 

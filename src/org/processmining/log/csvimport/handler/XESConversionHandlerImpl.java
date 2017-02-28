@@ -41,9 +41,21 @@ import com.google.common.collect.Ordering;
  * @author F. Mannhardt
  *
  */
-public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog> {
+public class XESConversionHandlerImpl implements CSVConversionHandler<XLog> {
 
 	private static final int MAX_ERROR_LENGTH = 1 * 1024 * 1024;
+
+	private static final Comparator<? super XEvent> TIME_COMPARATOR = new Comparator<XEvent>() {
+
+		public int compare(XEvent o1, XEvent o2) {
+			// assumes stable sorting so start events will be always before complete events
+			Date time1 = XUtils.getTimestamp(o1);
+			Date time2 = XUtils.getTimestamp(o2);
+			return Ordering.natural() // use Date built-in comparator
+					.nullsFirst() // null aware since some events might not have times
+					.compare(time1, time2);
+		}
+	};
 
 	private final XFactory factory;
 	private final CSVConversionConfig conversionConfig;
@@ -53,7 +65,6 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 
 	private XTrace currentTrace = null;
 	private List<XEvent> currentEvents = new ArrayList<>();
-	private boolean traceHasStartEvents = false;
 
 	private int instanceCounter = 0;
 
@@ -71,8 +82,8 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	@Override
 	public String getConversionErrors() {
 		if (conversionErrors.length() >= MAX_ERROR_LENGTH) {
-			return conversionErrors.toString().concat(
-					"... (multiple error messages have been omitted to avoid running out of memory)");
+			return conversionErrors.toString()
+					.concat("... (multiple error messages have been omitted to avoid running out of memory)");
 		} else {
 			return conversionErrors.toString();
 		}
@@ -101,7 +112,6 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	@Override
 	public void startTrace(String caseId) {
 		currentEvents.clear();
-		traceHasStartEvents = false;
 		errorDetected = false;
 		currentTrace = factory.createTrace();
 		assignName(factory, currentTrace, caseId);
@@ -110,23 +120,16 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	@Override
 	public void endTrace(String caseId) {
 		if (errorDetected && conversionConfig.getErrorHandlingMode() == CSVErrorHandlingMode.OMIT_TRACE_ON_ERROR) {
-			// Do not include the whole trace
+			// Skip the entire trace
 			return;
 		}
-		if (traceHasStartEvents) {
-			Comparator<XEvent> comparator = new Comparator<XEvent>() {
-
-				public int compare(XEvent o1, XEvent o2) {
-					// assumes stable sorting so start events will be always before complete events
-					Date time1 = XTimeExtension.instance().extractTimestamp(o1);
-					Date time2 = XTimeExtension.instance().extractTimestamp(o2);
-					return Ordering.natural().nullsFirst().compare(time1, time2);
-				}
-			};
-			Collections.sort(currentEvents, comparator);
-		}
+		sortEventsByTimestamp();
 		currentTrace.addAll(currentEvents);
 		log.add(currentTrace);
+	}
+
+	private void sortEventsByTimestamp() {
+		Collections.sort(currentEvents, TIME_COMPARATOR);
 	}
 
 	@Override
@@ -153,7 +156,6 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 			assignInstance(factory, currentEvent, instance);
 			assignLifecycleTransition(factory, currentEvent, XLifecycleExtension.StandardModel.COMPLETE);
 
-			traceHasStartEvents = true;
 			// Add additional start event
 			currentStartEvent = factory.createEvent();
 			if (eventClass != null) {
@@ -338,9 +340,9 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 				break;
 			case OMIT_EVENT_ON_ERROR :
 				if (conversionErrors.length() < MAX_ERROR_LENGTH) {
-					conversionErrors.append("Line: " + lineNumber + ", " + columnInfo + "\n"
-							+ "Skipping event, could not convert " + nullSafeToString(content) + "\nError: " + e
-							+ "\n\n");
+					conversionErrors.append(
+							"Line: " + lineNumber + ", " + columnInfo + "\n" + "Skipping event, could not convert "
+									+ nullSafeToString(content) + "\nError: " + e + "\n\n");
 				}
 				break;
 			case OMIT_TRACE_ON_ERROR :
@@ -352,8 +354,8 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 				break;
 			default :
 			case ABORT_ON_ERROR :
-				throw new CSVConversionException("Error converting " + content + " at line " + lineNumber
-						+ "and column " + columnIndex, e);
+				throw new CSVConversionException(
+						"Error converting " + content + " at line " + lineNumber + "and column " + columnIndex, e);
 		}
 	}
 
@@ -370,7 +372,8 @@ public final class XESConversionHandlerImpl implements CSVConversionHandler<XLog
 	private boolean specialColumn(String columnName) {
 		return columnName == null
 				|| (XConceptExtension.KEY_NAME.equals(columnName) && !conversionConfig.getEventNameColumns().isEmpty())
-				|| (XTimeExtension.KEY_TIMESTAMP.equals(columnName) && conversionConfig.getCompletionTimeColumn() != null)
+				|| (XTimeExtension.KEY_TIMESTAMP.equals(columnName)
+						&& conversionConfig.getCompletionTimeColumn() != null)
 				|| (XConceptExtension.KEY_INSTANCE.equals(columnName) && conversionConfig.getStartTimeColumn() != null);
 	}
 

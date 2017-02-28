@@ -233,6 +233,7 @@ public final class CSVConversionConfig {
 
 		private Datatype dataType = Datatype.LITERAL;
 		private String dataPattern = "";
+		private DateFormat cachedDateFormat = null;
 		private String traceAttributeName = "";
 		private String eventAttributeName = "";
 		private ExtensionAttribute eventExtensionAttribute = NO_EXTENSION_ATTRIBUTE;
@@ -249,6 +250,9 @@ public final class CSVConversionConfig {
 			return dataPattern;
 		}
 
+		/**
+		 * @return a format to parse the value, which might be NOT be thread safe
+		 */
 		public Format getFormat() {
 			switch (getDataType()) {
 				case BOOLEAN :
@@ -279,7 +283,10 @@ public final class CSVConversionConfig {
 					if (dataPattern.isEmpty()) {
 						return null;
 					} else {
-						return new SimpleDateFormat(dataPattern);
+						if (cachedDateFormat == null) {
+							cachedDateFormat = new SimpleDateFormat(dataPattern);
+						} 
+						return cachedDateFormat; 
 					}
 			}
 			throw new RuntimeException("Unkown data type " + getDataType());
@@ -287,6 +294,7 @@ public final class CSVConversionConfig {
 
 		public void setPattern(String dataPattern) {
 			this.dataPattern = dataPattern;
+			this.cachedDateFormat = null;
 		}
 
 		public String getTraceAttributeName() {
