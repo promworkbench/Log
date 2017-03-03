@@ -16,14 +16,14 @@ import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
 import org.deckfour.xes.in.XMxmlParser;
 import org.deckfour.xes.in.XParser;
-import org.deckfour.xes.in.XParserRegistry;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.model.XLog;
 import org.processmining.framework.abstractplugins.AbstractImportPlugin;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 
-@Plugin(name = "Open XES Log File", parameterLabels = { "Filename" }, returnLabels = { "Log (single process)" }, returnTypes = { XLog.class })
+@Plugin(name = "Open XES Log File", parameterLabels = { "Filename" }, returnLabels = {
+		"Log (single process)" }, returnTypes = { XLog.class })
 //@UIImportPlugin(description = "ProM log files", extensions = { "mxml", "xml", "gz", "zip", "xes", "xez" })
 public class OpenLogFilePlugin extends AbstractImportPlugin {
 
@@ -35,12 +35,12 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 	 * Holds the name of the zipped file, if input is zip file.
 	 */
 	private String zipName;
-	
+
 	public OpenLogFilePlugin() {
 		zipFile = null;
 		zipName = null;
 	}
-	
+
 	protected Object importFromStream(PluginContext context, InputStream input, String filename, long fileSizeInBytes,
 			XFactory factory) throws Exception {
 		context.getFutureResult(0).setLabel(filename);
@@ -48,15 +48,19 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 		XParser parser;
 		if (zipName != null) {
 			/*
-			 * Stream contains a zip file. Use the name of the zipped file, not of the zip file itself.
+			 * Stream contains a zip file. Use the name of the zipped file, not
+			 * of the zip file itself.
 			 */
 			filename = zipName;
 		}
-		if (filename.toLowerCase().endsWith(".xes") || filename.toLowerCase().endsWith(".xez")
-				|| filename.toLowerCase().endsWith(".xes.gz")) {
-			parser = new XesXmlParser(factory);
-		} else {
+		/*
+		 * Only use MXML parser if the file has th eproper extesnion. 
+		 * In all other cases, use the XES parser.
+		 */
+		if (filename.toLowerCase().endsWith(".mxml") || filename.toLowerCase().endsWith(".mxml.gz")) {
 			parser = new XMxmlParser(factory);
+		} else {
+			parser = new XesXmlParser(factory);
 		}
 		Collection<XLog> logs = null;
 		Exception firstException = null;
@@ -68,25 +72,25 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 			firstException = e;
 			errorMessage = errorMessage + e;
 		}
-		if (logs == null || logs.isEmpty()) {
-			// try any other parser
-			for (XParser p : XParserRegistry.instance().getAvailable()) {
-				if (p == parser) {
-					continue;
-				}
-				try {
-					logs = p.parse(new XContextMonitoredInputStream(input, fileSizeInBytes, context.getProgress()));
-					if (logs.size() > 0) {
-						break;
-					}
-				} catch (Exception e1) {
-					// ignore and move on.
-					logs = null;
-					errorMessage = errorMessage + " [" + p.name() + ":" + e1 + "]";
-				}
-			}
-		}
-		
+//		if (logs == null || logs.isEmpty()) {
+//			// try any other parser
+//			for (XParser p : XParserRegistry.instance().getAvailable()) {
+//				if (p == parser) {
+//					continue;
+//				}
+//				try {
+//					logs = p.parse(new XContextMonitoredInputStream(input, fileSizeInBytes, context.getProgress()));
+//					if (logs.size() > 0) {
+//						break;
+//					}
+//				} catch (Exception e1) {
+//					// ignore and move on.
+//					logs = null;
+//					errorMessage = errorMessage + " [" + p.name() + ":" + e1 + "]";
+//				}
+//			}
+//		}
+
 		// Log file has been read from the stream. The zip file (if present) can now be closed.
 		if (zipFile != null) {
 			zipFile.close();
@@ -96,11 +100,12 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 		// log sanity checks;
 		// notify user if the log is awkward / does miss crucial information
 		if (logs == null) {
-//			context.getFutureResult(0).cancel(false);
-			throw new Exception("Could not open log file, possible cause: "/* + errorMessage,*/ + firstException);
+			//			context.getFutureResult(0).cancel(false);
+			throw new Exception("Could not open log file, possible cause: "
+					/* + errorMessage, */ + firstException);
 		}
 		if (logs.size() == 0) {
-//			context.getFutureResult(0).cancel(false);
+			//			context.getFutureResult(0).cancel(false);
 			throw new Exception("No processes contained in log!");
 		}
 
@@ -112,9 +117,9 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 			XConceptExtension.instance().assignName(log, "Anonymous log imported from " + filename);
 		}
 
-//		if (log.isEmpty()) {
-//			throw new Exception("No process instances contained in log!");
-//		}
+		//		if (log.isEmpty()) {
+		//			throw new Exception("No process instances contained in log!");
+		//		}
 
 		/*
 		 * Set the log name as the name of the provided object.
@@ -150,7 +155,8 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 				throw new InvalidParameterException("Zipped log files should not contain more than one entry.");
 			}
 			/*
-			 * Store the name of the zipped file. This will override the provided filename when importing.
+			 * Store the name of the zipped file. This will override the
+			 * provided filename when importing.
 			 */
 			zipName = zipEntry.getName();
 			// Return stream of only entry in zip file.
@@ -163,7 +169,8 @@ public class OpenLogFilePlugin extends AbstractImportPlugin {
 	protected Object importFromStream(PluginContext context, InputStream input, String filename, long fileSizeInBytes)
 			throws Exception {
 		// TODO Auto-generated method stub
-		return importFromStream(context, input, filename, fileSizeInBytes, XFactoryRegistry.instance().currentDefault());
+		return importFromStream(context, input, filename, fileSizeInBytes,
+				XFactoryRegistry.instance().currentDefault());
 	}
 
 }
