@@ -540,7 +540,10 @@ public final class CSVConversion {
 		if (customDateFormat != null) {
 			ParsePosition pos = new ParsePosition(0);
 			Date date = customDateFormat.parse(value, pos);
-			if (date != null) {
+			
+			// Fix if there are more than 3 digits for ms for example 44.00.540000, do not return and
+			// ensure string is formatted to 540 ms instead of 540000 ms
+			if (date != null && !INVALID_MS_PATTERN.matcher(value).find()) {
 				return date;
 			} else {
 				String fixedValue = INVALID_MS_PATTERN.matcher(value).replaceFirst("$1");
