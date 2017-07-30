@@ -28,6 +28,7 @@ import javax.swing.event.ListDataListener;
 import org.processmining.framework.util.ui.widgets.ProMComboBox;
 import org.processmining.framework.util.ui.widgets.ProMListSortableWithComboBox;
 import org.processmining.framework.util.ui.widgets.ProMTextField;
+import org.processmining.framework.util.ui.widgets.helper.ProMUIHelper;
 import org.processmining.log.csv.CSVFile;
 import org.processmining.log.csv.ICSVReader;
 import org.processmining.log.csv.config.CSVConfig;
@@ -56,41 +57,45 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 		}
 
 		public void updateSettings() {
-			conversionConfig.setCaseColumns(caseComboBox.getElements());
-			conversionConfig.setEventNameColumns(eventComboBox.getElements());
-			conversionConfig.setStartTimeColumn(startTimeColumnCbx.getSelectedItem().toString());
-			conversionConfig.setCompletionTimeColumn(completionTimeColumnCbx.getSelectedItem().toString());
+			try {
+				conversionConfig.setCaseColumns(caseComboBox.getElements());
+				conversionConfig.setEventNameColumns(eventComboBox.getElements());
+				conversionConfig.setStartTimeColumn(startTimeColumnCbx.getSelectedItem().toString());
+				conversionConfig.setCompletionTimeColumn(completionTimeColumnCbx.getSelectedItem().toString());
 
-			if (conversionConfig.getStartTimeColumn().isEmpty()) {
-				startTimeFormat.setText("");
-				startTimeFormat.setEnabled(false);
-			} else {
-				startTimeFormat.setEnabled(true);
-				if (hasManipulatedStartTime) {
-					CSVMapping mapping = conversionConfig.getConversionMap()
-							.get(conversionConfig.getStartTimeColumn());
-					mapping.setPattern(startTimeFormat.getText());
+				if (conversionConfig.getStartTimeColumn().isEmpty()) {
+					startTimeFormat.setText("");
+					startTimeFormat.setEnabled(false);
 				} else {
-					// use originally guess format 
-					startTimeFormat.setText(conversionConfig.getConversionMap()
-							.get(conversionConfig.getStartTimeColumn()).getPattern());
+					startTimeFormat.setEnabled(true);
+					if (hasManipulatedStartTime) {
+						CSVMapping mapping = conversionConfig.getConversionMap()
+								.get(conversionConfig.getStartTimeColumn());
+						mapping.setPattern(startTimeFormat.getText());
+					} else {
+						// use originally guess format 
+						startTimeFormat.setText(conversionConfig.getConversionMap()
+								.get(conversionConfig.getStartTimeColumn()).getPattern());
+					}
 				}
-			}
 
-			if (conversionConfig.getCompletionTimeColumn().isEmpty()) {
-				completionTimeFormat.setText("");
-				completionTimeFormat.setEnabled(false);
-			} else {
-				completionTimeFormat.setEnabled(true);
-				if (hasManipulatedCompletionTime) {
-					CSVMapping mapping = conversionConfig.getConversionMap()
-							.get(conversionConfig.getCompletionTimeColumn());
-					mapping.setPattern(completionTimeFormat.getText());
+				if (conversionConfig.getCompletionTimeColumn().isEmpty()) {
+					completionTimeFormat.setText("");
+					completionTimeFormat.setEnabled(false);
 				} else {
-					// use originally guess format 
-					completionTimeFormat.setText(conversionConfig.getConversionMap()
-							.get(conversionConfig.getCompletionTimeColumn()).getPattern());
+					completionTimeFormat.setEnabled(true);
+					if (hasManipulatedCompletionTime) {
+						CSVMapping mapping = conversionConfig.getConversionMap()
+								.get(conversionConfig.getCompletionTimeColumn());
+						mapping.setPattern(completionTimeFormat.getText());
+					} else {
+						// use originally guess format 
+						completionTimeFormat.setText(conversionConfig.getConversionMap()
+								.get(conversionConfig.getCompletionTimeColumn()).getPattern());
+					}
 				}
+			} catch (RuntimeException e) {
+				ProMUIHelper.showErrorMessage(previewFrame, e.getMessage() != null ? e.getMessage() : e.toString(), "Error updating configuration", e);
 			}
 
 			previewFrame.refresh();
@@ -252,12 +257,12 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 					conversionConfig.getConversionMap().get(conversionConfig.getCompletionTimeColumn()).getPattern());
 		}
 		completionTimeFormat.addKeyListener(new KeyAdapter() {
-			
+
 			public void keyPressed(KeyEvent e) {
 				hasManipulatedCompletionTime = true;
 				update();
 			}
-			
+
 			private void update() {
 				try {
 					new SimpleDateFormat(completionTimeFormat.getText());
@@ -267,7 +272,7 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 					completionTimeFormat.getTextField().setForeground(Color.RED);
 				}
 			}
-			
+
 		});
 
 		startTimeColumnCbx = new ProMComboBox<>(headersInclEmpty);
@@ -295,14 +300,14 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 			startTimeFormat.setText(
 					conversionConfig.getConversionMap().get(conversionConfig.getStartTimeColumn()).getPattern());
 		}
-		
+
 		startTimeFormat.addKeyListener(new KeyAdapter() {
-			
+
 			public void keyPressed(KeyEvent e) {
 				hasManipulatedStartTime = true;
 				update();
 			}
-			
+
 			private void update() {
 				try {
 					new SimpleDateFormat(startTimeFormat.getText());
@@ -312,9 +317,9 @@ public final class ConversionConfigUI extends CSVConfigurationPanel implements A
 					startTimeFormat.getTextField().setForeground(Color.RED);
 				}
 			}
-			
+
 		});
-		
+
 		SequentialGroup verticalGroup = layout.createSequentialGroup();
 		verticalGroup.addGroup(layout.createParallelGroup(Alignment.CENTER).addComponent(standardAttributesLabel)
 				.addComponent(showPreviewButton));

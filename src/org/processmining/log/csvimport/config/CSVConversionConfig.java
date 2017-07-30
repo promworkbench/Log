@@ -356,10 +356,9 @@ public final class CSVConversionConfig {
 			String[] headers = csvFile.readHeader(csvConfig);
 			for (String columnHeader : headers) {
 				CSVMapping mapping = new CSVMapping();
-				if (columnHeader != null) {
+				if (!conversionMap.containsKey(columnHeader) && columnHeader != null) {
+					// We do not support duplicate column names or empty column names!
 					mapping.setEventAttributeName(columnHeader);
-				}
-				if (!conversionMap.containsKey(columnHeader)) {
 					conversionMap.put(columnHeader, mapping);
 				} else {
 					if (columnHeader == null) {
@@ -690,8 +689,12 @@ public final class CSVConversionConfig {
 		}
 		// Set new mapping
 		for (String caseColumn : caseColumns) {
-			getConversionMap().get(caseColumn).setTraceAttributeName("concept:name");
-			getConversionMap().get(caseColumn).setDataType(Datatype.LITERAL);
+			if (caseColumn != null) {
+				getConversionMap().get(caseColumn).setTraceAttributeName("concept:name");
+				getConversionMap().get(caseColumn).setDataType(Datatype.LITERAL);	
+			} else {
+				throw new NullPointerException("Tried to set a column with NULL identifier as case column!");
+			}
 		}
 		this.caseColumns = caseColumns;
 	}
@@ -708,10 +711,14 @@ public final class CSVConversionConfig {
 		}
 		// Set new mapping
 		for (String eventColumn : eventNameColumns) {
-			getConversionMap().get(eventColumn)
-					.setEventExtensionAttribute(new ExtensionAttribute("concept:name", XConceptExtension.instance()));
-			getConversionMap().get(eventColumn).setEventAttributeName("concept:name");
-			getConversionMap().get(eventColumn).setDataType(Datatype.LITERAL);
+			if (eventColumn != null) {
+				getConversionMap().get(eventColumn)
+						.setEventExtensionAttribute(new ExtensionAttribute("concept:name", XConceptExtension.instance()));
+				getConversionMap().get(eventColumn).setEventAttributeName("concept:name");
+				getConversionMap().get(eventColumn).setDataType(Datatype.LITERAL);
+			} else {
+				throw new NullPointerException("Tried to set a column with NULL identifier as event column!");
+			}
 		}
 		this.eventNameColumns = eventNameColumns;
 	}

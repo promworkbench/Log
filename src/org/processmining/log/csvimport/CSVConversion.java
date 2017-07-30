@@ -358,7 +358,9 @@ public final class CSVConversion {
 				}
 
 				// Close last trace
-				conversionHandler.endTrace(currentCaseId);
+				if (currentCaseId != null) { // at least one trace is present
+					conversionHandler.endTrace(currentCaseId);	
+				}				
 
 			} catch (IOException e) {
 				throw new CSVConversionException("Error converting the CSV file to XES", e);
@@ -409,7 +411,6 @@ public final class CSVConversion {
 			}
 		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
-			e.printStackTrace();
 		}
 	}
 

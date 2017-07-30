@@ -210,7 +210,7 @@ final class CSVSorter {
 					Iterator<String[]> result = sorter.sort(inputDataReader);
 
 					// Write sorted result to compressed file
-					if (result != null && result.hasNext()) {
+					if (result != null) {
 						File sortedCsvFile = Files.createTempFile(csvFile.getFilename() + "-sorted", ".lzf").toFile();
 						DataWriter<String[]> dataWriter = dataWriterFactory.constructWriter(new FileOutputStream(
 								sortedCsvFile));
@@ -227,11 +227,7 @@ final class CSVSorter {
 						}
 						return sortedCsvFile;
 					} else {
-						if (!result.hasNext()) {
-							throw new CSVSortException("Could not sort file! Input parser returned empty file.");
-						} else {
-							throw new CSVSortException("Could not sort file! Unkown error while sorting.");
-						}
+						throw new CSVSortException("Could not sort file! Unkown error while sorting.");
 					}
 
 				} finally {

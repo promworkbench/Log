@@ -42,7 +42,7 @@ public final class CSVConversionPlugin {
 			keywords = { "CSV", "OpenXES", "Conversion",
 					"Import" }, help = "Converts the CSV file to a OpenXES XLog object.")
 	@UITopiaVariant(affiliation = UITopiaVariant.EHV, author = " F. Mannhardt, N. Tax, D.M.M. Schunselaar", // 
-			email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@tue.nl", pack = "Log")
+			email = "f.mannhardt@tue.nl, n.tax@tue.nl, d.m.m.schunselaar@vu.nl", pack = "Log")
 	public XLog convertCSVToXES(final UIPluginContext context, CSVFile csvFile) {
 
 		InteractionResult result = InteractionResult.CONTINUE;
@@ -59,12 +59,11 @@ public final class CSVConversionPlugin {
 						try {
 							csvConversionConfig = new CSVConversionConfig(csvFile, importConfig);
 							csvConversionConfig.autoDetect();
-						} catch (CSVConversionException e) {							
+						} catch (CSVConversionException e) {								
 							// Due to the strange wizard framework, we cannot cancel this dialog. So show again. The only way to cancel is through the user.
 							if (result != InteractionResult.CANCEL) {
-								continue wizardLoop;	
-							} else {
 								ProMUIHelper.showErrorMessage(context, e.getMessage(), "CSV Conversion Failed");
+								continue wizardLoop;	
 							}
 						}
 						break;
