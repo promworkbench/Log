@@ -615,7 +615,10 @@ public final class CSVConversionConfig {
 
 		// check whether type is date
 		boolean isConsistentDateFormat = true;
-		final Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*");
+		// Millisecond fix for Java SimpleDateFormat in case of a date like this 14:08:09.100000 
+		// where the milliseconds would be treated as 100000ms instead of 100ms
+		// Only matche when at the end of the string to avoid capturing year values when using the '.' as separator
+		final Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*$"); 
 		for (SimpleDateFormat formatter : StandardDateFormats.getStandardDateFormats()) {
 			if (canParseAllValues(values, isConsistentDateFormat, INVALID_MS_PATTERN, formatter)) {
 				final String pattern = formatter.toPattern();
@@ -651,8 +654,7 @@ public final class CSVConversionConfig {
 			if (value == null || value.isEmpty() || treatAsEmptyValues.contains(value))
 				continue;
 
-			// Millisecond fix for Java SimpleDateFormat in case of a date like this 14:08:09.100000 
-			// where the milliseconds would be treated as 100000 ms instead of 100ms
+			// Millisecond fix for Java SimpleDateFormat
 			String fixedValue = INVALID_MS_PATTERN.matcher(value).replaceFirst("$1");
 
 			ParsePosition pos = new ParsePosition(0);

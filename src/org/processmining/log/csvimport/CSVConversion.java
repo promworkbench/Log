@@ -529,7 +529,7 @@ public final class CSVConversion {
 		return sb.substring(0, sb.length() - 1);
 	}
 
-	private static Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*");
+	private static Pattern INVALID_MS_PATTERN = Pattern.compile("(\\.[0-9]{3})[0-9]*$");
 	private double maxSortingMemory = 0.30;
 
 	private static Date parseDate(DateFormat customDateFormat, String value) throws ParseException {
