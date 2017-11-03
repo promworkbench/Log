@@ -35,9 +35,9 @@ import au.com.bytecode.opencsv.CSVWriter;
  * XES serialization to CSV including all trace/event attributes. The names of
  * trace attributes are prefixed with "trace_", those of event attributes are
  * prefixed with "event_".
- * 
+ *
  * @author F. Mannhardt
- * 
+ *
  */
 public final class XesCsvSerializer implements XSerializer {
 
@@ -50,7 +50,7 @@ public final class XesCsvSerializer implements XSerializer {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.deckfour.xes.out.XesSerializer#getDescription()
 	 */
 	public String getDescription() {
@@ -59,7 +59,7 @@ public final class XesCsvSerializer implements XSerializer {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.deckfour.xes.out.XesSerializer#getName()
 	 */
 	public String getName() {
@@ -68,7 +68,7 @@ public final class XesCsvSerializer implements XSerializer {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.deckfour.xes.out.XesSerializer#getAuthor()
 	 */
 	public String getAuthor() {
@@ -77,7 +77,7 @@ public final class XesCsvSerializer implements XSerializer {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.deckfour.xes.out.XesSerializer#getSuffices()
 	 */
 	public String[] getSuffices() {
@@ -86,7 +86,7 @@ public final class XesCsvSerializer implements XSerializer {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.deckfour.xes.out.XesSerializer#serialize(org.deckfour.xes.model.XLog,
 	 * java.io.OutputStream)
@@ -113,8 +113,8 @@ public final class XesCsvSerializer implements XSerializer {
 	private List<String[]> compileTrace(XTrace trace, Map<String, Integer> columnMap, int rowLength) {
 		List<String[]> traceList = new ArrayList<String[]>();
 		String[] currentRow = null;
+		Set<XEvent> convertedEvents = new HashSet<>();
 		for (ListIterator<XEvent> iterator = trace.listIterator(); iterator.hasNext();) {
-			Set<XEvent> convertedEvents = new HashSet<>();
 			XEvent event = iterator.next();
 			if (!convertedEvents.contains(event)) {
 				StandardModel lifecycle = XLifecycleExtension.instance().extractStandardTransition(event);
@@ -134,20 +134,26 @@ public final class XesCsvSerializer implements XSerializer {
 						convertedEvents.add(completionEvent);
 					}
 				} else if (lifecycle == StandardModel.COMPLETE) {
-					XEvent startEvent = null;
-					if (lifecycle == StandardModel.START) {
+					//XEvent startEvent = null;
+					//MASSIMILIANO: Not sure what the aim: if lifecycle==COMPLETE, we are in this block. Hence, lifecycle cannot be
+					//START. Therefore, we never enter the loop below.
+					/*if (lifecycle == StandardModel.START) {
 						startEvent = lookup(trace.listIterator(iterator.nextIndex()), event, StandardModel.START);
-					}
-					currentRow = compileEvent(trace, startEvent, event, columnMap, rowLength, currentRow);
+					}*/
+					currentRow = compileEvent(trace, null, event, columnMap, rowLength, currentRow);
 					convertedEvents.add(event);
+
+					//MASSIMILIANO: I've removed the following part. I have the feeling that you're trying to map with some
+					//start event following the complete. This would mean that the end event might be larger than the start event.
+					/*convertedEvents.add(event);
 					if (startEvent != null) {
-						convertedEvents.add(startEvent);
-					}
+						convertedEvents.add(startEvent);*/
+				//}
 				} else {
-					// ignore we only export start and complete 
+					// ignore we only export start and complete
 				}
-			}
 			traceList.add(currentRow);
+			}
 		}
 		return traceList;
 	}
@@ -197,13 +203,13 @@ public final class XesCsvSerializer implements XSerializer {
 		}
 
 		for (XAttribute attr : trace.getAttributes().values()) {
-			if (!XUtils.isStandardExtensionAttribute(attr)) {
+			if (!XUtils.isStandardExtensionAttribute(attr) || attr.getKey().startsWith("org:")) {
 				assert columnMap.containsKey("trace_" + attr.getKey()) : "Column unkown " + attr.getKey();
 				row[columnMap.get("trace_" + attr.getKey())] = convertAttribute(attr);
 			}
 		}
 		for (XAttribute attr : mainEvent.getAttributes().values()) {
-			if (!XUtils.isStandardExtensionAttribute(attr)) {
+			if (!XUtils.isStandardExtensionAttribute(attr) || attr.getKey().startsWith("org:")) {
 				assert columnMap.containsKey("event_" + attr.getKey()) : "Column unkown " + attr.getKey();
 				row[columnMap.get("event_" + attr.getKey())] = convertAttribute(attr);
 			}
@@ -230,15 +236,15 @@ public final class XesCsvSerializer implements XSerializer {
 		int i = headerList.size() - 1;
 		XAttributeInfo traceAttributeInfo = logInfo.getTraceAttributeInfo();
 		for (XAttribute attr : traceAttributeInfo.getAttributes()) {
-			if (!XUtils.isStandardExtensionAttribute(attr)) {
+			if (!XUtils.isStandardExtensionAttribute(attr) || attr.getKey().startsWith("org:")) {
 				i++;
 				headerList.add(attr.getKey());
 				columnMap.put("trace_" + attr.getKey(), i);
 			}
 		}
 		XAttributeInfo eventAttributeInfo = logInfo.getEventAttributeInfo();
-		for (XAttribute attr : eventAttributeInfo.getAttributes()) {
-			if (!XUtils.isStandardExtensionAttribute(attr)) {
+		for (XAttribute attr : eventAttributeInfo.getAttributes() ) {
+			if (!XUtils.isStandardExtensionAttribute(attr) || attr.getKey().startsWith("org:")) {
 				i++;
 				if (headerList.contains(attr.getKey())) {
 					headerList.add("event_" + attr.getKey());
@@ -254,7 +260,7 @@ public final class XesCsvSerializer implements XSerializer {
 
 	/**
 	 * Helper method, returns the String representation of the attribute
-	 * 
+	 *
 	 * @param attribute
 	 *            The attributes to convert
 	 */
