@@ -64,9 +64,7 @@ public final class ExportLogCsv {
 		String activityName;
 		
 		for (XTrace trace : log) {
-			/*XTrace copy = factory.createTrace(t.getAttributes());
-			result.add(copy);
-			XEvent event;*/
+			map.clear();
 			for (XEvent event : trace) {
 				switch(lfExt.extractStandardTransition(event))
 				{
