@@ -36,6 +36,7 @@ public class AttributeFilterDialog extends JPanel {
 	private Map<String, ProMList<String>> lists;
 	private Map<String, JCheckBox> mustHaves;
 	private ProMTextField textField;
+	private JCheckBox removeEmptyTraces;
 	AttributeFilterParameters parameters;
 	
 	public AttributeFilterDialog(PluginContext context, AttributeFilterParameters parameters, String namePostfix) {
@@ -48,7 +49,7 @@ public class AttributeFilterDialog extends JPanel {
 			context.getProgress().inc();
 		}
 
-		double size[][] = { { 80, TableLayoutConstants.FILL }, { TableLayoutConstants.FILL, 30 } };
+		double size[][] = { { 80, TableLayoutConstants.FILL }, { TableLayoutConstants.FILL, 30, 30 } };
 		setLayout(new TableLayout(size));
 
 		setOpaque(false);
@@ -95,8 +96,10 @@ public class AttributeFilterDialog extends JPanel {
 		textField.setText(parameters.getName() + namePostfix);
 		add(textField, "1, 1");
 		textField.setPreferredSize(new Dimension(100, 25));
-
 		add(new JLabel("Log name:"), "0, 1");
+
+		removeEmptyTraces = SlickerFactory.instance().createCheckBox("Remove trace if all events were removed", parameters.isRemoveEmptyTraces()); 
+		add(removeEmptyTraces, "0, 2, 1, 2");
 	}
 	
 	public void applyFilter() {
@@ -110,5 +113,6 @@ public class AttributeFilterDialog extends JPanel {
 		}
 		parameters.setMustHave(mustHaves);
 		parameters.setName(textField.getText());
+		parameters.setRemoveEmptyTraces(removeEmptyTraces.isSelected());
 	}
 }

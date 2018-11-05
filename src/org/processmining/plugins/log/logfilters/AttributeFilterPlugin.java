@@ -24,6 +24,7 @@ public class AttributeFilterPlugin {
 	public XLog filterDialog(UIPluginContext context, XLog log) {
 		context.getProgress().setMaximum(3 * log.size());
 		AttributeFilterParameters parameters = new AttributeFilterParameters(context, log);
+		parameters.setRemoveEmptyTraces(true);
 		AttributeFilterDialog dialog = new AttributeFilterDialog(context, parameters, " (filtered on event attributes)");
 		InteractionResult result = context.showWizard("Configure filter (values)", true, true, dialog);
 		if (result != InteractionResult.FINISHED) {
@@ -65,7 +66,9 @@ public class AttributeFilterPlugin {
 				}
 				context.getProgress().inc();
 			}
-			filteredLog.add(filteredTrace);
+			if (!parameters.isRemoveEmptyTraces() || !filteredTrace.isEmpty()) {
+				filteredLog.add(filteredTrace);
+			}
 		}
 		XConceptExtension.instance().assignName(filteredLog, parameters.getName());
 		context.getFutureResult(0).setLabel(parameters.getName());

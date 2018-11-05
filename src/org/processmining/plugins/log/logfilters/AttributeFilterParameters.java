@@ -17,11 +17,13 @@ public class AttributeFilterParameters {
 	protected Map<String,Set<String>> filter;
 	protected Set<String> mustHaves;
 	protected String name;
+	private boolean removeEmptyTraces;
 	
 	public AttributeFilterParameters(PluginContext context) {
 		filter = new HashMap<String,Set<String>>();
 		mustHaves = new HashSet<String>();
 		name = "";
+		setRemoveEmptyTraces(false);
 	}
 	
 	public AttributeFilterParameters(PluginContext context, XLog log) {
@@ -66,5 +68,13 @@ public class AttributeFilterParameters {
 	
 	public String getName() {
 		return name;
+	}
+
+	public boolean isRemoveEmptyTraces() {
+		return removeEmptyTraces;
+	}
+
+	public void setRemoveEmptyTraces(boolean removeEmptyTraces) {
+		this.removeEmptyTraces = removeEmptyTraces;
 	}
 }
