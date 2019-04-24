@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XLifecycleExtension;
+import org.deckfour.xes.extension.std.XLifecycleExtension.StandardModel;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
 import org.deckfour.xes.model.XEvent;
@@ -66,7 +67,12 @@ public final class ExportLogCsv {
 		for (XTrace trace : log) {
 			map.clear();
 			for (XEvent event : trace) {
-				switch(lfExt.extractStandardTransition(event))
+				StandardModel transition = lfExt.extractStandardTransition(event);
+				if (transition == null) {
+					// No lifecycle transition  information. Ignore.
+					continue;
+				}
+				switch(transition)
 				{
 					case START :
 						activityName=cpExt.extractName(event);
