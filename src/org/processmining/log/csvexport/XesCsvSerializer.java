@@ -42,10 +42,16 @@ import au.com.bytecode.opencsv.CSVWriter;
 public final class XesCsvSerializer implements XSerializer {
 
 	private final FastDateFormat dateFormat;
+	private boolean sparse;
 
 	public XesCsvSerializer(String dateFormatString) {
+		this(dateFormatString, false);
+	}
+
+	public XesCsvSerializer(String dateFormatString, boolean sparse) {
 		super();
-		dateFormat = FastDateFormat.getInstance(dateFormatString);
+		this.dateFormat = FastDateFormat.getInstance(dateFormatString);
+		this.sparse = sparse;
 	}
 
 	/*
@@ -137,22 +143,25 @@ public final class XesCsvSerializer implements XSerializer {
 					//XEvent startEvent = null;
 					//MASSIMILIANO: Not sure what the aim: if lifecycle==COMPLETE, we are in this block. Hence, lifecycle cannot be
 					//START. Therefore, we never enter the loop below.
-					/*if (lifecycle == StandardModel.START) {
-						startEvent = lookup(trace.listIterator(iterator.nextIndex()), event, StandardModel.START);
-					}*/
+					/*
+					 * if (lifecycle == StandardModel.START) { startEvent =
+					 * lookup(trace.listIterator(iterator.nextIndex()), event,
+					 * StandardModel.START); }
+					 */
 					currentRow = compileEvent(trace, null, event, columnMap, rowLength, currentRow);
 					convertedEvents.add(event);
 
 					//MASSIMILIANO: I've removed the following part. I have the feeling that you're trying to map with some
 					//start event following the complete. This would mean that the end event might be larger than the start event.
-					/*convertedEvents.add(event);
-					if (startEvent != null) {
-						convertedEvents.add(startEvent);*/
-				//}
+					/*
+					 * convertedEvents.add(event); if (startEvent != null) {
+					 * convertedEvents.add(startEvent);
+					 */
+					//}
 				} else {
 					// ignore we only export start and complete
 				}
-			traceList.add(currentRow);
+				traceList.add(currentRow);
 			}
 		}
 		return traceList;
@@ -214,10 +223,16 @@ public final class XesCsvSerializer implements XSerializer {
 				row[columnMap.get("event_" + attr.getKey())] = convertAttribute(attr);
 			}
 		}
-		if (lastRow != null) {
-			for (int i = 0; i < row.length; i++) {
-				if (row[i] == null) {
-					row[i] = lastRow[i];
+//		System.out.println("[XesCsvSerializer] sparse = " + sparse);
+		if (!sparse) {
+			/*
+			 * Copy value from previous row to avoid empty cells.
+			 */
+			if (lastRow != null) {
+				for (int i = 0; i < row.length; i++) {
+					if (row[i] == null) {
+						row[i] = lastRow[i];
+					}
 				}
 			}
 		}
@@ -243,7 +258,7 @@ public final class XesCsvSerializer implements XSerializer {
 			}
 		}
 		XAttributeInfo eventAttributeInfo = logInfo.getEventAttributeInfo();
-		for (XAttribute attr : eventAttributeInfo.getAttributes() ) {
+		for (XAttribute attr : eventAttributeInfo.getAttributes()) {
 			if (!XUtils.isStandardExtensionAttribute(attr) || attr.getKey().startsWith("org:")) {
 				i++;
 				if (headerList.contains(attr.getKey())) {
