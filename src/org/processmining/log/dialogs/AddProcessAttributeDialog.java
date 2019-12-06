@@ -46,7 +46,7 @@ public class AddProcessAttributeDialog extends JPanel {
 	private static final long serialVersionUID = -7410794120172073533L;
 	private Component oldValuesList = null;
 
-	public AddProcessAttributeDialog(XLog log, AddProcessAttributeParameters parameters) {
+	public AddProcessAttributeDialog(final XLog log, final AddProcessAttributeParameters parameters) {
 		double size[][] = { { 300, TableLayout.FILL }, { 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, TableLayout.FILL } };
 		setLayout(new TableLayout(size));
 		int y = 0;
@@ -75,22 +75,6 @@ public class AddProcessAttributeDialog extends JPanel {
 		});
 		processAttributeKeyTextField.setPreferredSize(new Dimension(500, 30));
 
-/*		String keys = "";
-		String separator = "";
-		for (String key : parameters.getAttributeKeys()) {
-			keys += separator + key;
-			separator = " ";
-		}	
-		final ProMTextField attributeKeysTextField = new ProMTextField(keys);
-		this.add(attributeKeysTextField, "0, " + (y++));
-		attributeKeysTextField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				parameters.setAttributeKeys(attributeKeysTextField.getText().split(" "));
-				updateValues(log, parameters);
-			}
-		});
-		attributeKeysTextField.setPreferredSize(new Dimension(500, 30));*/
-		
 		this.add(new JLabel("Select a first attribute key (required):"), "0, " + (y++));
 		Set<String> attributeKeys = new TreeSet<String>();
 		if (log.size() > 0) {
@@ -213,19 +197,6 @@ public class AddProcessAttributeDialog extends JPanel {
 		this.add(comboBoxAttributeKey2, "0, " + (y++));
 		this.add(comboBoxAttributeKey3, "0, " + (y++));
 		
-/*		final JCheckBox checkBox = SlickerFactory.instance().createCheckBox("Backwards?", parameters.isBackward());
-		checkBox.setSelected(parameters.isBackward());
-		checkBox.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e) {
-				parameters.setBackward(checkBox.isSelected());
-			}
-
-		});
-		checkBox.setOpaque(false);
-		checkBox.setPreferredSize(new Dimension(500, 30));
-		this.add(checkBox, "0, 3");*/
-		
 		this.add(new JLabel("Select collection type:"), "0, " + (y++));
 		ComboBoxModel<String> comboBoxModelCollection = new DefaultComboBoxModel<String>(new String[] { "List", "Set", "Bag" });
 		final ProMComboBox<String> comboBoxCollection = new ProMComboBox<String>(comboBoxModelCollection);
@@ -252,27 +223,6 @@ public class AddProcessAttributeDialog extends JPanel {
 		comboBoxCollection.setPreferredSize(new Dimension(500, 30));
 		this.add(comboBoxCollection, "0, " + (y++));
 
-/*		String collection = "List";
-		if (parameters.getProcessAttributeValues() instanceof TreeMultiSet) {
-			collection = "Bag";
-		} else if (parameters.getProcessAttributeValues() instanceof TreeSet) {
-			collection = "Set";
-		}
-		final ProMTextField attributeValuesTextField = new ProMTextField(collection);
-		this.add(attributeValuesTextField, "0, 4");
-		attributeValuesTextField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (attributeValuesTextField.getText().equals("Set")) {
-					parameters.setProcessAttributeValues(new TreeSet<String>());
-				} else if (attributeValuesTextField.getText().equals("Bag")) {
-					parameters.setProcessAttributeValues(new TreeMultiSet<String>());
-				} else {
-					parameters.setProcessAttributeValues(new ArrayList<String>());
-				}
-			}
-		});
-		attributeValuesTextField.setPreferredSize(new Dimension(500, 30));*/
-
 		this.add(new JLabel("Select collection maximal size:"), "0, " + (y++));
 		final NiceSlider maxSlider = SlickerFactory.instance().createNiceIntegerSlider("Max", 0,
 				100, parameters.getMaxCollectionSize(), Orientation.HORIZONTAL);
@@ -288,7 +238,7 @@ public class AddProcessAttributeDialog extends JPanel {
 		updateValues(log, parameters);
 	}
 
-	private void updateValues(XLog log, AddProcessAttributeParameters parameters) {
+	private void updateValues(final XLog log, final AddProcessAttributeParameters parameters) {
 		Set<String> values = new HashSet<String>();
 		for (XTrace trace : log) {
 			for (XEvent event : trace) {
