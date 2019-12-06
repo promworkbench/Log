@@ -1,7 +1,5 @@
 package org.processmining.log.algorithms;
 
-import java.util.ArrayList;
-
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
@@ -20,9 +18,8 @@ public class AddProcessAttributeAlgorithm {
 
 			for (int i = 0; i < trace.size(); i++) {
 				parameters.getProcessAttributeValues().clear();
-				ArrayList<String> values = new ArrayList<String>();
 				for (int j = i + inc; j != last; j += inc) {
-					if (values.size() < parameters.getMaxCollectionSize()) {
+					if (parameters.getProcessAttributeValues().size() < parameters.getMaxCollectionSize()) {
 						StringBuffer buffer = new StringBuffer();
 						String separator = "";
 						for (String attributeKey : parameters.getAttributeKeys()) {

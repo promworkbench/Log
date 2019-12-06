@@ -23,7 +23,7 @@ public class AddProcessAttributeParameters {
 		setBackward(true);
 		setAttributeKeys(new String[]{ "concept:name" });
 		setProcessAttributeValues(new ArrayList<String>());
-		setMaxCollectionSize(100);
+		setMaxCollectionSize(1);
 		Collection<String> filter = new HashSet<String>();
 		for (XTrace trace : log) {
 			for (XEvent event : trace) {
