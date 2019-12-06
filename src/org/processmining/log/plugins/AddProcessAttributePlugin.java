@@ -19,7 +19,7 @@ import org.processmining.log.parameters.AddProcessAttributeParameters;
 		returnLabels = { "Filtered Log" }, //
 		returnTypes = { XLog.class }, //
 		userAccessible = true, //
-		icon = "prom_duck.png", //
+		icon = "prom_duck_300.png", //
 		url = "http://www.win.tue.nl/~hverbeek/blog/2019/12/06/add-history-future-attribute/", //
 		help = "Adds a new history or future attribute to every event in the log. Click the icon on the right for additional information." //
 ) //
