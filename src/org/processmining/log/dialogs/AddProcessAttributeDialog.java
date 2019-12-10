@@ -39,20 +39,29 @@ import com.fluxicon.slickerbox.factory.SlickerFactory;
 import info.clearthought.layout.TableLayout;
 
 public class AddProcessAttributeDialog extends JPanel {
-	
+
 	/**
-	 * 
+	 * Dialog that allows the user to configure the parameters for adding a
+	 * history/future parameter.
 	 */
 	private static final long serialVersionUID = -7410794120172073533L;
+	/*
+	 * Keep track of the old values filter.
+	 */
 	private Component oldValuesList = null;
 
 	public AddProcessAttributeDialog(final XLog log, final AddProcessAttributeParameters parameters) {
-		double size[][] = { { 300, TableLayout.FILL }, { 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, TableLayout.FILL } };
+		double size[][] = { { 300, TableLayout.FILL },
+				{ 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, TableLayout.FILL } };
 		setLayout(new TableLayout(size));
 		int y = 0;
-		
+
+		/*
+		 * Add a combo box for history/future.
+		 */
 		this.add(new JLabel("Select whether history or future:"), "0, " + (y++));
-		ComboBoxModel<String> comboBoxModelHistory = new DefaultComboBoxModel<String>(new String[] { "History", "Future" });
+		ComboBoxModel<String> comboBoxModelHistory = new DefaultComboBoxModel<String>(
+				new String[] { "History", "Future" });
 		final ProMComboBox<String> comboBoxHistory = new ProMComboBox<String>(comboBoxModelHistory);
 		comboBoxHistory.setSelectedIndex(parameters.isBackward() ? 0 : 1);
 		comboBoxHistory.addActionListener(new ActionListener() {
@@ -65,6 +74,9 @@ public class AddProcessAttributeDialog extends JPanel {
 		comboBoxHistory.setPreferredSize(new Dimension(500, 30));
 		this.add(comboBoxHistory, "0, " + (y++));
 
+		/*
+		 * Add a text field for the new key name.
+		 */
 		this.add(new JLabel("Enter a name for the new attribute:"), "0, " + (y++));
 		final ProMTextField processAttributeKeyTextField = new ProMTextField(parameters.getProcessAttributeKey());
 		this.add(processAttributeKeyTextField, "0, " + (y++));
@@ -75,6 +87,10 @@ public class AddProcessAttributeDialog extends JPanel {
 		});
 		processAttributeKeyTextField.setPreferredSize(new Dimension(500, 30));
 
+		/*
+		 * Add a combo box for the attribute keys to be included. The first key is
+		 * required, the others are optional.
+		 */
 		this.add(new JLabel("Select a first attribute key (required):"), "0, " + (y++));
 		Set<String> attributeKeys = new TreeSet<String>();
 		if (log.size() > 0) {
@@ -92,7 +108,7 @@ public class AddProcessAttributeDialog extends JPanel {
 		int i = 0;
 		attributeKeyList2[i++] = "<None>";
 		for (String key : attributeKeys) {
-			attributeKeyList[i-1] = key;
+			attributeKeyList[i - 1] = key;
 			attributeKeyList2[i++] = key;
 		}
 		ComboBoxModel<String> comboBoxModelAttributeKey = new DefaultComboBoxModel<String>(attributeKeyList);
@@ -126,10 +142,10 @@ public class AddProcessAttributeDialog extends JPanel {
 				keyList[n++] = key;
 				if (!key2.equals("<None>")) {
 					keyList[n++] = key2;
-				}				
+				}
 				if (!key3.equals("<None>")) {
 					keyList[n++] = key3;
-				}				
+				}
 				parameters.setAttributeKeys(keyList);
 				updateValues(log, parameters);
 			}
@@ -153,10 +169,10 @@ public class AddProcessAttributeDialog extends JPanel {
 				keyList[n++] = key;
 				if (!key2.equals("<None>")) {
 					keyList[n++] = key2;
-				}				
+				}
 				if (!key3.equals("<None>")) {
 					keyList[n++] = key3;
-				}				
+				}
 				parameters.setAttributeKeys(keyList);
 				updateValues(log, parameters);
 			}
@@ -180,10 +196,10 @@ public class AddProcessAttributeDialog extends JPanel {
 				keyList[n++] = key;
 				if (!key2.equals("<None>")) {
 					keyList[n++] = key2;
-				}				
+				}
 				if (!key3.equals("<None>")) {
 					keyList[n++] = key3;
-				}				
+				}
 				parameters.setAttributeKeys(keyList);
 				updateValues(log, parameters);
 			}
@@ -196,9 +212,13 @@ public class AddProcessAttributeDialog extends JPanel {
 		this.add(new JLabel("Select additional attribute keys (optional):"), "0, " + (y++));
 		this.add(comboBoxAttributeKey2, "0, " + (y++));
 		this.add(comboBoxAttributeKey3, "0, " + (y++));
-		
+
+		/*
+		 * Add a combo box to select a collection type.
+		 */
 		this.add(new JLabel("Select collection type:"), "0, " + (y++));
-		ComboBoxModel<String> comboBoxModelCollection = new DefaultComboBoxModel<String>(new String[] { "List", "Set", "Bag" });
+		ComboBoxModel<String> comboBoxModelCollection = new DefaultComboBoxModel<String>(
+				new String[] { "List", "Set", "Bag" });
 		final ProMComboBox<String> comboBoxCollection = new ProMComboBox<String>(comboBoxModelCollection);
 		if (parameters.getProcessAttributeValues() instanceof TreeMultiSet) {
 			comboBoxCollection.setSelectedIndex(1);
@@ -223,9 +243,12 @@ public class AddProcessAttributeDialog extends JPanel {
 		comboBoxCollection.setPreferredSize(new Dimension(500, 30));
 		this.add(comboBoxCollection, "0, " + (y++));
 
+		/*
+		 * Add a slider to select the maximal collection size. Max-max is 100.
+		 */
 		this.add(new JLabel("Select collection maximal size:"), "0, " + (y++));
-		final NiceSlider maxSlider = SlickerFactory.instance().createNiceIntegerSlider("Max", 0,
-				100, parameters.getMaxCollectionSize(), Orientation.HORIZONTAL);
+		final NiceSlider maxSlider = SlickerFactory.instance().createNiceIntegerSlider("Max", 0, 100,
+				parameters.getMaxCollectionSize(), Orientation.HORIZONTAL);
 		maxSlider.addChangeListener(new ChangeListener() {
 
 			public void stateChanged(ChangeEvent e) {
@@ -235,11 +258,23 @@ public class AddProcessAttributeDialog extends JPanel {
 		maxSlider.setPreferredSize(new Dimension(500, 30));
 		this.add(maxSlider, "0, " + (y++));
 
+		/*
+		 * Update the values filter on the right-hand side.
+		 */
 		updateValues(log, parameters);
 	}
 
+	/*
+	 * Updates the values filter on the right-hand side.
+	 */
 	private void updateValues(final XLog log, final AddProcessAttributeParameters parameters) {
+		/*
+		 * Set to hold the values.
+		 */
 		Set<String> values = new HashSet<String>();
+		/*
+		 * Collect the value for every event in every trace.
+		 */
 		for (XTrace trace : log) {
 			for (XEvent event : trace) {
 				StringBuffer buffer = new StringBuffer();
@@ -253,9 +288,16 @@ public class AddProcessAttributeDialog extends JPanel {
 				values.add(buffer.toString());
 			}
 		}
+		/*
+		 * Copy the values in a list, and sort them. Eases look-up.
+		 */
 		List<String> sortedValues = new ArrayList<String>(values);
 		Collections.sort(sortedValues);
-		
+
+		/*
+		 * Add a multi-selection box for the values with all values selected.
+		 * Selected values are included in the filter.
+		 */
 		DefaultListModel<String> valuesModel = new DefaultListModel<String>();
 		int[] selectedIndices = new int[sortedValues.size()];
 		int i = 0;
@@ -281,7 +323,10 @@ public class AddProcessAttributeDialog extends JPanel {
 		}
 		this.add(valuesList, "1, 0, 1, 14");
 		oldValuesList = valuesList;
-		
+
+		/*
+		 * Wrapping up.
+		 */
 		this.revalidate();
 		this.repaint();
 	}

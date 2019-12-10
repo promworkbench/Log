@@ -11,14 +11,35 @@ import org.deckfour.xes.model.XTrace;
 
 public class AddProcessAttributeParameters {
 
+	/*
+	 * The key of the attribute to add.
+	 */
 	private String processAttributeKey;
+	/*
+	 * The key of the existing attributes to include.
+	 */
 	private String[] attributeKeys;
+	/*
+	 * The collection to use for collecting the values.
+	 */
 	private Collection<String> processAttributeValues;
+	/*
+	 * The collection of values that may be collected. 
+	 */
 	private Collection<String> processAttributeValueFilter;
+	/*
+	 * The maximal size of the collection.
+	 */
 	private int maxCollectionSize;
+	/*
+	 * Whether history (true) or future (false) attribute.
+	 */
 	private boolean isBackward;
 	
 	public AddProcessAttributeParameters(XLog log) {
+		/*
+		 * Set reasonable default values.
+		 */
 		setProcessAttributeKey("history");
 		setBackward(true);
 		setAttributeKeys(new String[]{ "concept:name" });
@@ -35,6 +56,10 @@ public class AddProcessAttributeParameters {
 		}
 		setProcessAttributeValueFilter(filter);
 	}
+	
+	/*
+	 * Getters and setters.
+	 */
 	
 	public String getProcessAttributeKey() {
 		return processAttributeKey;
