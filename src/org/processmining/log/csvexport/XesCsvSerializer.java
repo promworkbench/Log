@@ -160,6 +160,7 @@ public final class XesCsvSerializer implements XSerializer {
 					//}
 				} else {
 					// ignore we only export start and complete
+					continue;
 				}
 				traceList.add(currentRow);
 			}
