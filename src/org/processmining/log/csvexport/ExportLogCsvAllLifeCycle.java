@@ -13,7 +13,7 @@ import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginLevel;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 
-@Plugin(name = "Export Log to CSV File (all life-cycle events)", level= PluginLevel.Regular, parameterLabels = { "Log", "File" }, returnLabels = {}, returnTypes = {}, userAccessible = true)
+@Plugin(name = "Export Log to CSV File (all life-cycle events)", level= PluginLevel.PeerReviewed, parameterLabels = { "Log", "File" }, returnLabels = {}, returnTypes = {}, userAccessible = true)
 @UIExportPlugin(description = "CSV files (all life-cycle events)", extension = "csv")
 public final class ExportLogCsvAllLifeCycle {
 	
