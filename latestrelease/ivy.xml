@@ -1,7 +1,7 @@
 <ivy-module version="2.0">
     <info organisation="prom" module="Log" revision="latest">
     	<description>
-    		Version 6.14.2
+    		Version 6.14.3
     	</description>
     </info>
     <configurations>
@@ -14,7 +14,8 @@
        <dependency org="prom" name="BasicUtils" rev="latest" changing="true" transitive="true" />
        <dependency org="prom" name="Widgets" rev="latest" changing="true" transitive="true" />
        <dependency org="prom" name="Saxon" rev="latest" changing="true" transitive="true" />
-       <dependency conf="lib->default" org="prom-libs" name="OpenXES" rev="20211004" transitive="false" />
+       <dependency org="prom" name="OpenXES" rev="latest" changing="true" transitive="true" />
+       <!--dependency conf="lib->default" org="prom-libs" name="OpenXES" rev="20211004" transitive="false" /-->
        <!--dependency conf="lib->default" org="prom-libs" name="OpenXES-XStream" rev="20180810" transitive="false" /-->
     </dependencies>
 </ivy-module>
