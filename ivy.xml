@@ -14,7 +14,8 @@
        <dependency org="prom" name="BasicUtils" rev="latest" changing="true" transitive="true" />
        <dependency org="prom" name="Widgets" rev="latest" changing="true" transitive="true" />
        <dependency org="prom" name="Saxon" rev="latest" changing="true" transitive="true" />
-       <dependency conf="lib->default" org="prom-libs" name="OpenXES" rev="20211004" transitive="false" />
+       <dependency org="prom" name="OpenXES" rev="latest" changing="true" transitive="true" />
+       <!--dependency conf="lib->default" org="prom-libs" name="OpenXES" rev="20211004" transitive="false" /-->
        <!--dependency conf="lib->default" org="prom-libs" name="OpenXES-XStream" rev="20180810" transitive="false" /-->
     </dependencies>
 </ivy-module>
